@@ -5,6 +5,7 @@ import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.Optional;
 
 import javafx.application.Application;
 import javafx.event.*;
@@ -13,6 +14,8 @@ import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -25,6 +28,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class Main extends Application {
 
@@ -122,11 +126,24 @@ public class Main extends Application {
         StackPane.setMargin(label, new Insets(5, 10, 5, 5));
         root.getChildren().add(label);
 
-
         Scene scene = new Scene(root, 800, 600);
         scene.setFill(Color.BLACK);
         primaryStage.setScene(scene);
         primaryStage.maximizedProperty().addListener((observable) -> {if (primaryStage.isMaximized()) primaryStage.setFullScreen(true);});
+        primaryStage.setOnCloseRequest((event) -> {
+            Alert closeAlert = new Alert(AlertType.NONE, "Move all files now before closing?\n" +
+            "'No' keeps the files unchanged, but discards your work here.",
+            ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+            closeAlert.setHeaderText("Move files now?");
+            Optional<ButtonType> result = closeAlert.showAndWait();
+            if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
+                //prevent close
+                event.consume();
+            } else if (result.get() == ButtonType.YES) {
+                //rename and close!
+                System.out.println("RENAME NOW");
+            }
+        });
         primaryStage.show();
 
         //DirectoryChooser ch = new DirectoryChooser();
