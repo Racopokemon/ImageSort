@@ -38,6 +38,7 @@ public class Main extends Application {
     private Hashtable<String, RotatedImage> imageBuffer; //holds the current image and some images before and after it, updated with every loadImage. 
     //we use here that javaFX images already load in the background and provide an empty image until they finished loading, so just creating  and 
     //updating references to the (probably still loading) images is enough. 
+    private static final int IMAGE_BUFFER_SIZE = 4; //this many images before, and also this many after the current are already being loaded
 
     private ImageView view;
     private StackPane root;
@@ -63,6 +64,7 @@ public class Main extends Application {
             }
         };
         imageCategory = new Hashtable<>();
+        imageBuffer = new Hashtable<>();
 
         primaryStage.setTitle("Image Sort");
 
@@ -136,22 +138,44 @@ public class Main extends Application {
 
         updateFilesList();
         
-        nextImage();
+        loadImage();
 
         //ToDo: Dont do this automatically, have two modes
         primaryStage.setFullScreen(true);
     }
 
     private void loadImage() {
-        // loading itself is simple
-        File img = new File (getFullPathForImage(currentImage));
-        view.setImage(new Image(img.toURI().toString(), false));
-        // but for weird reasons javafx does not support the exif orientation flag, which my cam already uses by 2014. 
-        // (and which is also automatically used by windows in all previews and viewers)
-        // ... so we have an external lib for it, and adapt the behavior of the image view to it
+        //Step 1: We update the imageBuffer, which essentially does the actual image loading
+        //If nothing has changed, thats no problem at all, but if it has, its already launched here
+
+        int currentImageIndex = getCurrentImageIndex();
+        Hashtable<String, RotatedImage> newImageBuffer = new Hashtable<>();
+
+        for (int cursor = -IMAGE_BUFFER_SIZE; cursor <= IMAGE_BUFFER_SIZE; cursor++) {
+            int actualIndex = (currentImageIndex + cursor) % images.size();
+            if (actualIndex < 0) {
+                actualIndex += images.size();
+            }
+            String imageNameAtCursor = images.get(actualIndex);
+            if (imageBuffer.containsKey(imageNameAtCursor)) {
+                newImageBuffer.put(imageNameAtCursor, imageBuffer.get(imageNameAtCursor));
+            } else {
+                newImageBuffer.put(imageNameAtCursor, new RotatedImage(new File (getFullPathForImage(imageNameAtCursor))));
+            }
+        }
+        imageBuffer = newImageBuffer; //this also discards all images only on the old imageBuffer
+
+        ///Even though we have this buffering and everything runs in background, it sometimes still lags for a sec until we get the next pic. 
+        ///I think this comes from something I cant influence, since it also happens with pics that should be constantly loaded already 
+        ///and the pictures dont show up from black, but just late. maybe the images are loaded onto the gpu for hardware acc rendering or so.
+
+        //Step 2: the imageBuffer also contains the current image. If it was just added, or already
+        //preloaded before, or still loading, who cares. We just show it! (If its still loading, it will show once its ready)
+        RotatedImage img = imageBuffer.get(currentImage);
+        view.setImage(img);
         
         boolean ninetyDegrees = false;
-        switch (orientation) {
+        switch (img.getOrientation()) {
             case 1: case 2:
                 view.setRotate(0);
                 ninetyDegrees = false;

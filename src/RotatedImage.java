@@ -13,9 +13,15 @@ public class RotatedImage extends Image {
     private int orientation = 1;
 
     public RotatedImage(File file) {
+        // loading itself is simple (its all done in the Image class already, also that its loading in background and showing an empty pic until then)
         super(file.toURI().toString(), true);
+        // but for weird reasons javafx does not support the exif orientation flag, which my cam already uses by 2014. 
+        // (and which is also automatically used by windows in all previews and viewers)
+        // ... so we have an external lib for it, and adapt the behavior of the image view to it
+
         //orientation meanings: https://jdhao.github.io/2019/07/31/image_rotation_exif_info/
         // obtain the Exif directory
+        
         Metadata metadata;
         try {
             metadata = ImageMetadataReader.readMetadata(file);
