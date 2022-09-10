@@ -23,6 +23,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -106,6 +108,16 @@ public class Main extends Application {
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
                     view.setViewport(new Rectangle2D(0, 0, 500, 500));
+                } else if (event.getButton() == MouseButton.SECONDARY) {
+                    //Desktop.getDesktop().browseFileDirectory(<file>) would be better, cross platform, but requires java 9 and im too lazy to install now
+                    if (System.getProperty("os.name").startsWith("Windows")) {
+                        try {
+                            Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForImage(currentImage));
+                        } catch (IOException e) {
+                            System.out.println("Could not show file " + currentImage + " in explorer:");
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         });
@@ -121,13 +133,13 @@ public class Main extends Application {
         label.setFont(new Font(38));
         label.setFill(Color.WHITE);
         label.setStroke(Color.BLACK);
-        label.setStrokeWidth(1.5);
+        label.setStrokeWidth(1.1);
         StackPane.setAlignment(label, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(label, new Insets(5, 10, 5, 5));
         root.getChildren().add(label);
 
         Scene scene = new Scene(root, 800, 600);
-        scene.setFill(Color.BLACK);
+        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         primaryStage.setScene(scene);
         primaryStage.maximizedProperty().addListener((observable) -> {if (primaryStage.isMaximized()) primaryStage.setFullScreen(true);});
         primaryStage.setOnCloseRequest((event) -> {
@@ -140,8 +152,9 @@ public class Main extends Application {
                 //prevent close
                 event.consume();
             } else if (result.get() == ButtonType.YES) {
-                //rename and close!
-                System.out.println("RENAME NOW");
+                //rename (closes automatically on return)
+                moveAllFiles();
+                new Alert(AlertType.NONE, "Consider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
             }
         });
         primaryStage.show();
@@ -156,6 +169,16 @@ public class Main extends Application {
         updateFilesList();
         
         loadImage();
+
+        Alert useInfo = new Alert(AlertType.NONE, null, ButtonType.OK);
+        useInfo.setHeaderText("How to use");
+        useInfo.setContentText(
+            "Arrow keys to look through images and change target folder. \n"+
+            "Del or Backspace to instantly move to a 'delete' folder. \n"+
+            "Click to zoom. Right click to show in explorer. \n"+
+            "Close the window to apply all moves (with confirmation).\n"
+        );
+        useInfo.showAndWait();
 
         //ToDo: Dont do this automatically, have two modes
         primaryStage.setFullScreen(true);
@@ -299,6 +322,7 @@ public class Main extends Application {
             File origin = new File(path);
             File dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + currentImage);
             origin.renameTo(dest);
+            imageCategory.remove(currentImage);
         } catch (Exception e) {
             System.out.println("Could not move image "+currentImage+"to 'deleted' folder: ");
             e.printStackTrace();
@@ -326,5 +350,34 @@ public class Main extends Application {
         //ToDo put a real handling here..
         new Alert(AlertType.INFORMATION, "No images in the directory. Closing now.").showAndWait();
         System.exit(0);
+    }
+
+    //The final call, that actually executes all the move operations. 
+    //Right now it is only possible to do this on close (which makes sense, after that the program would close anyway)
+    private void moveAllFiles() {
+        for (String key : imageCategory.keySet()) {
+            int category = imageCategory.get(key);
+            if (category != 0) {
+                //if folder doesnt exist: create. 
+                String dirPath = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + category;
+                File dir = new File(dirPath);
+                if (!dir.exists()) {
+                    try {
+                        dir.mkdir();
+                    } catch (Exception e) {
+                        System.out.println("Could not create folder for category " + category);
+                        e.printStackTrace();
+                    }
+                }
+                File origin = new File(getFullPathForImage(key));
+                File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + key);
+                try {
+                    origin.renameTo(dest);
+                } catch (Exception e) {
+                    System.out.println("Could not move file " + key + " to category folder "+ category);
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }
