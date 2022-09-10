@@ -47,9 +47,11 @@ public class Main extends Application {
     private double zoom = 3.2;
     private boolean isZooming = false;
     private double mouseRelativeX, mouseRelativeY;
+    private static final double MIN_ZOOM = 1.1;
+    private static final double MAX_ZOOM = 10;
 
     private ImageView view;
-    private StackPane root;
+    private StackPane zoomPane;
     private Text label;
 
     public static void main(String[] args) {        
@@ -82,14 +84,14 @@ public class Main extends Application {
             // move file to folder (if not exist, create)
             // update list
 
-        root = new StackPane();
+        zoomPane = new StackPane();
         view = new ImageView();
         view.setPreserveRatio(true);
         view.setSmooth(true);
         view.setCache(true);
-        root.getChildren().add(view);
+        zoomPane.getChildren().add(view);
 
-        root.setOnKeyPressed(new EventHandler<KeyEvent>() {
+        zoomPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
                 if (event.getCode() == KeyCode.RIGHT) {
@@ -114,7 +116,7 @@ public class Main extends Application {
                 //}
             }
         });
-        root.setOnMousePressed(new EventHandler<MouseEvent>() {
+        zoomPane.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
@@ -125,24 +127,32 @@ public class Main extends Application {
                 }
             }
         });
-        root.setOnScroll(new EventHandler<ScrollEvent>() {
+        zoomPane.setOnScroll(new EventHandler<ScrollEvent>() {
             @Override
             public void handle(ScrollEvent event) {
-                if (event.getDeltaY() > 0) {
-                    increaseZoom(event.getDeltaY());
-                } else if (event.getDeltaY() < 0) {
-                    decreaseZoom(-event.getDeltaY());
+                if (isZooming) {
+                    if (event.getDeltaY() > 0) {
+                        increaseZoom(event.getDeltaY());
+                    } else if (event.getDeltaY() < 0) {
+                        decreaseZoom(-event.getDeltaY());
+                    }
+                } else {
+                    if (event.getDeltaY() >= 10) {
+                        nextImage();
+                    } else if (event.getDeltaY() <= -10) {
+                        prevImage();
+                    }
                 }
             }
         });
-        root.setOnMouseDragged(new EventHandler<MouseEvent>() {
+        zoomPane.setOnMouseDragged(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 setMousePosition(event);
                 zoomIn();
             }
         });
-        root.setOnMouseReleased(new EventHandler<MouseEvent>() {
+        zoomPane.setOnMouseReleased(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
@@ -157,10 +167,12 @@ public class Main extends Application {
         label.setStrokeWidth(1.1);
         StackPane.setAlignment(label, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(label, new Insets(5, 10, 5, 5));
+        StackPane root = new StackPane();
+        root.getChildren().add(zoomPane);
         root.getChildren().add(label);
 
         Scene scene = new Scene(root, 800, 600);
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+        zoomPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         stage.setScene(scene);
         stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
         stage.setOnCloseRequest((event) -> {
@@ -208,36 +220,36 @@ public class Main extends Application {
 
     // Zooms into the whole scene (the easy way, just setting the scale properties)
     private void zoomIn() {
-        double width = root.getWidth();
-        double height = root.getHeight();
+        double width = zoomPane.getWidth();
+        double height = zoomPane.getHeight();
         double spaceX = (width*zoom) - (width);
         double spaceY = (height*zoom) - (height);
         double relTransX = -(mouseRelativeX - 0.5);
         double relTransY = -(mouseRelativeY - 0.5);
 
-        root.setScaleX(zoom);
-        root.setScaleY(zoom);
+        zoomPane.setScaleX(zoom);
+        zoomPane.setScaleY(zoom);
 
-        root.setTranslateX(spaceX * relTransX);
-        root.setTranslateY(spaceY * relTransY);
+        zoomPane.setTranslateX(spaceX * relTransX);
+        zoomPane.setTranslateY(spaceY * relTransY);
 
-        root.setCursor(Cursor.NONE);
+        zoomPane.setCursor(Cursor.NONE);
         isZooming = true;
     }
     // Resets the zoom to the usual 1:1 in the app
     private void zoomOut() {
-        root.setScaleX(1);
-        root.setScaleY(1);
-        root.setTranslateX(0);
-        root.setTranslateY(0);
+        zoomPane.setScaleX(1);
+        zoomPane.setScaleY(1);
+        zoomPane.setTranslateX(0);
+        zoomPane.setTranslateY(0);
 
-        root.setCursor(Cursor.DEFAULT);
+        zoomPane.setCursor(Cursor.DEFAULT);
         isZooming = false;
     }
     private void increaseZoom(double scale) {
         zoom *= Math.pow(1.01, scale);
-        if (zoom > 10) {
-            zoom = 10;
+        if (zoom > MAX_ZOOM) {
+            zoom = MAX_ZOOM;
         }
         if (isZooming) {
             zoomIn();
@@ -245,8 +257,8 @@ public class Main extends Application {
     }
     private void decreaseZoom(double scale) {
         zoom /= Math.pow(1.01, scale);
-        if (zoom < 1.1) {
-            zoom = 1.1;
+        if (zoom < MIN_ZOOM) {
+            zoom = MIN_ZOOM;
         }
         if (isZooming) {
             zoomIn();
@@ -257,8 +269,8 @@ public class Main extends Application {
     //because when the zoom (scale) changes, we don't get new information on
     //the mouse, but need to update the zoom based on the mouse position
     private  void setMousePosition(MouseEvent event) {
-        mouseRelativeX = event.getSceneX() / root.getWidth();
-        mouseRelativeY = event.getSceneY() / root.getHeight();
+        mouseRelativeX = event.getSceneX() / zoomPane.getWidth();
+        mouseRelativeY = event.getSceneY() / zoomPane.getHeight();
     }
 
     private void showInExplorer() {
@@ -329,11 +341,11 @@ public class Main extends Application {
         view.fitHeightProperty().unbind();
         view.fitWidthProperty().unbind();
         if (ninetyDegrees) {
-            view.fitWidthProperty().bind(root.heightProperty());
-            view.fitHeightProperty().bind(root.widthProperty());
+            view.fitWidthProperty().bind(zoomPane.heightProperty());
+            view.fitHeightProperty().bind(zoomPane.widthProperty());
         } else {
-            view.fitWidthProperty().bind(root.widthProperty());
-            view.fitHeightProperty().bind(root.heightProperty());
+            view.fitWidthProperty().bind(zoomPane.widthProperty());
+            view.fitHeightProperty().bind(zoomPane.heightProperty());
         }
 
         updateLabel();
