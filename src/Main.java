@@ -29,6 +29,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -220,9 +221,8 @@ public class Main extends Application {
         });
         stage.show();
 
-        //DirectoryChooser ch = new DirectoryChooser();
-        //directory = ch.showDialog(primaryStage);
-        directory = new File("D:\\Mein Terrarium\\Bilder\\Fotos\\2022_09 Hartzerwoche in Aachen - Kopie");
+        DirectoryChooser ch = new DirectoryChooser();
+        directory = ch.showDialog(stage);
         delDirectory = new File(directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + "delete");
 
         view.requestFocus();
