@@ -26,6 +26,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -137,9 +138,9 @@ public class Main extends Application {
                         decreaseZoom(-event.getDeltaY());
                     }
                 } else {
-                    if (event.getDeltaY() >= 10) {
+                    if (event.getDeltaY() >= 4) {
                         nextImage();
-                    } else if (event.getDeltaY() <= -10) {
+                    } else if (event.getDeltaY() <= -4) {
                         prevImage();
                     }
                 }
@@ -167,9 +168,30 @@ public class Main extends Application {
         label.setStrokeWidth(1.1);
         StackPane.setAlignment(label, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(label, new Insets(5, 10, 5, 5));
+        
+        Rectangle scrollAbsorber = new Rectangle(200, 70, Color.TRANSPARENT);
+        StackPane.setAlignment(scrollAbsorber, Pos.BOTTOM_RIGHT);
+        scrollAbsorber.setOnScroll((event) -> {
+            if (event.getDeltaY() >= 4) {
+                incrementCurrentImageCategory();
+            } else if (event.getDeltaY() <= -4) {
+                decrementCurrentImageCategory();
+            }
+        });
+        scrollAbsorber.setOnMouseEntered((event) -> {label.setStroke(Color.GRAY);});
+        scrollAbsorber.setOnMouseExited((event) -> {label.setStroke(Color.BLACK);});
+        scrollAbsorber.setOnMousePressed((event) -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                incrementCurrentImageCategory();
+            } else if (event.getButton() == MouseButton.SECONDARY) {
+                decrementCurrentImageCategory();
+            }
+        });
+
         StackPane root = new StackPane();
         root.getChildren().add(zoomPane);
         root.getChildren().add(label);
+        root.getChildren().add(scrollAbsorber);
 
         Scene scene = new Scene(root, 800, 600);
         zoomPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
