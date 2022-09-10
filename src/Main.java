@@ -53,6 +53,7 @@ public class Main extends Application {
 
     private ImageView view;
     private StackPane zoomPane;
+    private StackPane root;
     private Text label;
 
     public static void main(String[] args) {        
@@ -95,13 +96,13 @@ public class Main extends Application {
         zoomPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
-                if (event.getCode() == KeyCode.RIGHT) {
+                if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
                     nextImage();
-                } else if (event.getCode() == KeyCode.LEFT) {
+                } else if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
                     prevImage();
-                } else if (event.getCode() == KeyCode.UP) {
+                } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
                     incrementCurrentImageCategory();
-                } else if (event.getCode() == KeyCode.DOWN) {
+                } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.S) {
                     decrementCurrentImageCategory();
                 } else if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
                     deleteImage();
@@ -188,7 +189,7 @@ public class Main extends Application {
             }
         });
 
-        StackPane root = new StackPane();
+        root = new StackPane();
         root.getChildren().add(zoomPane);
         root.getChildren().add(label);
         root.getChildren().add(scrollAbsorber);
@@ -228,7 +229,7 @@ public class Main extends Application {
         Alert useInfo = new Alert(AlertType.NONE, null, ButtonType.OK);
         useInfo.setHeaderText("How to use");
         useInfo.setContentText(
-            "Arrow keys to look through images and change target folder. \n"+
+            "Arrow keys or WASD to look through images and change target folder. \n"+
             "Del or Backspace to instantly move to a 'delete' folder. \n"+
             "Right click to show in explorer. Click to zoom. \n"+
             "Scroll, + and - to change the zoom strength. \n"+
@@ -293,6 +294,8 @@ public class Main extends Application {
     private  void setMousePosition(MouseEvent event) {
         mouseRelativeX = event.getSceneX() / zoomPane.getWidth();
         mouseRelativeY = event.getSceneY() / zoomPane.getHeight();
+        mouseRelativeX = Math.max(Math.min(mouseRelativeX, 1), 0);
+        mouseRelativeY = Math.max(Math.min(mouseRelativeY, 1), 0);
     }
 
     private void showInExplorer() {
@@ -363,11 +366,11 @@ public class Main extends Application {
         view.fitHeightProperty().unbind();
         view.fitWidthProperty().unbind();
         if (ninetyDegrees) {
-            view.fitWidthProperty().bind(zoomPane.heightProperty());
-            view.fitHeightProperty().bind(zoomPane.widthProperty());
+            view.fitWidthProperty().bind(root.heightProperty());
+            view.fitHeightProperty().bind(root.widthProperty());
         } else {
-            view.fitWidthProperty().bind(zoomPane.widthProperty());
-            view.fitHeightProperty().bind(zoomPane.heightProperty());
+            view.fitWidthProperty().bind(root.widthProperty());
+            view.fitHeightProperty().bind(root.heightProperty());
         }
 
         updateLabel();
