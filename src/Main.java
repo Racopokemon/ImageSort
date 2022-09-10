@@ -11,18 +11,17 @@ import javafx.application.Application;
 import javafx.event.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
@@ -30,7 +29,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 public class Main extends Application {
 
@@ -46,6 +44,10 @@ public class Main extends Application {
     //updating references to the (probably still loading) images is enough. 
     private static final int IMAGE_BUFFER_SIZE = 4; //this many images before, and also this many after the current are already being loaded
 
+    private double zoom = 3.2;
+    private boolean isZooming = false;
+    private double mouseRelativeX, mouseRelativeY;
+
     private ImageView view;
     private StackPane root;
     private Text label;
@@ -55,7 +57,7 @@ public class Main extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage stage) {
         filter = new FilenameFilter() {
             @Override
             public boolean accept(File f, String name) {
@@ -72,7 +74,7 @@ public class Main extends Application {
         imageCategory = new Hashtable<>();
         imageBuffer = new Hashtable<>();
 
-        primaryStage.setTitle("Image Sort");
+        stage.setTitle("Image Sort");
 
         // listen to del / space (move to folders each)
             // store current file
@@ -100,32 +102,51 @@ public class Main extends Application {
                     decrementCurrentImageCategory();
                 } else if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
                     deleteImage();
+                } else if (event.getCode() == KeyCode.PLUS) {
+                    increaseZoom(40);
+                } else if (event.getCode() == KeyCode.MINUS) {
+                    decreaseZoom(40);
                 }
+                //else if (event.getCode() == KeyCode.ESCAPE) {
+                //    if (!stage.isFullScreen()) {
+                //        stage.fireEvent(new WindowEvent(stage,WindowEvent.WINDOW_CLOSE_REQUEST));
+                //    }
+                //}
             }
         });
         root.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
-                    view.setViewport(new Rectangle2D(0, 0, 500, 500));
+                    setMousePosition(event);
+                    zoomIn();
                 } else if (event.getButton() == MouseButton.SECONDARY) {
-                    //Desktop.getDesktop().browseFileDirectory(<file>) would be better, cross platform, but requires java 9 and im too lazy to install now
-                    if (System.getProperty("os.name").startsWith("Windows")) {
-                        try {
-                            Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForImage(currentImage));
-                        } catch (IOException e) {
-                            System.out.println("Could not show file " + currentImage + " in explorer:");
-                            e.printStackTrace();
-                        }
-                    }
+                    showInExplorer();
                 }
+            }
+        });
+        root.setOnScroll(new EventHandler<ScrollEvent>() {
+            @Override
+            public void handle(ScrollEvent event) {
+                if (event.getDeltaY() > 0) {
+                    increaseZoom(event.getDeltaY());
+                } else if (event.getDeltaY() < 0) {
+                    decreaseZoom(-event.getDeltaY());
+                }
+            }
+        });
+        root.setOnMouseDragged(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                setMousePosition(event);
+                zoomIn();
             }
         });
         root.setOnMouseReleased(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
-                    view.setViewport(null);
+                    zoomOut();
                 }
             }
         });
@@ -140,9 +161,9 @@ public class Main extends Application {
 
         Scene scene = new Scene(root, 800, 600);
         root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
-        primaryStage.setScene(scene);
-        primaryStage.maximizedProperty().addListener((observable) -> {if (primaryStage.isMaximized()) primaryStage.setFullScreen(true);});
-        primaryStage.setOnCloseRequest((event) -> {
+        stage.setScene(scene);
+        stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
+        stage.setOnCloseRequest((event) -> {
             Alert closeAlert = new Alert(AlertType.NONE, "Move all files now before closing?\n" +
             "'No' keeps the files unchanged, but discards your work here.",
             ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
@@ -157,7 +178,7 @@ public class Main extends Application {
                 new Alert(AlertType.NONE, "Consider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
             }
         });
-        primaryStage.show();
+        stage.show();
 
         //DirectoryChooser ch = new DirectoryChooser();
         //directory = ch.showDialog(primaryStage);
@@ -175,13 +196,81 @@ public class Main extends Application {
         useInfo.setContentText(
             "Arrow keys to look through images and change target folder. \n"+
             "Del or Backspace to instantly move to a 'delete' folder. \n"+
-            "Click to zoom. Right click to show in explorer. \n"+
+            "Right click to show in explorer. Click to zoom. \n"+
+            "Scroll, + and - to change the zoom strength. \n"+
             "Close the window to apply all moves (with confirmation).\n"
         );
         useInfo.showAndWait();
 
         //ToDo: Dont do this automatically, have two modes
-        primaryStage.setFullScreen(true);
+        stage.setFullScreen(true);
+    }
+
+    // Zooms into the whole scene (the easy way, just setting the scale properties)
+    private void zoomIn() {
+        double width = root.getWidth();
+        double height = root.getHeight();
+        double spaceX = (width*zoom) - (width);
+        double spaceY = (height*zoom) - (height);
+        double relTransX = -(mouseRelativeX - 0.5);
+        double relTransY = -(mouseRelativeY - 0.5);
+
+        root.setScaleX(zoom);
+        root.setScaleY(zoom);
+
+        root.setTranslateX(spaceX * relTransX);
+        root.setTranslateY(spaceY * relTransY);
+
+        root.setCursor(Cursor.NONE);
+        isZooming = true;
+    }
+    // Resets the zoom to the usual 1:1 in the app
+    private void zoomOut() {
+        root.setScaleX(1);
+        root.setScaleY(1);
+        root.setTranslateX(0);
+        root.setTranslateY(0);
+
+        root.setCursor(Cursor.DEFAULT);
+        isZooming = false;
+    }
+    private void increaseZoom(double scale) {
+        zoom *= Math.pow(1.01, scale);
+        if (zoom > 10) {
+            zoom = 10;
+        }
+        if (isZooming) {
+            zoomIn();
+        }
+    }
+    private void decreaseZoom(double scale) {
+        zoom /= Math.pow(1.01, scale);
+        if (zoom < 1.1) {
+            zoom = 1.1;
+        }
+        if (isZooming) {
+            zoomIn();
+        }
+    }
+    //Sets the mouse position from the given MouseEvent. 
+    //We store it externally and dont simply pass it over when zooming in,
+    //because when the zoom (scale) changes, we don't get new information on
+    //the mouse, but need to update the zoom based on the mouse position
+    private  void setMousePosition(MouseEvent event) {
+        mouseRelativeX = event.getSceneX() / root.getWidth();
+        mouseRelativeY = event.getSceneY() / root.getHeight();
+    }
+
+    private void showInExplorer() {
+        //Desktop.getDesktop().browseFileDirectory(<file>) would be better, cross platform, but requires java 9 and im too lazy to install now
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            try {
+                Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForImage(currentImage));
+            } catch (IOException e) {
+                System.out.println("Could not show file " + currentImage + " in explorer:");
+                e.printStackTrace();
+            }
+        }
     }
 
     private void loadImage() {
