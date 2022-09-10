@@ -55,6 +55,7 @@ public class Main extends Application {
     private StackPane zoomPane;
     private StackPane root;
     private Text label;
+    private static final Color HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
 
     public static void main(String[] args) {        
         launch(args);
@@ -140,9 +141,9 @@ public class Main extends Application {
                     }
                 } else {
                     if (event.getDeltaY() >= 4) {
-                        nextImage();
-                    } else if (event.getDeltaY() <= -4) {
                         prevImage();
+                    } else if (event.getDeltaY() <= -4) {
+                        nextImage();
                     }
                 }
             }
@@ -191,6 +192,10 @@ public class Main extends Application {
 
         root = new StackPane();
         root.getChildren().add(zoomPane);
+        
+        new LRButton(root, true);
+        new LRButton(root, false);
+                
         root.getChildren().add(label);
         root.getChildren().add(scrollAbsorber);
 
@@ -239,6 +244,26 @@ public class Main extends Application {
 
         //ToDo: Dont do this automatically, have two modes
         stage.setFullScreen(true);
+    }
+
+    private class LRButton extends Rectangle {
+        private boolean left;
+        public LRButton(StackPane root, boolean left) {
+            super(100, 10, Color.TRANSPARENT);
+            this.left = left;
+            StackPane.setAlignment(this, left ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
+            heightProperty().bind(root.heightProperty());
+            root.getChildren().add(this);
+            setOnMouseEntered((event) -> {setFill(HALF_TRANSPARENT);});
+            setOnMouseExited((event) -> {setFill(Color.TRANSPARENT);});
+            setOnMouseClicked((event) -> {
+                if (left) {
+                    prevImage();
+                } else {
+                    nextImage();
+                }
+            });
+        }
     }
 
     // Zooms into the whole scene (the easy way, just setting the scale properties)
