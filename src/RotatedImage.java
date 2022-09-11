@@ -27,7 +27,7 @@ public class RotatedImage extends Image {
             metadata = ImageMetadataReader.readMetadata(file);
             if (metadata != null) {
                 ExifIFD0Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-                if (directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
+                if (directory != null && directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
                     orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
                 }
             }
