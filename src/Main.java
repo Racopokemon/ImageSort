@@ -5,6 +5,7 @@ import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Optional;
 
 import javafx.application.Application;
@@ -205,18 +206,27 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
         stage.setOnCloseRequest((event) -> {
-            Alert closeAlert = new Alert(AlertType.NONE, "Move all files now before closing?\n" +
-            "'No' keeps the files unchanged, but discards your work here.",
-            ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-            closeAlert.setHeaderText("Move files now?");
-            Optional<ButtonType> result = closeAlert.showAndWait();
-            if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
-                //prevent close
-                event.consume();
-            } else if (result.get() == ButtonType.YES) {
-                //rename (closes automatically on return)
-                moveAllFiles();
-                new Alert(AlertType.NONE, "Consider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
+            boolean unsavedChanges = false;
+            for (Map.Entry<String, Integer> entry : imageCategory.entrySet()) {
+                if (entry.getValue() != 0) {
+                    unsavedChanges = true;
+                    break;
+                }
+            }
+            if (unsavedChanges) {
+                Alert closeAlert = new Alert(AlertType.NONE, "Move all files now before closing?\n" +
+                "'No' keeps the files unchanged, but discards your work here.",
+                ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+                closeAlert.setHeaderText("Move files now?");
+                Optional<ButtonType> result = closeAlert.showAndWait();
+                if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
+                    //prevent close
+                    event.consume();
+                } else if (result.get() == ButtonType.YES) {
+                    //rename (closes automatically on return)
+                    moveAllFiles();
+                    new Alert(AlertType.NONE, "Consider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
+                }
             }
         });
         stage.show();
@@ -234,7 +244,7 @@ public class Main extends Application {
         Alert useInfo = new Alert(AlertType.NONE, null, ButtonType.OK);
         useInfo.setHeaderText("How to use");
         useInfo.setContentText(
-            "Arrow keys or WASD to look through images and change target folder. \n"+
+            "Arrow keys or WASD to look through images and change target folder (keep in current or move to \\1, \\2 or \\3). \n"+
             "Del or Backspace to instantly move to a 'delete' folder. \n"+
             "Right click to show in explorer. Click to zoom. \n"+
             "Scroll, + and - to change the zoom strength. \n"+
