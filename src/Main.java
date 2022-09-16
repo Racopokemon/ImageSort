@@ -16,6 +16,8 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -127,10 +129,13 @@ public class Main extends Application {
                 if (event.getButton() == MouseButton.PRIMARY) {
                     setMousePosition(event);
                     zoomIn();
-                } else if (event.getButton() == MouseButton.SECONDARY) {
-                    showInExplorer();
+                    event.consume();
                 }
-            }
+                //now theres a fancy context menu for it
+                //else if (event.getButton() == MouseButton.SECONDARY) {
+                //    showInExplorer();
+                //}
+            }//
         });
         zoomPane.setOnScroll(new EventHandler<ScrollEvent>() {
             @Override
@@ -148,13 +153,16 @@ public class Main extends Application {
                         nextImage();
                     }
                 }
+                event.consume();
             }
         });
         zoomPane.setOnMouseDragged(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                setMousePosition(event);
-                zoomIn();
+                if (event.getButton() == MouseButton.PRIMARY) {
+                    setMousePosition(event);
+                    zoomIn();
+                }
             }
         });
         zoomPane.setOnMouseReleased(new EventHandler<MouseEvent>() {
@@ -192,12 +200,30 @@ public class Main extends Application {
             }
         });
 
-        root = new StackPane();
-        root.getChildren().add(zoomPane);
+        Text loadingHint = new Text("loading the image");
+        loadingHint.setFill(Color.GRAY);
         
+        MenuItem menuShowFile = new MenuItem("Show in explorer");
+        menuShowFile.setOnAction((event) -> {showInExplorer();});
+        MenuItem menuDelete = new MenuItem("Move to '/delete'");
+        menuDelete.setOnAction((event) -> {deleteImage();});
+        
+        ContextMenu contextMenu = new ContextMenu(menuShowFile, menuDelete);
+        view.setOnContextMenuRequested((event) -> {
+            contextMenu.show(loadingHint, event.getScreenX(), event.getScreenY());
+            //note that we set loadingHint as anchor and not the view. This is because the context menu hides when
+            //the ancor loses focus, and while zooming and scrolling on the view it doesnt so the context menu stays
+            //so this is a slight hack, just use anything else thats probably not even visible that will instantly lose focus
+        });
+        contextMenu.setAutoHide(true);
+        
+        root = new StackPane();
+        root.getChildren().add(loadingHint);
+        root.getChildren().add(zoomPane);
+
         new LRButton(root, true);
         new LRButton(root, false);
-                
+        
         root.getChildren().add(label);
         root.getChildren().add(scrollAbsorber);
 
@@ -231,8 +257,9 @@ public class Main extends Application {
         });
         stage.show();
 
-        DirectoryChooser ch = new DirectoryChooser();
-        directory = ch.showDialog(stage);
+        //DirectoryChooser ch = new DirectoryChooser();
+        //directory = ch.showDialog(stage);
+        directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
         delDirectory = new File(directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + "delete");
 
         view.requestFocus();
