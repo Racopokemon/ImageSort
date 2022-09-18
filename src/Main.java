@@ -257,9 +257,9 @@ public class Main extends Application {
         });
         stage.show();
 
-        //DirectoryChooser ch = new DirectoryChooser();
-        //directory = ch.showDialog(stage);
-        directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
+        DirectoryChooser ch = new DirectoryChooser();
+        directory = ch.showDialog(stage);
+        //directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
         delDirectory = new File(directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + "delete");
 
         view.requestFocus();
