@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EventListener;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Optional;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
 import javafx.event.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -19,6 +21,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -218,6 +221,7 @@ public class Main extends Application {
         contextMenu.setAutoHide(true);
         
         root = new StackPane();
+        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         root.getChildren().add(loadingHint);
         root.getChildren().add(zoomPane);
 
@@ -228,7 +232,6 @@ public class Main extends Application {
         root.getChildren().add(scrollAbsorber);
 
         Scene scene = new Scene(root, 800, 600);
-        zoomPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         stage.setScene(scene);
         stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
         stage.setOnCloseRequest((event) -> {
@@ -373,6 +376,8 @@ public class Main extends Application {
         }
     }
 
+    private ChangeListener<? super Number> numberListener = (a, b, c) -> {UpdateImageStatus();};
+    private ChangeListener<? super Boolean> booleanListener = (a, b, c) -> {UpdateImageStatus();};
     private void loadImage() {
         //Step 1: We update the imageBuffer, which essentially does the actual image loading
         //If nothing has changed, thats no problem at all, but if it has, its already launched here
@@ -401,7 +406,22 @@ public class Main extends Application {
         //Step 2: the imageBuffer also contains the current image. If it was just added, or already
         //preloaded before, or still loading, who cares. We just show it! (If its still loading, it will show once its ready)
         RotatedImage img = imageBuffer.get(currentImage);
+        Image oldImage = view.getImage();
+        //unregister old image listeners (what if theyre still called?.. okay change the img once i guess and its fixed)
+        if (oldImage != null) {
+            oldImage.progressProperty().removeListener(numberListener);
+            oldImage.heightProperty().removeListener(numberListener);
+            oldImage.errorProperty().removeListener(booleanListener);
+        }
+
+        if (!img.isError() && img.getHeight() == 0) {
+            //means: still loading, need to register listeners because the view might change
+            img.progressProperty().addListener(numberListener);
+            img.heightProperty().addListener(numberListener);
+            img.errorProperty().addListener(booleanListener);
+        }
         view.setImage(img);
+        UpdateImageStatus();
         
         boolean ninetyDegrees = false;
         switch (img.getOrientation()) {
@@ -437,6 +457,20 @@ public class Main extends Application {
         }
 
         updateLabel();
+    }
+
+    private void UpdateImageStatus() {
+        Image img = view.getImage();
+        if (img.getHeight() < 0) {
+            //image already loaded
+
+        } else if (img.isError()) {
+            //error while loading
+
+        } else {
+            //just still loading
+            
+        }
     }
 
     private void updateLabel() {
@@ -526,7 +560,7 @@ public class Main extends Application {
     }
 
     private void updateFilesList() {
-        String sep = FileSystems.getDefault().getSeparator();
+        //String sep = FileSystems.getDefault().getSeparator();
         //files.addAll(directory.list(filter)); //again, this should work. 
         //files = new ArrayList<String>(directory.list(filter)); //or this
         images.clear();
