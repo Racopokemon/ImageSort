@@ -19,7 +19,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -35,6 +37,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
@@ -63,6 +66,9 @@ public class Main extends Application {
     private StackPane root;
     private Text label;
     private static final Color HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
+
+    private ProgressIndicator progress;
+    private Label errorLabel;
 
     public static void main(String[] args) {        
         launch(args);
@@ -202,19 +208,27 @@ public class Main extends Application {
                 decrementCurrentImageCategory();
             }
         });
-
-        Text loadingHint = new Text("loading the image");
-        loadingHint.setFill(Color.GRAY);
+        
+        errorLabel = new Label();
+        errorLabel.setTextFill(Color.RED);
+        errorLabel.setVisible(false);
+        errorLabel.setFont(new Font(15));
+        errorLabel.setTextAlignment(TextAlignment.CENTER);
+        progress = new ProgressIndicator(0.2);
+        progress.setMaxSize(50, 50);
+        progress.setVisible(false);
         
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});
         MenuItem menuDelete = new MenuItem("Move to '/delete'");
         menuDelete.setOnAction((event) -> {deleteImage();});
         
+        Rectangle invisibleContextMenuSource = new Rectangle();
+        invisibleContextMenuSource.setVisible(false);
         ContextMenu contextMenu = new ContextMenu(menuShowFile, menuDelete);
         view.setOnContextMenuRequested((event) -> {
-            contextMenu.show(loadingHint, event.getScreenX(), event.getScreenY());
-            //note that we set loadingHint as anchor and not the view. This is because the context menu hides when
+            contextMenu.show(invisibleContextMenuSource, event.getScreenX(), event.getScreenY());
+            //note that we set invisibleContextMenuSource as anchor and not the view. This is because the context menu hides when
             //the ancor loses focus, and while zooming and scrolling on the view it doesnt so the context menu stays
             //so this is a slight hack, just use anything else thats probably not even visible that will instantly lose focus
         });
@@ -222,7 +236,9 @@ public class Main extends Application {
         
         root = new StackPane();
         root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
-        root.getChildren().add(loadingHint);
+        root.getChildren().add(invisibleContextMenuSource);
+        root.getChildren().add(progress);
+        root.getChildren().add(errorLabel);
         root.getChildren().add(zoomPane);
 
         new LRButton(root, true);
@@ -463,13 +479,20 @@ public class Main extends Application {
         Image img = view.getImage();
         if (img.getHeight() < 0) {
             //image already loaded
-
+            progress.setVisible(false);
+            errorLabel.setVisible(false);
         } else if (img.isError()) {
             //error while loading
-
+            progress.setVisible(false);
+            errorLabel.setVisible(true);
+            errorLabel.setText("Sadly, we could not load " + currentImage + ": \n" + img.getException().getLocalizedMessage());
+            System.out.println("Error occured when loading image " + currentImage);
+            img.getException().printStackTrace();
         } else {
             //just still loading
-            
+            progress.setVisible(true);
+            errorLabel.setVisible(false);
+            progress.setProgress(img.getProgress());
         }
     }
 
