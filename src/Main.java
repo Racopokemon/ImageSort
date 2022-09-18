@@ -275,7 +275,8 @@ public class Main extends Application {
             "Del or Backspace to instantly move to a 'delete' folder. \n"+
             "Right click to show in explorer. Click to zoom. \n"+
             "Scroll, + and - to change the zoom strength. \n"+
-            "Close the window to apply all moves (with confirmation).\n"
+            "Close the window to perform the file operations (you will be asked for confirmation).\n\n"+
+            "Find this project on github.com/Racopokemon/ImageSort"
         );
         useInfo.showAndWait();
 
