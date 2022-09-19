@@ -443,7 +443,14 @@ public class Main extends Application {
                 newImageBuffer.put(imageNameAtCursor, new RotatedImage(new File (getFullPathForImage(imageNameAtCursor))));
             }
         }
-        imageBuffer = newImageBuffer; //this also discards all images only on the old imageBuffer
+        //initially we were cool and didnt have loop, but so it really help when scrolling rapidly through tie pics.
+        for (Map.Entry<String, RotatedImage> e : imageBuffer.entrySet()) {
+            if (!newImageBuffer.containsKey(e.getKey())) {
+                //will be garbage collected. Lets stop the thread manually.
+                e.getValue().cancel();
+            }
+        }
+        imageBuffer = newImageBuffer; //this also discards all images only on the old imageBuffer 
 
         ///Even though we have this buffering and everything runs in background, it sometimes still lags for a sec until we get the next pic. 
         ///I think this comes from something I cant influence, since it also happens with pics that should be constantly loaded already 
@@ -519,7 +526,6 @@ public class Main extends Application {
                 errorLabel.setText("Sadly, we could not load " + currentImage + " because there is not enough memory.\n"+
                 "We are already decreasing the number of preloaded images to counter this, so that you hopfeully \n" +
                 "won't see this message again. ");
-                System.out.println("It occured right now :(");
                 handleMemoryError();
                 loadImage();
             } else {
