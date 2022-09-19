@@ -11,8 +11,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 Yeah, thats it already. But it really comes in handy when you got a bunch of vacation pics and quickly want to select the best ones to share with your friends. 
 
 ## Furter feature ideas
-* Right click context menu  
-  * Show in explorer
+* ~~Right click context menu~~
+  * ~~Show in explorer~~
   * Open with default app
   * (later rotate)
   * Context key also opens it
@@ -34,6 +34,18 @@ Yeah, thats it already. But it really comes in handy when you got a bunch of vac
 * Video support
   * Hopefully not too hard since javafx should be a media library
   * probably no exif rotation?!
+* Copy option
+  * every image can also be copied to the folders a, b, c
+  * clickable, or with the keys
+  * filter also for these folders
+* Progress bar
+  * 127/238 images and a bar (also for the filtered view)
+* Menu bar
+  * only visible in window mode
+  * can rename folders (1, 2, 3, a, b, c) and change quantity
+  * also rename button there
+* Session storage
+  * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
 
 ## Getting Started
 
