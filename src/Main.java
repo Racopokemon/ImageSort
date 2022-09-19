@@ -53,12 +53,15 @@ public class Main extends Application {
     private Hashtable<String, RotatedImage> imageBuffer; //holds the current image and some images before and after it, updated with every loadImage. 
     //we use here that javaFX images already load in the background and provide an empty image until they finished loading, so just creating  and 
     //updating references to the (probably still loading) images is enough. 
-    private static final int IMAGE_BUFFER_SIZE = 4; //this many images before, and also this many after the current are already being loaded
+    private static final int IMAGE_BUFFER_SIZE_MIN = 1; //setting it to 0 ... woah. Well never get to probe the RAM, and if some images load sometimes its still an improvement
+    private static final int IMAGE_BUFFER_SIZE_MAX = 4;
+    private int imageBufferSize = IMAGE_BUFFER_SIZE_MAX; //this many images before, and also this many after the current are already being loaded
+    private int successfullLoadsWithoutMemoryProblems = 0; //we constantly probe if we exceed the memory limits by counting up here, and may increase the buffer
 
-    private double zoom = 3.2;
+    private double zoom = 2.9;
     private boolean isZooming = false;
     private double mouseRelativeX, mouseRelativeY;
-    private static final double MIN_ZOOM = 1.1;
+    private static final double MIN_ZOOM = 1.15;
     private static final double MAX_ZOOM = 10;
 
     private ImageView view;
@@ -392,16 +395,43 @@ public class Main extends Application {
         }
     }
 
-    private ChangeListener<? super Number> numberListener = (a, b, c) -> {UpdateImageStatus();};
-    private ChangeListener<? super Boolean> booleanListener = (a, b, c) -> {UpdateImageStatus();};
+    private ChangeListener<? super Number> numberListener = (a, b, c) -> {updateImageStatus();};
+    private ChangeListener<? super Boolean> booleanListener = (a, b, c) -> {updateImageStatus();};
     private void loadImage() {
+        //Preprocessing: Checking all currently contained images for loading errors due to memory limitations, and mitigation
+        ArrayList<String> entriesToDelete = new ArrayList<>();
+        for (Map.Entry<String, RotatedImage> entry : imageBuffer.entrySet()) {
+            Exception e = entry.getValue().getException();
+            if (e != null && isMemoryException(e)) {
+                entriesToDelete.add(entry.getKey());
+            }
+        }
+        if (!entriesToDelete.isEmpty()) {
+            //Memory errors occured
+            for (String s : entriesToDelete) {
+                imageBuffer.remove(s);
+            }
+            handleMemoryError();
+            successfullLoadsWithoutMemoryProblems--;
+        } else {
+            if (imageBufferSize == 0 || (imageBuffer.containsKey(currentImage) && imageBuffer.get(currentImage).getHeight() > 0)) {
+                //height > 0 means the image has finished loading
+                if (imageBufferSize < IMAGE_BUFFER_SIZE_MAX && ++successfullLoadsWithoutMemoryProblems > 4) {
+                    imageBufferSize++;
+                    successfullLoadsWithoutMemoryProblems = 0;
+                    System.out.println("Incremented imageBufferSize to " + imageBufferSize);
+                }
+            }
+        }
+        //End preprocessing. ... never had these issues on my machine, for reconstruction i limited the jvm heap space
+
         //Step 1: We update the imageBuffer, which essentially does the actual image loading
         //If nothing has changed, thats no problem at all, but if it has, its already launched here
 
         int currentImageIndex = getCurrentImageIndex();
         Hashtable<String, RotatedImage> newImageBuffer = new Hashtable<>();
 
-        for (int cursor = -IMAGE_BUFFER_SIZE; cursor <= IMAGE_BUFFER_SIZE; cursor++) {
+        for (int cursor = -imageBufferSize; cursor <= imageBufferSize; cursor++) {
             int actualIndex = (currentImageIndex + cursor) % images.size();
             if (actualIndex < 0) {
                 actualIndex += images.size();
@@ -437,7 +467,6 @@ public class Main extends Application {
             img.errorProperty().addListener(booleanListener);
         }
         view.setImage(img);
-        UpdateImageStatus();
         
         boolean ninetyDegrees = false;
         switch (img.getOrientation()) {
@@ -449,33 +478,34 @@ public class Main extends Application {
                 view.setRotate(180);
                 ninetyDegrees = false;
                 break;
-            case 5: case 6:
+                case 5: case 6:
                 view.setRotate(90);
                 ninetyDegrees = true;
                 break;
-            case 7: case 8:
+                case 7: case 8:
                 view.setRotate(-90);
                 ninetyDegrees = true;
                 break;
-            default:
+                default:
                 view.setRotate(0);
                 ninetyDegrees = false;
                 break;
-        }
-        view.fitHeightProperty().unbind();
-        view.fitWidthProperty().unbind();
-        if (ninetyDegrees) {
-            view.fitWidthProperty().bind(root.heightProperty());
+            }
+            view.fitHeightProperty().unbind();
+            view.fitWidthProperty().unbind();
+            if (ninetyDegrees) {
+                view.fitWidthProperty().bind(root.heightProperty());
             view.fitHeightProperty().bind(root.widthProperty());
         } else {
             view.fitWidthProperty().bind(root.widthProperty());
             view.fitHeightProperty().bind(root.heightProperty());
         }
-
+        
         updateLabel();
+        updateImageStatus();
     }
-
-    private void UpdateImageStatus() {
+    
+    private void updateImageStatus() {
         Image img = view.getImage();
         if (img.getHeight() < 0) {
             //image already loaded
@@ -485,15 +515,40 @@ public class Main extends Application {
             //error while loading
             progress.setVisible(false);
             errorLabel.setVisible(true);
-            errorLabel.setText("Sadly, we could not load " + currentImage + ": \n" + img.getException().getLocalizedMessage());
-            System.out.println("Error occured when loading image " + currentImage);
-            img.getException().printStackTrace();
+            if (isMemoryException(img.getException())) {
+                errorLabel.setText("Sadly, we could not load " + currentImage + " because there is not enough memory.\n"+
+                "We are already decreasing the number of preloaded images to counter this, so that you hopfeully \n" +
+                "won't see this message again. ");
+                System.out.println("It occured right now :(");
+                handleMemoryError();
+                loadImage();
+            } else {
+                errorLabel.setText("We could not load " + currentImage + ": \n" + img.getException().getLocalizedMessage());
+                System.out.println("Error occured when loading image " + currentImage);
+                img.getException().printStackTrace();
+            }
         } else {
             //just still loading
             progress.setVisible(true);
             errorLabel.setVisible(false);
             progress.setProgress(img.getProgress());
         }
+    }
+
+    private boolean isMemoryException(Exception e) {
+        return e.getMessage().startsWith("java.lang.OutOfMemoryError");
+    }
+
+    //On machines with small amounts of RAM (?) and with big photos, 
+    //loading 4+4+1 images quickly runs into the heap space limitations. 
+    //We check for this issue every time a new image is shown as well as when the current image runs into this error during loading. 
+    //Then this method is called to decrease the buffer number. 
+    //This does however not reload any images or refresh the buffer, that needs to be done in addition to calling here. 
+    private void handleMemoryError() {
+        if (--imageBufferSize < IMAGE_BUFFER_SIZE_MIN) {
+            imageBufferSize = IMAGE_BUFFER_SIZE_MIN;
+        }
+        System.out.println("Reduced imageBufferSize to "+imageBufferSize);
     }
 
     private void updateLabel() {
