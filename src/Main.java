@@ -46,13 +46,18 @@ public class Main extends Application {
     private File directory; 
     private File delDirectory;
     private ArrayList<String> images = new ArrayList<>();
-    private FilenameFilter filter;
-    private String currentImage = "";
+    private ArrayList<String> allImages = new ArrayList<>();
+    private FilenameFilter filenameFilter;
 
-    private Hashtable<String, Integer> imageCategory;
+    private String currentImage = null;
+    private String lastImageManuallySelected = null;
+    private int filter = -1; //-1: No filter. 0: Keep only. 1-3: Only this category. 
+
+    private Hashtable<String, Integer> imageCategory; //images are only added once seen. All not contained images are expected to have category 0. Iterate over allImages for all images instead. 
     private Hashtable<String, RotatedImage> imageBuffer; //holds the current image and some images before and after it, updated with every loadImage. 
     //we use here that javaFX images already load in the background and provide an empty image until they finished loading, so just creating  and 
     //updating references to the (probably still loading) images is enough. 
+
     private static final int IMAGE_BUFFER_SIZE_MIN = 1; //setting it to 0 ... woah. Well never get to probe the RAM, and if some images load sometimes its still an improvement
     private static final int IMAGE_BUFFER_SIZE_MAX = 4;
     private int imageBufferSize = IMAGE_BUFFER_SIZE_MAX; //this many images before, and also this many after the current are already being loaded
@@ -79,7 +84,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-        filter = new FilenameFilter() {
+        filenameFilter = new FilenameFilter() {
             @Override
             public boolean accept(File f, String name) {
                 String[] split = name.split("[.]");
@@ -127,6 +132,10 @@ public class Main extends Application {
                     increaseZoom(40);
                 } else if (event.getCode() == KeyCode.MINUS) {
                     decreaseZoom(40);
+                } else if (event.getCode() == KeyCode.Q) {
+                    previousFilter();
+                } else if (event.getCode() == KeyCode.E) {
+                    nextFilter();
                 }
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {
@@ -288,7 +297,7 @@ public class Main extends Application {
 
         updateFilesList();
         
-        loadImage();
+        updateFilter(); // includes a loadImage() call
 
         Alert useInfo = new Alert(AlertType.NONE, null, ButtonType.OK);
         useInfo.setHeaderText("How to use");
@@ -584,7 +593,60 @@ public class Main extends Application {
         imageCategory.put(currentImage, current);
         updateLabel();    
     }
+    private void nextFilter() {
+        if (++filter > 3) {
+            filter = -1;
+        }
+        updateFilter();
+    }
+    private void previousFilter() {
+        if (--filter < -1) {
+            filter = 3;
+        }
+        updateFilter();
+    }
 
+    private void updateFilter() {
+        //load subset of images, store it. Thats the obvious part. 
+        images.clear();
+        if (filter == -1) {
+            //no filter
+            images.addAll(allImages);
+        } else {
+            for (String i : allImages) {
+                Integer category = imageCategory.get(i);
+                if (category == null) {
+                    category = 0;
+                }
+                if (category == filter) {
+                    images.add(i);
+                }
+            }
+        }
+
+        //actually, this place is the only one where no images can occur, and also the only place where there are images again. 
+        //so we do all the basic organization around it
+        if (images.isEmpty()) {
+            //hide < and > bars
+            currentImage = null;
+        } else {
+            //show < and > bars
+        }
+        //What if the subset is empty? Then there is no image selected, this will cause bugs if we dont search for it in detail. 
+        //how do we even store that there is no image. null string or ""?
+            //getCurrentImageIndex already has a handleNoImages(); call, this needs to be changed
+        //In general, which image do we start with? From the cursor the first to the left or right? What if there is nothing to the left? --> go to the right
+        //We also need to recache the images (as usual, the already preloaded ones will survive)
+        //another TODO: if we open a dir and there are no pics, still show the error and exit. 
+
+        //do we need this call here? 
+        //does it stand showing the same image without reloading it?
+        //what about the fact that the call could occur any time (esp after deleting)
+        //rn im saying yes, replacing loadImage in the init with this call. 
+        loadImage();
+    }
+
+    //in images, not allImages. 
     private int getCurrentImageIndex() {
         int index = images.indexOf(currentImage);
         if (index == -1) {
@@ -605,6 +667,7 @@ public class Main extends Application {
             index = 0;
         }
         currentImage = images.get(index);
+        lastImageManuallySelected = currentImage;
         loadImage();
     }
 
@@ -615,6 +678,7 @@ public class Main extends Application {
             index = images.size() - 1;
         }
         currentImage = images.get(index);
+        lastImageManuallySelected = currentImage;
         loadImage();
     }
 
@@ -647,10 +711,11 @@ public class Main extends Application {
         //String sep = FileSystems.getDefault().getSeparator();
         //files.addAll(directory.list(filter)); //again, this should work. 
         //files = new ArrayList<String>(directory.list(filter)); //or this
-        images.clear();
-        String[] newDir = directory.list(filter);
-        Collections.addAll(images, newDir);
-        Collections.sort(images); //My directory was sorted already, but idk if its always like that, also on other OS
+        allImages.clear();
+        String[] newDir = directory.list(filenameFilter);
+        Collections.addAll(allImages, newDir);
+        Collections.sort(allImages); //My directory was sorted already, but idk if its always like that, also on other OS
+        updateFilter();
     }
 
     private void handleNoImages() {
