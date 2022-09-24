@@ -40,6 +40,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.util.BuilderFactory;
 
 public class Main extends Application {
 
@@ -49,9 +50,10 @@ public class Main extends Application {
     private ArrayList<String> allImages = new ArrayList<>();
     private FilenameFilter filenameFilter;
 
-    private String currentImage = null;
+    private String currentImage = null; //filename OR null if in the current filter category there are no images to show at all
     private String lastImageManuallySelected = null;
     private int filter = -1; //-1: No filter. 0: Keep only. 1-3: Only this category. 
+    private boolean currentImagesCategoryWasChanged = false; //slight acceleration, only reload the whole filter when this actually occured
 
     private Hashtable<String, Integer> imageCategory; //images are only added once seen. All not contained images are expected to have category 0. Iterate over allImages for all images instead. 
     private Hashtable<String, RotatedImage> imageBuffer; //holds the current image and some images before and after it, updated with every loadImage. 
@@ -71,12 +73,15 @@ public class Main extends Application {
 
     private ImageView view;
     private StackPane zoomPane;
-    private StackPane root;
+    private StackPane imageAndLoadingPane;
+    private StackPane rootPane;
     private Text label;
     private static final Color HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
 
-    private ProgressIndicator progress;
-    private Label errorLabel;
+    private ProgressIndicator progress; 
+    private Label errorLabel; 
+    private Label noImagesLabel; 
+    private LRButton leftButton, rightButton;
 
     public static void main(String[] args) {        
         launch(args);
@@ -115,7 +120,8 @@ public class Main extends Application {
         view.setCache(true);
         zoomPane.getChildren().add(view);
 
-        zoomPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
+        rootPane = new StackPane();
+        rootPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
                 if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
@@ -244,22 +250,30 @@ public class Main extends Application {
             //the ancor loses focus, and while zooming and scrolling on the view it doesnt so the context menu stays
             //so this is a slight hack, just use anything else thats probably not even visible that will instantly lose focus
         });
-        contextMenu.setAutoHide(true);
-        
-        root = new StackPane();
-        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
-        root.getChildren().add(invisibleContextMenuSource);
-        root.getChildren().add(progress);
-        root.getChildren().add(errorLabel);
-        root.getChildren().add(zoomPane);
 
-        new LRButton(root, true);
-        new LRButton(root, false);
+        noImagesLabel = new Label("There are no images. ");
+        noImagesLabel.setTextFill(Color.GREY);
+        noImagesLabel.setVisible(false);
+        noImagesLabel.setFont(new Font(15));
+        noImagesLabel.setTextAlignment(TextAlignment.CENTER);
         
-        root.getChildren().add(label);
-        root.getChildren().add(scrollAbsorber);
+        imageAndLoadingPane = new StackPane();
+        imageAndLoadingPane.getChildren().add(progress);
+        imageAndLoadingPane.getChildren().add(errorLabel);
+        imageAndLoadingPane.getChildren().add(zoomPane);
 
-        Scene scene = new Scene(root, 800, 600);
+        rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+        rootPane.getChildren().add(invisibleContextMenuSource);
+        rootPane.getChildren().add(noImagesLabel);
+        rootPane.getChildren().add(imageAndLoadingPane);
+
+        leftButton = new LRButton(rootPane, true);
+        rightButton = new LRButton(rootPane, false);
+        
+        rootPane.getChildren().add(label);
+        rootPane.getChildren().add(scrollAbsorber);
+
+        Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
         stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
         stage.setOnCloseRequest((event) -> {
@@ -295,9 +309,7 @@ public class Main extends Application {
 
         view.requestFocus();
 
-        updateFilesList();
-        
-        updateFilter(); // includes a loadImage() call
+        updateFilesList(); // includes a call to updateFilter and loadImage()
 
         Alert useInfo = new Alert(AlertType.NONE, null, ButtonType.OK);
         useInfo.setHeaderText("How to use");
@@ -364,6 +376,8 @@ public class Main extends Application {
         isZooming = false;
     }
     private void increaseZoom(double scale) {
+        if (currentImage == null) return;
+
         zoom *= Math.pow(1.01, scale);
         if (zoom > MAX_ZOOM) {
             zoom = MAX_ZOOM;
@@ -373,6 +387,8 @@ public class Main extends Application {
         }
     }
     private void decreaseZoom(double scale) {
+        if (currentImage == null) return;
+
         zoom /= Math.pow(1.01, scale);
         if (zoom < MIN_ZOOM) {
             zoom = MIN_ZOOM;
@@ -393,6 +409,8 @@ public class Main extends Application {
     }
 
     private void showInExplorer() {
+        if (currentImage == null) return;
+        
         //Desktop.getDesktop().browseFileDirectory(<file>) would be better, cross platform, but requires java 9 and im too lazy to install now
         if (System.getProperty("os.name").startsWith("Windows")) {
             try {
@@ -408,27 +426,29 @@ public class Main extends Application {
     private ChangeListener<? super Boolean> booleanListener = (a, b, c) -> {updateImageStatus();};
     private void loadImage() {
         //Preprocessing: Checking all currently contained images for loading errors due to memory limitations, and mitigation
-        ArrayList<String> entriesToDelete = new ArrayList<>();
-        for (Map.Entry<String, RotatedImage> entry : imageBuffer.entrySet()) {
-            Exception e = entry.getValue().getException();
-            if (e != null && isMemoryException(e)) {
-                entriesToDelete.add(entry.getKey());
+        if (currentImage != null) {
+            ArrayList<String> entriesToDelete = new ArrayList<>();
+            for (Map.Entry<String, RotatedImage> entry : imageBuffer.entrySet()) {
+                Exception e = entry.getValue().getException();
+                if (e != null && isMemoryException(e)) {
+                    entriesToDelete.add(entry.getKey());
+                }
             }
-        }
-        if (!entriesToDelete.isEmpty()) {
-            //Memory errors occured
-            for (String s : entriesToDelete) {
-                imageBuffer.remove(s);
-            }
-            handleMemoryError();
-            successfullLoadsWithoutMemoryProblems--;
-        } else {
-            if (imageBufferSize == 0 || (imageBuffer.containsKey(currentImage) && imageBuffer.get(currentImage).getHeight() > 0)) {
-                //height > 0 means the image has finished loading
-                if (imageBufferSize < IMAGE_BUFFER_SIZE_MAX && ++successfullLoadsWithoutMemoryProblems > 4) {
-                    imageBufferSize++;
-                    successfullLoadsWithoutMemoryProblems = 0;
-                    System.out.println("Incremented imageBufferSize to " + imageBufferSize);
+            if (!entriesToDelete.isEmpty()) {
+                //Memory errors occured
+                for (String s : entriesToDelete) {
+                    imageBuffer.remove(s);
+                }
+                handleMemoryError();
+                successfullLoadsWithoutMemoryProblems--;
+            } else {
+                if (imageBufferSize == 0 || (imageBuffer.containsKey(currentImage) && imageBuffer.get(currentImage).getHeight() > 0)) {
+                    //height > 0 means the image has finished loading
+                    if (imageBufferSize < IMAGE_BUFFER_SIZE_MAX && ++successfullLoadsWithoutMemoryProblems > 4) {
+                        imageBufferSize++;
+                        successfullLoadsWithoutMemoryProblems = 0;
+                        System.out.println("Incremented imageBufferSize to " + imageBufferSize);
+                    }
                 }
             }
         }
@@ -452,7 +472,7 @@ public class Main extends Application {
                 newImageBuffer.put(imageNameAtCursor, new RotatedImage(new File (getFullPathForImage(imageNameAtCursor))));
             }
         }
-        //initially we were cool and didnt have loop, but so it really help when scrolling rapidly through tie pics.
+        //initially we were cool and didnt have loop, but this really helps when scrolling rapidly through the pics.
         for (Map.Entry<String, RotatedImage> e : imageBuffer.entrySet()) {
             if (!newImageBuffer.containsKey(e.getKey())) {
                 //will be garbage collected. Lets stop the thread manually.
@@ -510,13 +530,13 @@ public class Main extends Application {
             view.fitHeightProperty().unbind();
             view.fitWidthProperty().unbind();
             if (ninetyDegrees) {
-                view.fitWidthProperty().bind(root.heightProperty());
-            view.fitHeightProperty().bind(root.widthProperty());
+                view.fitWidthProperty().bind(rootPane.heightProperty());
+            view.fitHeightProperty().bind(rootPane.widthProperty());
         } else {
-            view.fitWidthProperty().bind(root.widthProperty());
-            view.fitHeightProperty().bind(root.heightProperty());
+            view.fitWidthProperty().bind(rootPane.widthProperty());
+            view.fitHeightProperty().bind(rootPane.heightProperty());
         }
-        
+
         updateLabel();
         updateImageStatus();
     }
@@ -567,6 +587,9 @@ public class Main extends Application {
     }
 
     private void updateLabel() {
+        if (currentImage == null) {
+            return;
+        }
         if (!imageCategory.containsKey(currentImage)) {
             imageCategory.put(currentImage, 0);
         }
@@ -578,20 +601,28 @@ public class Main extends Application {
         }
     }
     private void incrementCurrentImageCategory() {
+        if (currentImage == null) {
+            return;
+        }
         int current = imageCategory.get(currentImage);
         if (++current > 3) {
             current = 0;
         }
         imageCategory.put(currentImage, current);
+        currentImagesCategoryWasChanged = true;
         updateLabel();
     }
     private void decrementCurrentImageCategory() {
+        if (currentImage == null) {
+            return;
+        }
         int current = imageCategory.get(currentImage);
         if (--current < 0) {
             current = 3;
         }
         imageCategory.put(currentImage, current);
-        updateLabel();    
+        currentImagesCategoryWasChanged = true;
+        updateLabel();
     }
     private void nextFilter() {
         if (++filter > 3) {
@@ -608,46 +639,83 @@ public class Main extends Application {
 
     private void updateFilter() {
         //load subset of images, store it. Thats the obvious part. 
+
+        currentImage = null;
         images.clear();
         if (filter == -1) {
             //no filter
             images.addAll(allImages);
+            currentImage = lastImageManuallySelected;
         } else {
+            boolean afterImageIndex = false;
             for (String i : allImages) {
+                if (i == lastImageManuallySelected) {
+                    afterImageIndex = true;
+                }
+
                 Integer category = imageCategory.get(i);
                 if (category == null) {
                     category = 0;
                 }
                 if (category == filter) {
                     images.add(i);
+                    if (afterImageIndex) {
+                        afterImageIndex = false; //it wont become true again in this loop
+                        currentImage = i;
+                    }
+                }
+            }
+            if (currentImage == null) {
+                if (!images.isEmpty()) {
+                    if (lastImageManuallySelected == null) {
+                        //must be the start case. Let's start with the first picture available! 
+                        currentImage = images.get(0);
+                    } else {
+                        currentImage = images.get(images.size()-1);
+                    }
                 }
             }
         }
 
         //actually, this place is the only one where no images can occur, and also the only place where there are images again. 
         //so we do all the basic organization around it
+        boolean imageAvailable = !images.isEmpty(); 
+
+        noImagesLabel.setVisible(!imageAvailable);
+        imageAndLoadingPane.setVisible(imageAvailable);
+        label.setVisible(imageAvailable);
+        leftButton.setVisible(imageAvailable);
+        rightButton.setVisible(imageAvailable);
+        //also the scroll absorber! (the hover rectangle over the "move to 1" text)
+
         if (images.isEmpty()) {
-            //hide < and > bars
-            currentImage = null;
+            if (filter == 0) {
+                noImagesLabel.setText("There are no images not to be moved. ");
+            } else {
+                noImagesLabel.setText("There are no images that should be moved to /" + filter + ". ");
+            }
+            noImagesLabel.setText(noImagesLabel.getText() + "\nYou can change the filter by [TODO fill in]"); //TODO
+            rootPane.requestFocus();
         } else {
-            //show < and > bars
+            loadImage(); //last line here, probably
         }
-        //What if the subset is empty? Then there is no image selected, this will cause bugs if we dont search for it in detail. 
-        //how do we even store that there is no image. null string or ""?
-            //getCurrentImageIndex already has a handleNoImages(); call, this needs to be changed
-        //In general, which image do we start with? From the cursor the first to the left or right? What if there is nothing to the left? --> go to the right
-        //We also need to recache the images (as usual, the already preloaded ones will survive)
+            //TODO getCurrentImageIndex already has a handleNoImages(); call, this needs to be changed
         //another TODO: if we open a dir and there are no pics, still show the error and exit. 
+
+        //another TODO: when do we update the filter? Only on next / prev calls. Do we need to always update the filter? 
+        //TODO: We should prompt a hint that the image will be invisible in this filter once you change the image.
+        //TODO: We need to updateFilter for every nextImage and prevImage call. 
 
         //do we need this call here? 
         //does it stand showing the same image without reloading it?
         //what about the fact that the call could occur any time (esp after deleting)
         //rn im saying yes, replacing loadImage in the init with this call. 
-        loadImage();
     }
 
     //in images, not allImages. 
     private int getCurrentImageIndex() {
+        //TODO what if currentImage is null? What do we return?! Where is this even called?
+        //This might become unneccessary anyway, since it boils down to basically one line of code without the special treatment
         int index = images.indexOf(currentImage);
         if (index == -1) {
             if (images.isEmpty()) {
@@ -662,27 +730,48 @@ public class Main extends Application {
 
     //Updates currentFile and shows the image
     private void nextImage() {
+        if (currentImage == null) {
+            return;
+        }
         int index = getCurrentImageIndex();
         if (++index >= images.size()) {
             index = 0;
         }
         currentImage = images.get(index);
         lastImageManuallySelected = currentImage;
-        loadImage();
+        loadImageAndUpdateFilterIfNecessary();
     }
 
     //Updates currentFile and shows the image
     private void prevImage() {
+        if (currentImage == null) {
+            return;
+        }
         int index = getCurrentImageIndex();
         if (--index < 0) {
             index = images.size() - 1;
         }
         currentImage = images.get(index);
         lastImageManuallySelected = currentImage;
-        loadImage();
+        loadImageAndUpdateFilterIfNecessary();
+    }
+
+    //always calls loadImage() to load a (probably new) image. Also calls updateFilter() [which itself calls loadImage] 
+    //only if currentImagesCategoryWasChanged. You could also just always call updateFilter(), and you would probably never
+    //notice the slightly (slightly) worse performance. 
+    private void loadImageAndUpdateFilterIfNecessary() {
+        if (currentImagesCategoryWasChanged) {
+            updateFilter();
+        } else {
+            loadImage();
+        }
+        currentImagesCategoryWasChanged = false;
     }
 
     private void deleteImage() {
+        if (currentImage == null) {
+            return;
+        }
         try {
             //if folder doesnt exist, create it
             if (!delDirectory.exists()) {
@@ -719,7 +808,7 @@ public class Main extends Application {
     }
 
     private void handleNoImages() {
-        //ToDo put a real handling here..
+        //TODO put a real handling here..
         new Alert(AlertType.INFORMATION, "No images in the directory. Closing now.").showAndWait();
         System.exit(0);
     }
@@ -753,3 +842,8 @@ public class Main extends Application {
         }
     }
 }
+
+
+//TODO: When implementing TICKS
+// - Delete must delete from all lookups
+// - ticking must update currentImagesCategoryWasChanged [which then needs a new name as well]

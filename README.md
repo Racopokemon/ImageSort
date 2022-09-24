@@ -17,6 +17,8 @@ Yeah, thats it already. But it really comes in handy when you got a bunch of vac
   * (later rotate)
   * Context key also opens it
   * Enter key opens with default app
+* UI
+  * Add small arrows \< and > to the navigation buttons at the side
 * Filter by category
   * Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)
   * no filter, keep only, 1-3 only
@@ -24,6 +26,11 @@ Yeah, thats it already. But it really comes in handy when you got a bunch of vac
   * before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)
   * Delete during filter only changes it back to keep (?)
   * The buffer also needs to buffer the images in the category only
+  * Improvements
+    * Constantly find the first images of the other categories and buffer them, so that cycling through the categories is a bit better than *this* right now
+      * Only the adjacent categories?
+      * Disable once there are memory errors (test using the command line)
+    * On the long run: Improve the priorities when loading images..
 * Origin of the micro lags
   * I think its somewhere in the hardware acceleration, that old images sometimes hang for a second
   * Therefore it should also appear when all images are constantly preloaded, with < 7 images in a folder
@@ -42,26 +49,7 @@ Yeah, thats it already. But it really comes in handy when you got a bunch of vac
   * 127/238 images and a bar (also for the filtered view)
 * Menu bar
   * only visible in window mode
-  * can rename folders (1, 2, 3, a, b, c) and change quantity
+  * can rename folders (1, 2, 3, a, b, c) and change quantity of copy and move options
   * also rename button there
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
-
-## Getting Started
-
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
-
-## Folder Structure
-
-The workspace contains two folders by default, where:
-
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
