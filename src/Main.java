@@ -78,7 +78,9 @@ public class Main extends Application {
     private Text label;
     private static final Color HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
 
-    private ProgressIndicator progress; 
+    private ImprovisedProgressBar progress;
+
+    private ProgressIndicator loadingProgress; 
     private Label errorLabel; 
     private Label noImagesLabel; 
     private LRButton leftButton, rightButton;
@@ -142,7 +144,11 @@ public class Main extends Application {
                     previousFilter();
                 } else if (event.getCode() == KeyCode.E) {
                     nextFilter();
-                }
+                } 
+                //else if (event.getCode() == KeyCode.F) {
+                //    view.setSmooth(!view.isSmooth());
+                //    System.out.println("its now "+ view.isSmooth());
+                //}
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {
                 //        stage.fireEvent(new WindowEvent(stage,WindowEvent.WINDOW_CLOSE_REQUEST));
@@ -232,9 +238,12 @@ public class Main extends Application {
         errorLabel.setVisible(false);
         errorLabel.setFont(new Font(15));
         errorLabel.setTextAlignment(TextAlignment.CENTER);
-        progress = new ProgressIndicator(0.2);
-        progress.setMaxSize(50, 50);
-        progress.setVisible(false);
+        loadingProgress = new ProgressIndicator(0.2);
+        loadingProgress.setMaxSize(50, 50);
+        loadingProgress.setVisible(false);
+
+        progress = new ImprovisedProgressBar(350, 30);
+        StackPane.setAlignment(progress, Pos.TOP_CENTER);
         
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});
@@ -258,7 +267,7 @@ public class Main extends Application {
         noImagesLabel.setTextAlignment(TextAlignment.CENTER);
         
         imageAndLoadingPane = new StackPane();
-        imageAndLoadingPane.getChildren().add(progress);
+        imageAndLoadingPane.getChildren().add(loadingProgress);
         imageAndLoadingPane.getChildren().add(errorLabel);
         imageAndLoadingPane.getChildren().add(zoomPane);
 
@@ -267,11 +276,12 @@ public class Main extends Application {
         rootPane.getChildren().add(noImagesLabel);
         rootPane.getChildren().add(imageAndLoadingPane);
 
-        leftButton = new LRButton(rootPane, true);
+        leftButton = new LRButton(rootPane, true); //this also adds them to the rootPane
         rightButton = new LRButton(rootPane, false);
         
         rootPane.getChildren().add(label);
         rootPane.getChildren().add(scrollAbsorber);
+        rootPane.getChildren().add(progress);
 
         Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
@@ -537,6 +547,7 @@ public class Main extends Application {
             view.fitHeightProperty().bind(rootPane.heightProperty());
         }
 
+        progress.setProgress(currentImageIndex, images.size());
         updateLabel();
         updateImageStatus();
     }
@@ -545,11 +556,11 @@ public class Main extends Application {
         Image img = view.getImage();
         if (img.getHeight() < 0) {
             //image already loaded
-            progress.setVisible(false);
+            loadingProgress.setVisible(false);
             errorLabel.setVisible(false);
         } else if (img.isError()) {
             //error while loading
-            progress.setVisible(false);
+            loadingProgress.setVisible(false);
             errorLabel.setVisible(true);
             if (isMemoryException(img.getException())) {
                 errorLabel.setText("Sadly, we could not load " + currentImage + " because there is not enough memory.\n"+
@@ -564,9 +575,9 @@ public class Main extends Application {
             }
         } else {
             //just still loading
-            progress.setVisible(true);
+            loadingProgress.setVisible(true);
             errorLabel.setVisible(false);
-            progress.setProgress(img.getProgress());
+            loadingProgress.setProgress(img.getProgress());
         }
     }
 
@@ -687,6 +698,7 @@ public class Main extends Application {
         leftButton.setVisible(imageAvailable);
         rightButton.setVisible(imageAvailable);
         //also the scroll absorber! (the hover rectangle over the "move to 1" text)
+        progress.setVisible(imageAvailable);
 
         if (images.isEmpty()) {
             if (filter == 0) {
