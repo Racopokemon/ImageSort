@@ -170,7 +170,7 @@ public class Main extends Application {
                 //}
             }//
         });
-        zoomPane.setOnScroll(new EventHandler<ScrollEvent>() {
+        EventHandler<ScrollEvent> zoomPaneScrollHandler = new EventHandler<ScrollEvent>() {
             @Override
             public void handle(ScrollEvent event) {
                 if (isZooming) {
@@ -188,7 +188,8 @@ public class Main extends Application {
                 }
                 event.consume();
             }
-        });
+        };
+        zoomPane.setOnScroll(zoomPaneScrollHandler);
         zoomPane.setOnMouseDragged(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
@@ -244,6 +245,7 @@ public class Main extends Application {
 
         progress = new ImprovisedProgressBar(350, 30);
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
+        progress.setOnScroll(zoomPaneScrollHandler);
         
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});
@@ -469,6 +471,12 @@ public class Main extends Application {
 
         int currentImageIndex = getCurrentImageIndex();
         Hashtable<String, RotatedImage> newImageBuffer = new Hashtable<>();
+
+        //TEMP quick and dirty try to make the loading of the first image faster
+        if (!imageBuffer.containsKey(currentImage)) {
+            newImageBuffer.put(currentImage, new RotatedImage(new File (getFullPathForImage(currentImage))));
+        }
+        //END TEMP (since this call also happens in the loop down here:)
 
         for (int cursor = -imageBufferSize; cursor <= imageBufferSize; cursor++) {
             int actualIndex = (currentImageIndex + cursor) % images.size();

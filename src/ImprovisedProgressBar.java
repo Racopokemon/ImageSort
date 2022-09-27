@@ -24,9 +24,9 @@ public class ImprovisedProgressBar extends StackPane {
         label.setFont(new Font(22));
         label.setTextAlignment(TextAlignment.CENTER);
 
-        setOpacity(0.15);
+        setOpacity(0.1);
         setOnMouseEntered((event) -> {setOpacity(1.0);});
-        setOnMouseExited((event) -> {setOpacity(0.2);});
+        setOnMouseExited((event) -> {setOpacity(0.1);});
 
         HBox progressItself = new HBox();
 
