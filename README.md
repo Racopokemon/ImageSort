@@ -46,7 +46,9 @@ Yeah, thats it already. But it really comes in handy when you got a bunch of vac
   * clickable, or with the keys
   * filter also for these folders
 * Progress bar
-  * 127/238 images and a bar (also for the filtered view)
+  * ~~127/238 images and a bar (also for the filtered view)~~
+  * ~~Scroll also works on it~~
+  * Mouse drag allows searching
 * Menu bar
   * only visible in window mode
   * can rename folders (1, 2, 3, a, b, c) and change quantity of copy and move options
