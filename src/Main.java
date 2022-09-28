@@ -144,7 +144,9 @@ public class Main extends Application {
                     previousFilter();
                 } else if (event.getCode() == KeyCode.E) {
                     nextFilter();
-                } 
+                } else if (event.getCode() == KeyCode.F5) {
+                    updateFilesList();
+                }
                 //else if (event.getCode() == KeyCode.F) {
                 //    view.setSmooth(!view.isSmooth());
                 //    System.out.println("its now "+ view.isSmooth());

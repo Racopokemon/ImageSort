@@ -17,6 +17,8 @@ Yeah, thats it already. But it really comes in handy when you got a bunch of vac
   * (later rotate)
   * Context key also opens it
   * Enter key opens with default app
+* ~~F5 Key silently rescans the folder~~
+  * ~~That is basically 2 lines~~
 * UI
   * Add small arrows \< and > to the navigation buttons at the side
 * Filter by category
