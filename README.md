@@ -1,6 +1,4 @@
-# Image Sort
-
-[github.com/Racopokemon/ImageSort](https://github.com/Racopokemon/ImageSort)
+# [Image Sort](https://github.com/Racopokemon/ImageSort)
 
 Simple javafx app that lets you cycle through the .jpg files in a folder, and organise / index / sort them: 
 * click and hold inside a photo to zoom (zoom adjustable)
@@ -8,22 +6,36 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * up and down change the category of the shown image, it may either be kept in the directory or moved to one of the subfolders 1, 2 or 3
 * the moving to the 1, 2 and 3 folders is done when the application is closed
 
-Yeah, thats it already. But it really comes in handy when you got a bunch of vacation pics and quickly want to select the best ones to share with your friends. 
+# Installation
+* Download [Java](https://www.java.com/en/) (at least version 8)
+* Download the newest `.jar` file from the release section to the right.
+* Simply double click the file to start the application. It will ask you to select a folder of images to work on. 
 
 ## Furter feature ideas
 * ~~Right click context menu~~
   * ~~Show in explorer~~
+  * First entry just states the filename
   * Open with default app
   * (later rotate)
   * Context key also opens it
   * Enter key opens with default app
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
+* Safety
+  * What happens, if an image is deleted or renamed externally, and ...
+    * the folder is rescanned (needs to be deleted out of all categories?)
+    * the window is closed
+  * More output and communication when closing the window
+    * n images were moved. m images were copied. 
+    * for x images there was errors. \[also: show error messages every time, with option to show no more and go on]
 * UI
   * Add small arrows \< and > to the navigation buttons at the side
+  * Show how many images are in each category
+  * Show "filtered" when filtering in the progress bar
 * Filter by category
   * Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)
   * no filter, keep only, 1-3 only
+  * change the accessibility (right now its Q and E keys, I dont want this)
   * handle the case when there is no images
   * before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)
   * Delete during filter only changes it back to keep (?)
@@ -44,8 +56,8 @@ Yeah, thats it already. But it really comes in handy when you got a bunch of vac
   * Hopefully not too hard since javafx should be a media library
   * probably no exif rotation?!
 * Copy option
-  * every image can also be copied to the folders a, b, c
-  * clickable, or with the keys
+  * every image can also be copied to the folders 1, 2, 3 (the numbering of the categories is turned into a, b, c)
+  * clickable, or with the keys 1, 2, 3
   * filter also for these folders
 * Progress bar
   * ~~127/238 images and a bar (also for the filtered view)~~
