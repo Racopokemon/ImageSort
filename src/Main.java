@@ -1,7 +1,10 @@
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
@@ -40,7 +43,10 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import javafx.util.BuilderFactory;
+
+/*
+ * TODO: Watch out for ToDos!
+ */
 
 public class Main extends Application {
 
@@ -306,12 +312,13 @@ public class Main extends Application {
                 closeAlert.setHeaderText("Move files now?");
                 Optional<ButtonType> result = closeAlert.showAndWait();
                 if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
-                    //prevent close
+                    //prevent close by consuming event
                     event.consume();
                 } else if (result.get() == ButtonType.YES) {
                     //rename (closes automatically on return)
                     moveAllFiles();
-                    new Alert(AlertType.NONE, "Consider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
+                    //TEMPcopyOnly();
+                    new Alert(AlertType.NONE, "Finished! \nConsider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
                 }
             }
         });
@@ -863,6 +870,24 @@ public class Main extends Application {
                 }
             }
         }
+    }
+
+    private void TEMPcopyOnly() {
+        String copyDestination = "C:\\Users\\ramus\\Desktop\\Alle Jahre wieder Adventsbasteln nen\\";
+        for (String key : imageCategory.keySet()) {
+            int category = imageCategory.get(key);
+            if (category != 0) {
+                File origin = new File(getFullPathForImage(key));
+                File dest = new File(copyDestination + key);
+                try {
+                    Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
+                } catch (Exception e) {
+                    System.out.println("Could not copy file " + key + " to folder "+ copyDestination);
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 }
 
