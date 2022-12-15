@@ -65,7 +65,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Progress bar
   * ~~127/238 images and a bar (also for the filtered view)~~
   * ~~Scroll also works on it~~
-  * Filename below the progress bar? 
+  * ~~Filename below the progress bar?~~
   * Mouse drag allows searching
 * Menu bar
   * only visible in window mode
