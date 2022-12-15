@@ -44,7 +44,7 @@ public class ImprovisedProgressBar extends VBox {
         filename.setFont(new Font(16));
         StackPane.setAlignment(filename, Pos.CENTER);
         Rectangle filenameBackground = new Rectangle(w, h, Color.WHITE);
-        filenameBackground.setOpacity(0.2f);
+        filenameBackground.setOpacity(0.25f);
         filenameStack = new StackPane(filenameBackground, filename);
 
         stack.getChildren().add(progressItself);
