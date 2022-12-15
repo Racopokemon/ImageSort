@@ -558,7 +558,7 @@ public class Main extends Application {
             view.fitHeightProperty().bind(rootPane.heightProperty());
         }
 
-        progress.setProgress(currentImageIndex, images.size());
+        progress.setProgress(currentImageIndex, images.size(), currentImage);
         updateLabel();
         updateImageStatus();
     }
