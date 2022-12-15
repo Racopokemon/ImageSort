@@ -11,13 +11,16 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Download the newest `.jar` file from the release section to the right.
 * Simply double click the file to start the application. It will ask you to select a folder of images to work on. 
 
+## Known bugs
+* See the `issues` category in the github page
+
 ## Furter feature ideas
 * ~~Right click context menu~~
   * ~~Show in explorer~~
   * First entry just states the filename
   * Open with default app
   * (later rotate)
-  * Context key also opens it
+  * Context menu key also opens context menu
   * Enter key opens with default app
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
@@ -36,7 +39,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)
   * no filter, keep only, 1-3 only
   * change the accessibility (right now its Q and E keys, I dont want this)
-  * handle the case when there is no images
+  * ~~handle the case when there is no images~~
   * before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)
   * Delete during filter only changes it back to keep (?)
   * The buffer also needs to buffer the images in the category only
@@ -55,17 +58,19 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Video support
   * Hopefully not too hard since javafx should be a media library
   * probably no exif rotation?!
-* Copy option
-  * every image can also be copied to the folders 1, 2, 3 (the numbering of the categories is turned into a, b, c)
+* ==Copy option==
+  * every image can also be copied to the folders 1, 2, 3 (the numbering of the categories is then turned into a, b, c)
   * clickable, or with the keys 1, 2, 3
-  * filter also for these folders
+  * filter available also for these folders
 * Progress bar
   * ~~127/238 images and a bar (also for the filtered view)~~
   * ~~Scroll also works on it~~
+  * Filename below the progress bar? 
   * Mouse drag allows searching
 * Menu bar
   * only visible in window mode
   * can rename folders (1, 2, 3, a, b, c) and change quantity of copy and move options
+  * ==can decide if the files should be moved to a relative folder OR to a global folder (which is also stored between the sessions)==
   * also rename button there
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
