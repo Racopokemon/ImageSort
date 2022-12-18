@@ -11,6 +11,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Download the newest `.jar` file from the release section to the right.
 * Simply double click the file to start the application. It will ask you to select a folder of images to work on. 
 
+# Supported formats / extensions
+* .jpg/.jpeg
+* .png
+
 ## Known bugs
 * See the `issues` category in the github page
 
