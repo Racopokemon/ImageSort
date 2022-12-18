@@ -81,7 +81,7 @@ public class Main extends Application {
     private StackPane zoomPane;
     private StackPane imageAndLoadingPane;
     private StackPane rootPane;
-    private Text label;
+    private InteractiveLabel label;
     private static final Color HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
 
     private ImprovisedProgressBar progress;
@@ -216,32 +216,11 @@ public class Main extends Application {
                 }
             }
         });
-        label = new Text("bottom text");
-        label.setFont(new Font(38));
-        label.setFill(Color.WHITE);
-        label.setStroke(Color.BLACK);
-        label.setStrokeWidth(1.1);
+
+        label = new InteractiveLabel(Pos.BOTTOM_RIGHT, 
+                () -> {incrementCurrentImageCategory();}, 
+                () -> {decrementCurrentImageCategory();});
         StackPane.setAlignment(label, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(label, new Insets(5, 10, 5, 5));
-        
-        Rectangle scrollAbsorber = new Rectangle(200, 70, Color.TRANSPARENT);
-        StackPane.setAlignment(scrollAbsorber, Pos.BOTTOM_RIGHT);
-        scrollAbsorber.setOnScroll((event) -> {
-            if (event.getDeltaY() >= 4) {
-                incrementCurrentImageCategory();
-            } else if (event.getDeltaY() <= -4) {
-                decrementCurrentImageCategory();
-            }
-        });
-        scrollAbsorber.setOnMouseEntered((event) -> {label.setStroke(Color.GRAY);});
-        scrollAbsorber.setOnMouseExited((event) -> {label.setStroke(Color.BLACK);});
-        scrollAbsorber.setOnMousePressed((event) -> {
-            if (event.getButton() == MouseButton.PRIMARY) {
-                incrementCurrentImageCategory();
-            } else if (event.getButton() == MouseButton.SECONDARY) {
-                decrementCurrentImageCategory();
-            }
-        });
         
         errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
@@ -291,7 +270,6 @@ public class Main extends Application {
         rightButton = new LRButton(rootPane, false);
         
         rootPane.getChildren().add(label);
-        rootPane.getChildren().add(scrollAbsorber);
         rootPane.getChildren().add(progress);
 
         Scene scene = new Scene(rootPane, 800, 600);
@@ -316,8 +294,8 @@ public class Main extends Application {
                     event.consume();
                 } else if (result.get() == ButtonType.YES) {
                     //rename (closes automatically on return)
-                    moveAllFiles();
                     //TEMPcopyOnly();
+                    moveAllFiles();
                     new Alert(AlertType.NONE, "Finished! \nConsider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
                 }
             }
@@ -873,7 +851,17 @@ public class Main extends Application {
     }
 
     private void TEMPcopyOnly() {
-        String copyDestination = "C:\\Users\\ramus\\Desktop\\Alle Jahre wieder Adventsbasteln nen\\";
+        //String copyDestination = "C:\\Users\\ramus\\Desktop\\Alle Jahre wieder Adventsbasteln nen\\";
+        String copyDestination = "C:\\Fotos\\";
+        File dir = new File(copyDestination);
+        if (!dir.exists()) {
+            try {
+                dir.mkdir();
+            } catch (Exception e) {
+                System.out.println("Could not create folder " + copyDestination);
+                e.printStackTrace();
+            }
+        }
         for (String key : imageCategory.keySet()) {
             int category = imageCategory.get(key);
             if (category != 0) {
@@ -887,10 +875,8 @@ public class Main extends Application {
                 }
             }
         }
-
     }
 }
-
 
 //TODO: When implementing TICKS
 // - Delete must delete from all lookups
