@@ -52,7 +52,9 @@ public class Main extends Application {
 
     private File directory; 
     private File delDirectory;
+    //The current list of images we are cycling through now (with filters not all images might be visible). Subset of allImages, which is all images in the folder
     private ArrayList<String> images = new ArrayList<>();
+    //All images available in the users folder
     private ArrayList<String> allImages = new ArrayList<>();
     private FilenameFilter filenameFilter;
 
@@ -459,7 +461,7 @@ public class Main extends Application {
                 }
             }
         }
-        //End preprocessing. ... never had these issues on my machine, for reconstruction i limited the jvm heap space
+        //End preprocessing. ... never had these issues on my machine, for reconstruction I limited the jvm heap space
 
         //Step 1: We update the imageBuffer, which essentially does the actual image loading
         //If nothing has changed, thats no problem at all, but if it has, its already launched here
@@ -705,7 +707,8 @@ public class Main extends Application {
         if (images.isEmpty()) {
             if (filter == -1) {
                 noImagesLabel.setText("The selected folder does not contain any supported files. " + 
-                        "\nIn this folder, this app is not really useful, you may close it. \nWhen you restart the app, you can select another folder.");
+                        "\nIn this folder, this app is not really useful, you may close it. \nWhen you restart the app, you can select another folder."+
+                        "\nAlternatively, you can add files to this folder and press F5 to rescan the folder.");
             } else {
                 if (filter == 0) {
                     noImagesLabel.setText("There are no images not to be moved. ");
@@ -731,10 +734,6 @@ public class Main extends Application {
                 filterLabel.setText("only show " + filter);
             }
         }
-
-        //TODO getCurrentImageIndex already has a handleNoImages(); call, this needs to be changed
-        //another TODO: if we open a dir and there are no pics, still show the error and exit. 
-
         //another TODO: when do we update the filter? Only on next / prev calls. Do we need to always update the filter? 
         //TODO: We should prompt a hint that the image will be invisible in this filter once you change the image.
         //TODO: We need to updateFilter for every nextImage and prevImage call. 
@@ -747,16 +746,19 @@ public class Main extends Application {
 
     //in images, not allImages. 
     private int getCurrentImageIndex() {
-        //TODO what if currentImage is null? What do we return?! Where is this even called?
         //This might become unneccessary anyway, since it boils down to basically one line of code without the special treatment
         int index = images.indexOf(currentImage);
         if (index == -1) {
+            throw new RuntimeException("The currentImage " + currentImage + "is not in the images ArrayList when calling getCurrentImageIndex, a status that should not be possible.");
+            //The case that we cant find the image should never occur anymore, as other methods always take care of this.
+            /*
             if (images.isEmpty()) {
-                handleNoImages();
+                handleNoImages(); //shows an alert and System.exits
             } else {
                 currentImage = images.get(0);
                 return 0;
             }
+            */
         }
         return index;
     }
@@ -838,12 +840,6 @@ public class Main extends Application {
         Collections.addAll(allImages, newDir);
         Collections.sort(allImages); //My directory was sorted already, but idk if its always like that, also on other OS
         updateFilter();
-    }
-
-    private void handleNoImages() {
-        //TODO put a real handling here..
-        new Alert(AlertType.INFORMATION, "No images in the directory. Closing now.").showAndWait();
-        System.exit(0);
     }
 
     //The final call, that actually executes all the move operations. 
