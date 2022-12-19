@@ -82,6 +82,7 @@ public class Main extends Application {
     private StackPane imageAndLoadingPane;
     private StackPane rootPane;
     private InteractiveLabel label;
+    private InteractiveLabel filterLabel;
     private static final Color HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
 
     private ImprovisedProgressBar progress;
@@ -217,10 +218,15 @@ public class Main extends Application {
             }
         });
 
-        label = new InteractiveLabel(Pos.BOTTOM_RIGHT, 
+        label = new InteractiveLabel(38, 200, Pos.BOTTOM_RIGHT, 
                 () -> {incrementCurrentImageCategory();}, 
                 () -> {decrementCurrentImageCategory();});
         StackPane.setAlignment(label, Pos.BOTTOM_RIGHT);
+
+        filterLabel = new InteractiveLabel(28, 250, Pos.BOTTOM_CENTER,
+                () -> {nextFilter();},
+                () -> {previousFilter();});
+        StackPane.setAlignment(filterLabel, Pos.BOTTOM_CENTER);
         
         errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
@@ -270,6 +276,7 @@ public class Main extends Application {
         rightButton = new LRButton(rootPane, false);
         
         rootPane.getChildren().add(label);
+        rootPane.getChildren().add(filterLabel);
         rootPane.getChildren().add(progress);
 
         Scene scene = new Scene(rootPane, 800, 600);
@@ -693,21 +700,39 @@ public class Main extends Application {
         label.setVisible(imageAvailable);
         leftButton.setVisible(imageAvailable);
         rightButton.setVisible(imageAvailable);
-        //also the scroll absorber! (the hover rectangle over the "move to 1" text)
         progress.setVisible(imageAvailable);
 
         if (images.isEmpty()) {
-            if (filter == 0) {
-                noImagesLabel.setText("There are no images not to be moved. ");
+            if (filter == -1) {
+                noImagesLabel.setText("The selected folder does not contain any supported files. " + 
+                        "\nIn this folder, this app is not really useful, you may close it. \nWhen you restart the app, you can select another folder.");
             } else {
-                noImagesLabel.setText("There are no images that should be moved to /" + filter + ". ");
+                if (filter == 0) {
+                    noImagesLabel.setText("There are no images not to be moved. ");
+                } else {
+                    noImagesLabel.setText("There are no images that should be moved to /" + filter + ". ");
+                }
+                noImagesLabel.setText(noImagesLabel.getText() + "\nYou can change the filter by clicking or scrolling the 'only show ...' below. "); 
             }
-            noImagesLabel.setText(noImagesLabel.getText() + "\nYou can change the filter by [TODO fill in]"); //TODO
             rootPane.requestFocus();
         } else {
             loadImage(); //last line here, probably
         }
-            //TODO getCurrentImageIndex already has a handleNoImages(); call, this needs to be changed
+
+        //Also update the status text
+        if (filter == -1) {
+            filterLabel.setText("(showing everything)");
+            filterLabel.setUnhoverOpacity(0.11);
+        } else {
+            filterLabel.setUnhoverOpacity(1.0);
+            if (filter == 0) {
+                filterLabel.setText("only show 'keep'");
+            } else {
+                filterLabel.setText("only show " + filter);
+            }
+        }
+
+        //TODO getCurrentImageIndex already has a handleNoImages(); call, this needs to be changed
         //another TODO: if we open a dir and there are no pics, still show the error and exit. 
 
         //another TODO: when do we update the filter? Only on next / prev calls. Do we need to always update the filter? 
