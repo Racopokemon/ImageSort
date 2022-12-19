@@ -69,8 +69,11 @@ public class ImprovisedProgressBar extends VBox {
         getChildren().remove(filenameStack);
     }
 
-    public void setProgress(int value, int outOf, String fName) {
+    public void setProgress(int value, int outOf, String fName, boolean filtered) {
         label.setText((value+1) + " / " + outOf);
+        if (filtered) {
+            label.setText(label.getText() + " (filtered)");
+        }
         double percentage = outOf == 1 ? 1 : (double) value / (outOf - 1);
         left.setWidth(width * percentage);
         right.setWidth(width * (1-percentage));
