@@ -35,10 +35,17 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * More output and communication when closing the window
     * n images were moved. m images were copied. 
     * for x images there was errors. \[also: show error messages every time, with option to show no more and go on]
+* Mouse autohide
+  * In which cases exactly? 
+    * Keystroke or scroll on images?
+    * Instantly show again on movement
+* Undo delete
+  * Ctrl+Z?
+* Ctrl delete for 'instant delete' which instantly moves it to system trash?
 * UI
   * Add small arrows \< and > to the navigation buttons at the side
   * Show how many images are in each category
-  * Show "filtered" when filtering in the progress bar
+  * ~~Show "filtered" when filtering in the progress bar~~
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~
   * ~~no filter, keep only, 1-3 only~~
