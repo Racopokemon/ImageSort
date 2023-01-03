@@ -72,6 +72,9 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~Scroll also works on it~~
   * ~~Filename below the progress bar?~~
   * Mouse drag allows searching
+* HEIC file support
+  * Never heard of this before, container format that iPhones produce. 
+  * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
 * Menu bar
   * only visible in window mode
   * can rename folders (1, 2, 3, a, b, c) and change quantity of copy and move options
@@ -79,5 +82,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Settings window
   * Accessible from the menu bar (see above)
   * ==can decide if the files should be moved to a relative folder OR to a global folder (which is also stored between the sessions)==
+  * \[tick box] also show videos (if we finally have video support)
+* Launcher
+  * A simple folder view where single folders can be double-clicked / selected and then this app launches with this folder already preselected. 
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)

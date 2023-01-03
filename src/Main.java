@@ -661,6 +661,10 @@ public class Main extends Application {
         if (filter == -1) {
             //no filter
             images.addAll(allImages);
+            if (lastImageManuallySelected == null) {
+                //this is the start case and should only occur once during execution. Let's select the first image available!
+                lastImageManuallySelected = images.get(0);
+            }
             currentImage = lastImageManuallySelected;
         } else {
             boolean afterImageIndex = false;
@@ -749,7 +753,7 @@ public class Main extends Application {
         //This might become unneccessary anyway, since it boils down to basically one line of code without the special treatment
         int index = images.indexOf(currentImage);
         if (index == -1) {
-            throw new RuntimeException("The currentImage " + currentImage + "is not in the images ArrayList when calling getCurrentImageIndex, a status that should not be possible.");
+            throw new RuntimeException("The currentImage " + currentImage + " is not in the images ArrayList when calling getCurrentImageIndex, a status that should not be possible.");
             //The case that we cant find the image should never occur anymore, as other methods always take care of this.
             /*
             if (images.isEmpty()) {
