@@ -31,19 +31,20 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Safety
   * What happens, if an image is deleted or renamed externally, and ...
     * the folder is rescanned (needs to be deleted out of all categories?)
-    * the window is closed
+    * the window is closed (and we probably start moving these files)
   * More output and communication when closing the window
     * n images were moved. m images were copied. 
     * for x images there was errors. \[also: show error messages every time, with option to show no more and go on]
-* Mouse autohide
-  * In which cases exactly? 
-    * Keystroke or scroll on images?
-    * Instantly show again on movement
+* ~~Mouse autohide~~
+  * ~~In which cases exactly?~~
+    * ~~Keystroke or scroll on images?~~
+    * ~~Instantly show again on movement~~
 * Undo delete
   * Ctrl+Z?
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
-* Alt+Enter / F11 toggle fullscreen
+* ~~Alt+Enter / F11 toggle fullscreen~~
 * UI
+  * Small images are stretched out to fit the window. _Master, stop this!_
   * Add small arrows \< and > to the navigation buttons at the side
   * Show how many images are in each category
   * Show the recording date (and time) at some place
@@ -54,8 +55,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~no filter, keep only, 1-3 only~~
   * change the accessibility (right now its Q and E keys, I dont want this)
   * ~~handle the case when there is no images~~
-  * indicate that a modified image is moved once the currently previewed image changes
-  * before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)
+  * **indicate that a modified image is moved once the currently previewed image changes**
+  * ~~before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)~~
   * Delete during filter only changes it back to keep (?)
   * The buffer also needs to buffer the images in the category only
   * Improvements

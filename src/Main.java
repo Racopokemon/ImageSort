@@ -29,6 +29,8 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -138,41 +140,6 @@ public class Main extends Application {
         zoomPane.getChildren().add(view);
 
         rootPane = new StackPane();
-        rootPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent event) {
-                if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
-                    nextImage();
-                } else if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
-                    prevImage();
-                } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
-                    incrementCurrentImageCategory();
-                } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.S) {
-                    decrementCurrentImageCategory();
-                } else if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
-                    deleteImage();
-                } else if (event.getCode() == KeyCode.PLUS) {
-                    increaseZoom(40);
-                } else if (event.getCode() == KeyCode.MINUS) {
-                    decreaseZoom(40);
-                } else if (event.getCode() == KeyCode.Q) {
-                    previousFilter();
-                } else if (event.getCode() == KeyCode.E) {
-                    nextFilter();
-                } else if (event.getCode() == KeyCode.F5) {
-                    updateFilesList();
-                }
-                //else if (event.getCode() == KeyCode.F) {
-                //    view.setSmooth(!view.isSmooth());
-                //    System.out.println("its now "+ view.isSmooth());
-                //}
-                //else if (event.getCode() == KeyCode.ESCAPE) {
-                //    if (!stage.isFullScreen()) {
-                //        stage.fireEvent(new WindowEvent(stage,WindowEvent.WINDOW_CLOSE_REQUEST));
-                //    }
-                //}
-            }
-        });
         zoomPane.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
@@ -322,6 +289,49 @@ public class Main extends Application {
                 }
             }
         });
+
+        rootPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                //Fuck switch cases. 
+                if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
+                    nextImage();
+                } else if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
+                    prevImage();
+                } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
+                    incrementCurrentImageCategory();
+                } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.S) {
+                    decrementCurrentImageCategory();
+                } else if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
+                    deleteImage();
+                } else if (event.getCode() == KeyCode.PLUS) {
+                    increaseZoom(40);
+                } else if (event.getCode() == KeyCode.MINUS) {
+                    decreaseZoom(40);
+                } else if (event.getCode() == KeyCode.Q) {
+                    previousFilter();
+                } else if (event.getCode() == KeyCode.E) {
+                    nextFilter();
+                } else if (event.getCode() == KeyCode.F5) {
+                    updateFilesList();
+                } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown())) {
+                    //https://stackoverflow.com/questions/51386423/remove-beep-sound-upon-maximizing-javafx-stage-with-altenter
+                    //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
+                    //TODO accelerators might actually be the better soltion for this. Except maybe the + and -?
+                    stage.setFullScreen(!stage.isFullScreen());
+                }
+                //else if (event.getCode() == KeyCode.F) {
+                //    view.setSmooth(!view.isSmooth());
+                //    System.out.println("its now "+ view.isSmooth());
+                //}
+                //else if (event.getCode() == KeyCode.ESCAPE) {
+                //    if (!stage.isFullScreen()) {
+                //        stage.fireEvent(new WindowEvent(stage,WindowEvent.WINDOW_CLOSE_REQUEST));
+                //    }
+                //}
+            }
+        });
+
         stage.show();
 
         DirectoryChooser ch = new DirectoryChooser();
@@ -345,7 +355,6 @@ public class Main extends Application {
         );
         useInfo.showAndWait();
 
-        //ToDo: Dont do this automatically, have two modes
         stage.setFullScreen(true);
     }
 
