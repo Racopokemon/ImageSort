@@ -82,6 +82,8 @@ public class Main extends Application {
     private static final double MIN_ZOOM = 1.15;
     private static final double MAX_ZOOM = 10;
 
+    private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; 
+
     private ImageView view;
     private StackPane zoomPane;
     private StackPane imageAndLoadingPane;
@@ -222,6 +224,14 @@ public class Main extends Application {
                 }
             }
         });
+        EventHandler<MouseEvent> zoomPaneCursorRestoreHandler = new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                zoomPane.setCursor(Cursor.DEFAULT);
+            }
+        };
+        zoomPane.setOnMouseMoved(zoomPaneCursorRestoreHandler);
+        zoomPane.setOnMouseExited(zoomPaneCursorRestoreHandler);
 
         label = new InteractiveLabel(38, 200, Pos.BOTTOM_RIGHT, 
                 () -> {incrementCurrentImageCategory();}, 
@@ -360,6 +370,7 @@ public class Main extends Application {
     }
 
     // Zooms into the whole scene (the easy way, just setting the scale properties)
+    // Also updates the translation, that's the reason it is called so many times
     private void zoomIn() {
         double width = zoomPane.getWidth();
         double height = zoomPane.getHeight();
@@ -818,7 +829,7 @@ public class Main extends Application {
         }
         currentImage = images.get(index);
         lastImageManuallySelected = currentImage;
-        loadImageAndUpdateFilterIfNecessary();
+        updateImageFilterAndCursorAfterImageChange();
     }
 
     //Updates currentFile and shows the image
@@ -832,17 +843,20 @@ public class Main extends Application {
         }
         currentImage = images.get(index);
         lastImageManuallySelected = currentImage;
-        loadImageAndUpdateFilterIfNecessary();
+        updateImageFilterAndCursorAfterImageChange();
     }
 
     //always calls loadImage() to load a (probably new) image. Also calls updateFilter() [which itself calls loadImage] 
     //only if currentImagesCategoryWasChanged. You could also just always call updateFilter(), and you would probably never
     //notice the slightly (slightly) worse performance. 
-    private void loadImageAndUpdateFilterIfNecessary() {
+    private void updateImageFilterAndCursorAfterImageChange() {
         if (currentImagesCategoryWasChanged) {
             updateFilter();
         } else {
             loadImage();
+        }
+        if (HIDE_MOUSE_ON_IMAGE_SWITCH) {
+            zoomPane.setCursor(Cursor.NONE);
         }
         currentImagesCategoryWasChanged = false;
     }
@@ -867,9 +881,9 @@ public class Main extends Application {
             e.printStackTrace();
         }
 
-        //nextImage(); //There is a cursor restoration routine in updateFilter, that should identify a suitable predecesor
-        //TODO: the line above might actually be useful, nvmd. The cursor is then exactly on the new image, and not at a probably not visible intermediate image. 
-        //TODO: ... but check, if there is enough images for this. 
+        if (images.size() > 1) {
+            nextImage();
+        }
         updateFilesList();
     }
 
