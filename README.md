@@ -42,9 +42,12 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Undo delete
   * Ctrl+Z?
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
+* Alt+Enter / F11 toggle fullscreen
 * UI
   * Add small arrows \< and > to the navigation buttons at the side
   * Show how many images are in each category
+  * Show the recording date (and time) at some place
+    * Maybe also when hovering the percentage center top
   * ~~Show "filtered" when filtering in the progress bar~~
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~

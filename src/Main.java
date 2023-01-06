@@ -54,8 +54,11 @@ public class Main extends Application {
     private File delDirectory;
     //The current list of images we are cycling through now (with filters not all images might be visible). Subset of allImages, which is all images in the folder
     private ArrayList<String> images = new ArrayList<>();
-    //All images available in the users folder
+    //All images available in the users folder. Updated by updateFilesList()
     private ArrayList<String> allImages = new ArrayList<>();
+    //The previous version of allImages. We use this to check the neighborhood of a suddenly deleted image (that still exists in allIamges) to prevent simply skipping 
+    //to the first image in the entire folder. 
+    private ArrayList<String> previouslyAllImages = new ArrayList<>();
     private FilenameFilter filenameFilter;
 
     private String currentImage = null; //filename OR null if in the current filter category there are no images to show at all
@@ -654,22 +657,65 @@ public class Main extends Application {
     }
 
     private void updateFilter() {
-        //load subset of images, store it. Thats the obvious part. 
+        //Every call here might be the result of the files list changing, this means we know nothing for sure anymore, 
+        //not our currentImage (which we recalculate), and also not our lastImageManuallySelected
 
+        //Here, we basically restore our cursor lastImageManuallySelected. This does not mean that this image is visible with the given filter yet. 
+        if (allImages.isEmpty()) {
+            lastImageManuallySelected = null;
+        } else {
+            if (lastImageManuallySelected == null) {
+                lastImageManuallySelected = allImages.get(0);
+            } else {
+                if (!allImages.contains(lastImageManuallySelected)) {
+                    //The image seen lastly was ... deleted? Might have been by keystroke in the app, or externally and reload was pressed. 
+                    //We used to simply reset the cursor 'lastImageManuallySelected' to the first image, but it is more comfortable 
+                    //if we try to place the cursor on a still existing image close to where the deleted image used to be. 
+                    //We have a copy of the previous state of allImages: 
+                    int index = previouslyAllImages.indexOf(lastImageManuallySelected);
+                    lastImageManuallySelected = null;
+                    if (index != -1) {
+                        //finding out if one image of earlier index is inside allImages, select the closest one
+                        int i = index;
+                        while (--i >= 0) {
+                            if (allImages.contains(previouslyAllImages.get(i))) {
+                                lastImageManuallySelected = previouslyAllImages.get(i);
+                                break;
+                            }
+                        }
+                        if (lastImageManuallySelected == null) {
+                            //no images available here - let's check the other direction. 
+                            i = index; 
+                            while (++i < previouslyAllImages.size()) {
+                                if (allImages.contains(previouslyAllImages.get(i))) {
+                                    lastImageManuallySelected = previouslyAllImages.get(i);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (lastImageManuallySelected == null) {
+                        //Either none of the old images is still there OR the cursor is not even there in the previous list (not sure if this can actually happen) 
+                        //However, at this point, what else can we do than reset the cursor?
+                        lastImageManuallySelected = allImages.get(0);
+                    }
+                }
+            }    
+        }
+
+        //Recalculate the contents of images, the currently iterated images. 
+        //Also recalculate which is our currentImage (might have gotten deleted, or we changed categories so our 'cursor' lastImageManuallySelected 
+        //might be a currently hidden image)
+        //If there are actually no images in the images-array, we detect that below and show a message instead of loading/displaying an image
         currentImage = null;
         images.clear();
         if (filter == -1) {
-            //no filter
             images.addAll(allImages);
-            if (lastImageManuallySelected == null) {
-                //this is the start case and should only occur once during execution. Let's select the first image available!
-                lastImageManuallySelected = images.get(0);
-            }
             currentImage = lastImageManuallySelected;
         } else {
             boolean afterImageIndex = false;
             for (String i : allImages) {
-                if (i == lastImageManuallySelected) {
+                if (i.equals(lastImageManuallySelected)) {
                     afterImageIndex = true;
                 }
 
@@ -685,15 +731,8 @@ public class Main extends Application {
                     }
                 }
             }
-            if (currentImage == null) {
-                if (!images.isEmpty()) {
-                    if (lastImageManuallySelected == null) {
-                        //must be the start case. Let's start with the first picture available! 
-                        currentImage = images.get(0);
-                    } else {
-                        currentImage = images.get(images.size()-1);
-                    }
-                }
+            if (currentImage == null && !images.isEmpty()) {
+                currentImage = images.get(images.size()-1);
             }
         }
 
@@ -708,7 +747,7 @@ public class Main extends Application {
         rightButton.setVisible(imageAvailable);
         progress.setVisible(imageAvailable);
 
-        if (images.isEmpty()) {
+        if (!imageAvailable) {
             if (filter == -1) {
                 noImagesLabel.setText("The selected folder does not contain any supported files. " + 
                         "\nIn this folder, this app is not really useful, you may close it. \nWhen you restart the app, you can select another folder."+
@@ -742,6 +781,7 @@ public class Main extends Application {
         //TODO: We should prompt a hint that the image will be invisible in this filter once you change the image.
         //TODO: We need to updateFilter for every nextImage and prevImage call. 
 
+        //TODO: I have no idea what the following lines mean, maybe just delete them?
         //do we need this call here? 
         //does it stand showing the same image without reloading it?
         //what about the fact that the call could occur any time (esp after deleting)
@@ -827,7 +867,9 @@ public class Main extends Application {
             e.printStackTrace();
         }
 
-        nextImage();
+        //nextImage(); //There is a cursor restoration routine in updateFilter, that should identify a suitable predecesor
+        //TODO: the line above might actually be useful, nvmd. The cursor is then exactly on the new image, and not at a probably not visible intermediate image. 
+        //TODO: ... but check, if there is enough images for this. 
         updateFilesList();
     }
 
@@ -839,7 +881,8 @@ public class Main extends Application {
         //String sep = FileSystems.getDefault().getSeparator();
         //files.addAll(directory.list(filter)); //again, this should work. 
         //files = new ArrayList<String>(directory.list(filter)); //or this
-        allImages.clear();
+        previouslyAllImages = allImages;
+        allImages = new ArrayList<String>();
         String[] newDir = directory.list(filenameFilter);
         Collections.addAll(allImages, newDir);
         Collections.sort(allImages); //My directory was sorted already, but idk if its always like that, also on other OS
