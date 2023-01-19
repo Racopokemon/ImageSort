@@ -336,6 +336,9 @@ public class Main extends Application {
 
         DirectoryChooser ch = new DirectoryChooser();
         directory = ch.showDialog(stage);
+        if (directory == null) {
+            System.exit(0); //let's just stop here if there was no directory selected. 
+        }
         //directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
         delDirectory = new File(directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + "delete");
 
