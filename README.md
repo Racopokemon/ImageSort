@@ -47,7 +47,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Small images are stretched out to fit the window. _Master, stop this!_
   * Add small arrows \< and > to the navigation buttons at the side
   * Show how many images are in each category
-  * Show the recording date (and time) at some place
+  * **Show the recording date (and time) at some place** (I really need this)
     * Maybe also when hovering the percentage center top
   * ~~Show "filtered" when filtering in the progress bar~~
 * Filter by category
@@ -65,9 +65,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
       * Disable once there are memory errors (test using the command line)
     * On the long run: Improve the priorities when loading images..
 * Origin of the micro lags
+  * It is directly connected to the image resolution, screenshots (relatively small) work a charm
   * I think its somewhere in the hardware acceleration, that old images sometimes hang for a second
   * Therefore it should also appear when all images are constantly preloaded, with < 7 images in a folder
-  * Test this
+  * GENERALLY for good style, RotatedImage should also read its metadata in a separate thread and then maybe update its data
 * Rotate
   * by writing the EXIF data only (keep the existing data!)
   * Context menu and Q and E buttons
@@ -98,3 +99,4 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * A simple folder view where single folders can be double-clicked / selected and then this app launches with this folder already preselected. 
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
+  * Also save the last position of the cursor

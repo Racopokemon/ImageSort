@@ -52,6 +52,9 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
+    private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
+    private static final boolean DEBUG_PRINT_IMAGE_METADATA = true; //if true, the current images metadata is written to comand line everytime the image changes. 
+
     private File directory; 
     private File delDirectory;
     //The current list of images we are cycling through now (with filters not all images might be visible). Subset of allImages, which is all images in the folder
@@ -83,8 +86,6 @@ public class Main extends Application {
     private double mouseRelativeX, mouseRelativeY;
     private static final double MIN_ZOOM = 1.15;
     private static final double MAX_ZOOM = 10;
-
-    private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; 
 
     private ImageView view;
     private StackPane zoomPane;
@@ -544,6 +545,12 @@ public class Main extends Application {
             img.errorProperty().addListener(booleanListener);
         }
         view.setImage(img);
+        if (oldImage != img && DEBUG_PRINT_IMAGE_METADATA) {
+            System.out.println("\n-------------------------------------------------");
+            System.out.println(currentImage);
+            System.out.println("-------------------------------------------------");
+            ((RotatedImage)view.getImage()).printImageMetadata();
+        }
         
         boolean ninetyDegrees = false;
         switch (img.getOrientation()) {
