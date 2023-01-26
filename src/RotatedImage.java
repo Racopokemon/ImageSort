@@ -51,6 +51,30 @@ public class RotatedImage extends Image {
     public int getOrientation() {
         return orientation;
     }
+    //Checks the orientation metadata flag for the image rotation. In case the image is rotated in any way its height and width change places (any 90° rotation), 
+    //this returns true, false otherwise. 
+    public boolean isRotatedBy90Degrees() {
+        int rot = getRotation();
+        return rot == 90 || rot == -90;
+    }
+
+    //reads out the orientation flag and returns the images rotation with one of the following values: 
+    //0, 90, -90 or 180
+    public int getRotation() {
+        switch (getOrientation()) {
+            case 1: case 2:
+                return 0;
+            case 3: case 4:
+                return 180;
+            case 5: case 6:
+                return 90;
+            case 7: case 8:
+                return -90;
+            default:
+                //whatever went on here...
+                return 0;
+        }
+    }
 
 
     //A debug method that prints all metadata available in this image into the console. Might come in handy again. 

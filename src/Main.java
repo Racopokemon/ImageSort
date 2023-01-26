@@ -17,6 +17,7 @@ import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.event.*;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -333,7 +334,7 @@ public class Main extends Application {
                     skimTo(skim);
                 } else if (event.getCode() == KeyCode.Z && event.isShortcutDown()) {
                     undoDelete();
-                } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown())) {
+                } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown()) || event.getCode() == KeyCode.F) {
                     //https://stackoverflow.com/questions/51386423/remove-beep-sound-upon-maximizing-javafx-stage-with-altenter
                     //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
                     //TODO accelerators might actually be the better soltion for this. Except maybe the + and -?
@@ -348,6 +349,9 @@ public class Main extends Application {
         });
 
         stage.show();
+
+        rootPane.widthProperty().addListener((a, oldV, newV) -> {updateViewport(newV.doubleValue(), rootPane.heightProperty().get());});
+        rootPane.heightProperty().addListener((a, oldV, newV) -> {updateViewport(rootPane.widthProperty().get(), newV.doubleValue());});
 
         if (STATIC_PATH) {            
             //directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
@@ -413,6 +417,36 @@ public class Main extends Application {
 
             setOpacity(0.0);
             getChildren().addAll(rect, arrow);
+        }
+    }
+
+    //sets up the viewport for the current image in the view and the rootPane size: 
+    //if the image is smaller than the viewport, dont scale it. 
+    //Call this when the rootPane size has not changed
+    private void updateViewport() {
+        updateViewport(rootPane.widthProperty().get(), rootPane.heightProperty().get());
+    }
+
+    //handle images that are smaller than the viewport, in this case make them NOT scale. 
+    //Call this overloaded variant if the rootPane size is changing currently, provide the new size in the arguments. 
+    private void updateViewport(double w, double h) {
+        Image i = view.getImage();
+        if (i == null) {
+            return;
+        }
+        boolean ninetyDegrees = ((RotatedImage)i).isRotatedBy90Degrees();
+        double iWidth = ninetyDegrees ? i.getHeight() : i.getWidth();
+        double iHeight = ninetyDegrees ? i.getWidth() : i.getHeight();
+        if (w < iWidth || h < iHeight) {
+            view.setViewport(null);
+        } else {
+            if (ninetyDegrees) {
+                //this line is brought to you by trial and error
+                view.setViewport(new Rectangle2D((int)((iHeight-h)*0.5), (int)((iWidth-w)*0.5), h, w));
+                //TODO zoom is simply wrong on this :(. Also we are not pixel accurate, ONLY on rotated images :(
+            } else {
+                view.setViewport(new Rectangle2D((int)((iWidth-w)*0.5), (int)((iHeight-h)*0.5), w, h));
+            }
         }
     }
 
@@ -579,40 +613,21 @@ public class Main extends Application {
             img.errorProperty().addListener(booleanListener);
         }
         view.setImage(img);
-        if (oldImage != img && DEBUG_PRINT_IMAGE_METADATA) {
-            System.out.println("\n-------------------------------------------------");
-            System.out.println(currentImage);
-            System.out.println("-------------------------------------------------");
-            ((RotatedImage)view.getImage()).printImageMetadata();
+        if (oldImage != img) {
+            updateViewport();
+            if (DEBUG_PRINT_IMAGE_METADATA) {
+                System.out.println("\n-------------------------------------------------");
+                System.out.println(currentImage);
+                System.out.println("-------------------------------------------------");
+                ((RotatedImage)view.getImage()).printImageMetadata();
+            }
         }
         
-        boolean ninetyDegrees = false;
-        switch (img.getOrientation()) {
-            case 1: case 2:
-                view.setRotate(0);
-                ninetyDegrees = false;
-                break;
-            case 3: case 4:
-                view.setRotate(180);
-                ninetyDegrees = false;
-                break;
-                case 5: case 6:
-                view.setRotate(90);
-                ninetyDegrees = true;
-                break;
-                case 7: case 8:
-                view.setRotate(-90);
-                ninetyDegrees = true;
-                break;
-                default:
-                view.setRotate(0);
-                ninetyDegrees = false;
-                break;
-            }
-            view.fitHeightProperty().unbind();
-            view.fitWidthProperty().unbind();
-            if (ninetyDegrees) {
-                view.fitWidthProperty().bind(rootPane.heightProperty());
+        view.setRotate(img.getRotation());
+        view.fitHeightProperty().unbind();
+        view.fitWidthProperty().unbind();
+        if (img.isRotatedBy90Degrees()) {
+            view.fitWidthProperty().bind(rootPane.heightProperty());
             view.fitHeightProperty().bind(rootPane.widthProperty());
         } else {
             view.fitWidthProperty().bind(rootPane.widthProperty());
@@ -626,10 +641,11 @@ public class Main extends Application {
     
     private void updateImageStatus() {
         Image img = view.getImage();
-        if (img.getHeight() < 0) {
+        if (img.getHeight() > 0) {
             //image already loaded
             loadingProgress.setVisible(false);
             errorLabel.setVisible(false);
+            updateViewport();
         } else if (img.isError()) {
             //error while loading
             loadingProgress.setVisible(false);

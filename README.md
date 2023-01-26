@@ -50,8 +50,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
 * ~~Alt+Enter / F11 toggle fullscreen~~
 * UI
-  * Small images are stretched out to fit the window. _Master, stop this!_
-  * Add small arrows \< and > to the navigation buttons at the side
+  * ~~Small images are stretched out to fit the window. _Master, stop this!_~~
+  * ~~Add small arrows \< and > to the navigation buttons at the side~~
   * Show how many images are there in each category
   * **Show the recording date (and time) at some place** (I really need this)
     * Maybe also when hovering the percentage center top
