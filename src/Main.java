@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EventListener;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Optional;
@@ -17,7 +16,6 @@ import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.event.*;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
@@ -41,7 +39,10 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
@@ -56,6 +57,7 @@ public class Main extends Application {
 
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
     private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
+    private static final boolean STATIC_PATH = true; //Debug only (also pretty much developer PC only). Uses a predefined folder (on my PC) instead of showing a folder dialog on startup. 
 
     private File directory; 
     private File delDirectory;
@@ -98,7 +100,9 @@ public class Main extends Application {
     private StackPane rootPane;
     private InteractiveLabel label;
     private InteractiveLabel filterLabel;
-    private static final Color HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
+    private static final Color LR_HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
+    private static final Color LR_ARROW_COLOR = new Color(0, 0, 0, 0.5);
+    private static final double BUTTON_WIDTH = 100;
 
     private ImprovisedProgressBar progress;
 
@@ -335,10 +339,6 @@ public class Main extends Application {
                     //TODO accelerators might actually be the better soltion for this. Except maybe the + and -?
                     stage.setFullScreen(!stage.isFullScreen());
                 }
-                //else if (event.getCode() == KeyCode.F) {
-                //    view.setSmooth(!view.isSmooth());
-                //    System.out.println("its now "+ view.isSmooth());
-                //}
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {
                 //        stage.fireEvent(new WindowEvent(stage,WindowEvent.WINDOW_CLOSE_REQUEST));
@@ -349,12 +349,16 @@ public class Main extends Application {
 
         stage.show();
 
-        DirectoryChooser ch = new DirectoryChooser();
-        directory = ch.showDialog(stage);
-        if (directory == null) {
-            System.exit(0); //let's just stop here if there was no directory selected. 
+        if (STATIC_PATH) {            
+            //directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
+            directory = new File("D:\\Mein Terrarium\\Bilder\\Fotos\\2023_01_21 Birbs in Krakow");
+        } else {
+            DirectoryChooser ch = new DirectoryChooser();
+            directory = ch.showDialog(stage);
+            if (directory == null) {
+                System.exit(0); //let's just stop here if there was no directory selected. 
+            }
         }
-        //directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
         delDirectory = new File(directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + "delete");
 
         view.requestFocus();
@@ -365,9 +369,9 @@ public class Main extends Application {
         useInfo.setHeaderText("How to use");
         useInfo.setContentText(
             "Arrow keys or WASD to look through images and change target folder (keep in current or move to \\1, \\2 or \\3). \n"+
-            "Del or Backspace to instantly move to a 'delete' folder. \n"+
-            "Right click to show in explorer. Click to zoom. \n"+
-            "Scroll, + and - to change the zoom strength. \n"+
+            "Del or Backspace to instantly move to a 'delete' folder. Ctrl + Z to undo.\n"+
+            "Click to zoom. Scroll, + and - to change the zoom strength. Generally, the whole interface is scrollable! \n"+
+            "Context menu to show file in explorer. Youtube-like skimming with number keys.\n"+
             "Close the window to perform the file operations (you will be asked for confirmation).\n\n"+
             "Find this project on github.com/Racopokemon/ImageSort"
         );
@@ -376,16 +380,18 @@ public class Main extends Application {
         stage.setFullScreen(true);
     }
 
-    private class LRButton extends Rectangle {
-        private boolean left;
+    private class LRButton extends StackPane {
+        //private boolean left;
         public LRButton(StackPane root, boolean left) {
-            super(100, 10, Color.TRANSPARENT);
-            this.left = left;
+            Rectangle rect = new Rectangle(BUTTON_WIDTH, 10, LR_HALF_TRANSPARENT);
+            //this.left = left;
             StackPane.setAlignment(this, left ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
-            heightProperty().bind(root.heightProperty());
+            setMaxWidth(BUTTON_WIDTH);
+            maxHeightProperty().bind(root.heightProperty());
+            rect.heightProperty().bind(root.heightProperty());
             root.getChildren().add(this);
-            setOnMouseEntered((event) -> {setFill(HALF_TRANSPARENT);});
-            setOnMouseExited((event) -> {setFill(Color.TRANSPARENT);});
+            setOnMouseEntered((event) -> {setOpacity(1.0);});
+            setOnMouseExited((event) -> {setOpacity(0.0);});
             setOnMouseClicked((event) -> {
                 if (left) {
                     prevImage();
@@ -393,6 +399,20 @@ public class Main extends Application {
                     nextImage();
                 }
             });
+
+            double mirror = left ? 1 : -1;
+            double scale = 10;
+            Polyline arrow = new Polyline(
+                scale*mirror, -scale*2, 
+                -scale*mirror, 0,
+                scale*mirror, scale*2);
+            arrow.setStrokeWidth(3);
+            arrow.setStrokeLineCap(StrokeLineCap.ROUND);
+            arrow.setStrokeLineJoin(StrokeLineJoin.ROUND);
+            arrow.setStroke(LR_ARROW_COLOR);
+
+            setOpacity(0.0);
+            getChildren().addAll(rect, arrow);
         }
     }
 

@@ -24,7 +24,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * First entry just states the filename
   * Open with default app
   * (later rotate)
-  * Context menu key also opens context menu
+  * ~~Context menu key also opens context menu (did always work actually)~~
   * Enter key opens with default app
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
@@ -45,6 +45,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
+* Ctrl+left/right to first and last picture? And with shift skipping 10 ones?
 * ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
 * ~~Alt+Enter / F11 toggle fullscreen~~
@@ -105,3 +106,4 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
+* RAW support
