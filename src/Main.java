@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +12,7 @@ import java.util.EventListener;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
@@ -53,7 +55,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
 
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
-    private static final boolean DEBUG_PRINT_IMAGE_METADATA = true; //if true, the current images metadata is written to comand line everytime the image changes. 
+    private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
 
     private File directory; 
     private File delDirectory;
@@ -64,12 +66,15 @@ public class Main extends Application {
     //The previous version of allImages. We use this to check the neighborhood of a suddenly deleted image (that still exists in allIamges) to prevent simply skipping 
     //to the first image in the entire folder. 
     private ArrayList<String> previouslyAllImages = new ArrayList<>();
+    private ArrayList<String> deleteHistory = new ArrayList<>(); //last element added: First image name to be restored
+    private ArrayList<Integer> deleteHistoryCategory = new ArrayList<>(); //We also store which category the deleted image was in
+
     private FilenameFilter filenameFilter;
 
     private String currentImage = null; //filename OR null if in the current filter category there are no images to show at all
     private String lastImageManuallySelected = null;
     private int filter = -1; //-1: No filter. 0: Keep only. 1-3: Only this category. 
-    private boolean currentImagesCategoryWasChanged = false; //slight acceleration, only reload the whole filter when this actually occured
+    private boolean updateFilterOnNextImage = false; //slight acceleration, only reload the whole filter when this actually occured
 
     private Hashtable<String, Integer> imageCategory; //images are only added once seen. All not contained images are expected to have category 0. Iterate over allImages for all images instead. 
     private Hashtable<String, RotatedImage> imageBuffer; //holds the current image and some images before and after it, updated with every loadImage. 
@@ -226,12 +231,14 @@ public class Main extends Application {
         
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});
+        MenuItem menuUndo = new MenuItem("Undo last deletion");
+        menuUndo.setOnAction((event) -> {undoDelete();});
         MenuItem menuDelete = new MenuItem("Move to '/delete'");
         menuDelete.setOnAction((event) -> {deleteImage();});
         
         Rectangle invisibleContextMenuSource = new Rectangle();
         invisibleContextMenuSource.setVisible(false);
-        ContextMenu contextMenu = new ContextMenu(menuShowFile, menuDelete);
+        ContextMenu contextMenu = new ContextMenu(menuShowFile, menuUndo, menuDelete);
         view.setOnContextMenuRequested((event) -> {
             contextMenu.show(invisibleContextMenuSource, event.getScreenX(), event.getScreenY());
             //note that we set invisibleContextMenuSource as anchor and not the view. This is because the context menu hides when
@@ -315,6 +322,13 @@ public class Main extends Application {
                     nextFilter();
                 } else if (event.getCode() == KeyCode.F5) {
                     updateFilesList();
+                } else if (event.getCode().isDigitKey()) {
+                    String keyName = event.getCode().getName();
+                    int skim = Integer.valueOf(keyName.substring(keyName.length() - 1, keyName.length())); 
+                    //hacky hacky. Its either '5' or 'Numpad 5', so we take the last char
+                    skimTo(skim);
+                } else if (event.getCode() == KeyCode.Z && event.isShortcutDown()) {
+                    undoDelete();
                 } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown())) {
                     //https://stackoverflow.com/questions/51386423/remove-beep-sound-upon-maximizing-javafx-stage-with-altenter
                     //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
@@ -658,7 +672,7 @@ public class Main extends Application {
             current = 0;
         }
         imageCategory.put(currentImage, current);
-        currentImagesCategoryWasChanged = true;
+        updateFilterOnNextImage = true;
         updateLabel();
     }
     private void decrementCurrentImageCategory() {
@@ -670,7 +684,7 @@ public class Main extends Application {
             current = 3;
         }
         imageCategory.put(currentImage, current);
-        currentImagesCategoryWasChanged = true;
+        updateFilterOnNextImage = true;
         updateLabel();
     }
     private void nextFilter() {
@@ -869,7 +883,7 @@ public class Main extends Application {
     //only if currentImagesCategoryWasChanged. You could also just always call updateFilter(), and you would probably never
     //notice the slightly (slightly) worse performance. 
     private void updateImageFilterAndCursorAfterImageChange() {
-        if (currentImagesCategoryWasChanged) {
+        if (updateFilterOnNextImage) {
             updateFilter();
         } else {
             loadImage();
@@ -877,7 +891,7 @@ public class Main extends Application {
         if (HIDE_MOUSE_ON_IMAGE_SWITCH) {
             zoomPane.setCursor(Cursor.NONE);
         }
-        currentImagesCategoryWasChanged = false;
+        updateFilterOnNextImage = false;
     }
 
     private void deleteImage() {
@@ -894,9 +908,16 @@ public class Main extends Application {
             File origin = new File(path);
             File dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + currentImage);
             origin.renameTo(dest);
+            deleteHistory.add(currentImage);
+            
+            int category = 0;
+            if (imageCategory.containsKey(currentImage)) category = imageCategory.get(currentImage);
+            deleteHistoryCategory.add(category);
+            
             imageCategory.remove(currentImage);
+
         } catch (Exception e) {
-            System.out.println("Could not move image "+currentImage+"to 'deleted' folder: ");
+            System.out.println("Could not move image "+currentImage+" to 'deleted' folder: ");
             e.printStackTrace();
         }
 
@@ -904,6 +925,64 @@ public class Main extends Application {
             nextImage();
         }
         updateFilesList();
+    }
+
+    private void undoDelete() {
+        if (deleteHistory.isEmpty()) {
+            return;
+        }
+
+        //First and most important: Restore the image itself! 
+        String restore = deleteHistory.get(deleteHistory.size() - 1);
+        String pathBefore = getFullPathForImage(restore);
+        try {
+            File origin = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + restore);
+            File dest = new File(pathBefore);
+            origin.renameTo(dest);
+
+            deleteHistory.remove(deleteHistory.size() - 1);
+            imageCategory.put(restore, deleteHistoryCategory.remove(deleteHistoryCategory.size() - 1));
+        } catch (Exception e) {
+            System.out.println("Could not restore removed image "+restore+" back to its base folder. ");
+            e.printStackTrace();
+        }
+
+        //Side quest: Delete the delete folder if there is now no files inside anymore. 
+        //again, weird solutions for the simplest IO tasks in java. Bro. 
+        //However, thanks to baeldung.com/java-check-empty-directory where I got this from
+        if (delDirectory.exists()) {
+            try (Stream<Path> entries = Files.list(delDirectory.toPath())) {
+                boolean empty = !entries.findFirst().isPresent();
+                if (empty) {
+                    try {
+                        delDirectory.delete();
+                    } catch (Exception e) {
+                        //should be empty, just checked for that
+                        System.out.println("Could not delete the delete folder (how ironic)");
+                        e.printStackTrace();
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Internal error when trying to get the files in the delete folder. ");
+                e.printStackTrace();
+            }
+        }
+
+        //If the restore was sucessfull, we definetly jump to this image to give the user the feedback that the restore was sucessfull
+        updateFilesList();
+        if (allImages.contains(restore)) {
+
+            if (!images.contains(restore)) {
+                //If the image is not visible under the current filter, we disable the filter. 
+                filter = -1; 
+                updateFilterOnNextImage = true; 
+            }
+            currentImage = restore;
+            
+            //lastImageManuallySelected = currentImage; Maybe it is clever to knowingly NOT do this. 
+            //Scrolling up and down between the neighboring categories then brings back the original cursor position. 
+            updateImageFilterAndCursorAfterImageChange();
+        }
     }
 
     private String getFullPathForImage(String image) {
@@ -976,6 +1055,20 @@ public class Main extends Application {
                 }
             }
         }
+    }
+
+    //Youtube-like skimming: 
+    //Key (and numberKey) 0 goes to the first image, 5 to the middle one, the rest interpolates in between. 
+    private void skimTo(int numberKey) {
+        if (currentImage == null) {
+            return;
+        }
+
+        int skimDestination = (int)(images.size() * (numberKey * 0.1));
+        currentImage = images.get(skimDestination);
+
+        lastImageManuallySelected = currentImage;
+        updateImageFilterAndCursorAfterImageChange();
     }
 }
 

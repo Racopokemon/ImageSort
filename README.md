@@ -45,13 +45,13 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
-* **Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)**
+* ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
 * ~~Alt+Enter / F11 toggle fullscreen~~
 * UI
   * Small images are stretched out to fit the window. _Master, stop this!_
   * Add small arrows \< and > to the navigation buttons at the side
-  * Show how many images are in each category
+  * Show how many images are there in each category
   * **Show the recording date (and time) at some place** (I really need this)
     * Maybe also when hovering the percentage center top
   * ~~Show "filtered" when filtering in the progress bar~~
