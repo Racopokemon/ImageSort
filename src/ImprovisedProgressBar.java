@@ -79,4 +79,20 @@ public class ImprovisedProgressBar extends VBox {
         right.setWidth(width * (1-percentage));
         filename.setText(fName);
     }
+
+
+
+    /*
+     * 
+[Exif IFD0] Date/Time - 2022:02:11 15:40:04
+[Exif SubIFD] Date/Time Original - 2022:02:11 15:40:04
+[File] File Modified Date - Mo Dez 19 01:46:59 +01:00 2022
+
+[Exif SubIFD] ISO Speed Ratings - 50
+
+[Exif SubIFD] Focal Length - 27 mm
+[Exif SubIFD] Focal Length 35 - 40 mm ???
+     * 
+     * 
+     */
 }

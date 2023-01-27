@@ -53,7 +53,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~Small images are stretched out to fit the window. _Master, stop this!_~~
   * ~~Add small arrows \< and > to the navigation buttons at the side~~
   * Show how many images are there in each category
-  * **Show the recording date (and time) at some place** (I really need this)
+  * **Show the recording date (and time) at some place** (I really need this) (Also the weekday, please!)
     * Maybe also when hovering the percentage center top
   * ~~Show "filtered" when filtering in the progress bar~~
 * Filter by category

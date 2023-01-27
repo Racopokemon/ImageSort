@@ -71,7 +71,7 @@ public class RotatedImage extends Image {
             case 7: case 8:
                 return -90;
             default:
-                //whatever went on here...
+                //and whatever went on here...
                 return 0;
         }
     }

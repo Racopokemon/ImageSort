@@ -337,7 +337,7 @@ public class Main extends Application {
                 } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown()) || event.getCode() == KeyCode.F) {
                     //https://stackoverflow.com/questions/51386423/remove-beep-sound-upon-maximizing-javafx-stage-with-altenter
                     //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
-                    //TODO accelerators might actually be the better soltion for this. Except maybe the + and -?
+                    //TODO accelerators might actually be the better solution for all shortcuts. Except maybe the + and -?
                     stage.setFullScreen(!stage.isFullScreen());
                 }
                 //else if (event.getCode() == KeyCode.ESCAPE) {
@@ -354,8 +354,8 @@ public class Main extends Application {
         rootPane.heightProperty().addListener((a, oldV, newV) -> {updateViewport(rootPane.widthProperty().get(), newV.doubleValue());});
 
         if (STATIC_PATH) {            
-            //directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
-            directory = new File("D:\\Mein Terrarium\\Bilder\\Fotos\\2023_01_21 Birbs in Krakow");
+            directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
+            //directory = new File("D:\\Mein Terrarium\\Bilder\\Fotos\\2023_01_21 Birbs in Krakow");
         } else {
             DirectoryChooser ch = new DirectoryChooser();
             directory = ch.showDialog(stage);
