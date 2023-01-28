@@ -2,6 +2,13 @@ import javafx.scene.image.Image;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -10,11 +17,13 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.Tag;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.file.FileMetadataDirectory;
 
 public class RotatedImage extends Image {
+
     private int orientation = 1; //number indicating image orientation, read from image metadata
-    private String dateString = "no date available";
-    private Metadata tempMetadata;
+    private Metadata metadata;
 
     public RotatedImage(File file) {
         // loading itself is simple (its all done in the Image class already, also that its loading in background and showing an empty pic until then)
@@ -31,7 +40,6 @@ public class RotatedImage extends Image {
         //but a better solution would be a static service that receives all requests in a row, and cancels images that are cancelled while loading. 
         //(Since here is a list of priorities, this would also be the first step to actually handling and loading images ourselves, which would definitely improve image loading during scrolling)
         //what if we load an image that has no metadata loaded yet, but then finishes? 
-        Metadata metadata;
         try {
             metadata = ImageMetadataReader.readMetadata(file);
             if (metadata != null) {
@@ -40,7 +48,6 @@ public class RotatedImage extends Image {
                     orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
                 }
             }
-            tempMetadata = metadata;
         } catch (ImageProcessingException | MetadataException | IOException e) {
             e.printStackTrace();
         }
@@ -79,7 +86,7 @@ public class RotatedImage extends Image {
 
     //A debug method that prints all metadata available in this image into the console. Might come in handy again. 
     public void printImageMetadata() {
-        if (tempMetadata == null) {
+        if (metadata == null) {
             System.out.println("no metadata found");
         } else {
 
@@ -89,7 +96,7 @@ public class RotatedImage extends Image {
         //
         // A Metadata object contains multiple Directory objects
         //
-        for (Directory directory : tempMetadata.getDirectories()) {
+        for (Directory directory : metadata.getDirectories()) {
 
             //
             // Each Directory stores values in Tag objects
@@ -104,6 +111,66 @@ public class RotatedImage extends Image {
             for (String error : directory.getErrors()) {
                 System.err.println("ERROR: " + error);
             }
+        }
+    }
+
+    //Some things in Java are still ... a bit overcomplicated
+    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("EEE, dd.MMM yyyy, HH:mm");
+
+    //Based on the available metadata, returns a string of one or several lines of image properties (date, focal length, ...)
+    public String getSomeImageProperties() {
+
+        ArrayList<String> output = new ArrayList<>();
+
+        Date date = null;
+
+        ExifIFD0Directory dir1 = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+        if (dir1 != null && dir1.containsTag(ExifIFD0Directory.TAG_DATETIME)) {
+            date = dir1.getDate(ExifIFD0Directory.TAG_DATETIME);
+        }
+        ExifSubIFDDirectory dir2 = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+        if (dir2 != null && dir2.containsTag(ExifSubIFDDirectory.TAG_DATETIME)) {
+            Date d2 = dir2.getDate(ExifSubIFDDirectory.TAG_DATETIME);
+            if (date == null || d2.before(date)) {
+                date = d2;
+            }
+        }
+        FileMetadataDirectory dir3 = metadata.getFirstDirectoryOfType(FileMetadataDirectory.class);
+        if (dir3 != null && dir3.containsTag(FileMetadataDirectory.TAG_FILE_MODIFIED_DATE)) {
+            Date d3 = dir3.getDate(FileMetadataDirectory.TAG_FILE_MODIFIED_DATE);
+            if (date == null || d3.before(date)) {
+                date = d3;
+            }
+        }
+
+        if (date != null) {
+            output.add(DATE_FORMATTER.format(date));
+        }
+
+    /*
+     * 
+[Exif IFD0] Date/Time - 2022:02:11 15:40:04
+[Exif SubIFD] Date/Time Original - 2022:02:11 15:40:04
+[File] File Modified Date - Mo Dez 19 01:46:59 +01:00 2022
+
+[Exif SubIFD] ISO Speed Ratings - 50
+
+[Exif SubIFD] Focal Length - 27 mm
+[Exif SubIFD] Focal Length 35 - 40 mm ???
+     * 
+     * 
+     */
+        if (output.isEmpty()) {
+            return "no metadata yet";
+        } else {
+            String out = "";
+            for (int i = 0; i < output.size(); i++) {
+                out += output.get(i);
+                if (i < output.size() - 1) {
+                    out += "\n";
+                }
+            }
+            return out;
         }
     }
 }
