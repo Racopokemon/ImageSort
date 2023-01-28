@@ -1,4 +1,5 @@
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -29,7 +30,6 @@ public class ImprovisedProgressBar extends VBox {
         label.setFont(new Font(22));
         label.setTextAlignment(TextAlignment.CENTER);
 
-        setOpacity(0.1);
         stack.setOnMouseEntered((event) -> {toForeground();});
         stack.setOnMouseExited((event) -> {toBackground();});
 
@@ -52,21 +52,22 @@ public class ImprovisedProgressBar extends VBox {
         stack.setMaxSize(w, h);
 
         getChildren().add(stack);
-        setMaxSize(w, h);
+        getChildren().add(filenameStack);
+        setMaxSize(0, 0); //this seems to be the better solution if we want the vbox to use the minimum space possible
 
         filenameStack.setMouseTransparent(true);
+
+        toBackground();
     }
 
     private void toForeground() {
         setOpacity(1.0);
-        setMaxSize(width, height*2);
-        getChildren().add(filenameStack);
+        filenameStack.setVisible(true);
     }
 
     private void toBackground() {
         setOpacity(0.1);
-        setMaxSize(width, height);
-        getChildren().remove(filenameStack);
+        filenameStack.setVisible(false);
     }
 
     public void setProgress(int value, int outOf, String fName, boolean filtered) {
