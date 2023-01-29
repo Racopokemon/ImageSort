@@ -19,11 +19,13 @@ public class ImprovisedProgressBar extends VBox {
     private double width, height;
     private Text percentageText;
     private VBox propertiesBox; 
+    private VBox marginPropertiesBox; 
     private Rectangle left, right;
 
     private static final double SPACING = 3;
     private static final Font FONT = new Font(14);
     private static final Font FONT_BOLD = Font.font(FONT.getFamily(), FontWeight.SEMI_BOLD, 16);
+    private static final Color DARK_GREY = Color.gray(0.2);
 
     public ImprovisedProgressBar(double w, double h) {
         width = w;
@@ -57,7 +59,7 @@ public class ImprovisedProgressBar extends VBox {
         propertiesBox.setSpacing(SPACING);
         propertiesBox.setAlignment(Pos.CENTER);
         
-        VBox marginPropertiesBox = new VBox(propertiesBox); 
+        marginPropertiesBox = new VBox(propertiesBox); 
         marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.3), null, null)));
 
         getChildren().add(stack);
@@ -73,12 +75,12 @@ public class ImprovisedProgressBar extends VBox {
 
     private void toForeground() {
         setOpacity(1.0);
-        propertiesBox.setVisible(true);
+        marginPropertiesBox.setVisible(true);
     }
 
     private void toBackground() {
         setOpacity(0.1);
-        propertiesBox.setVisible(false);
+        marginPropertiesBox.setVisible(false);
     }
 
     //You can also make newlines in info strings, then the spacing is smaller than with separate array entries
@@ -95,9 +97,13 @@ public class ImprovisedProgressBar extends VBox {
         int index = 0;
         for (String s : infos) {
             Text info = new Text(s);
-            info.setFont(FONT);
             info.setTextAlignment(TextAlignment.CENTER);
-            if (index++ == 0) info.setFont(FONT_BOLD);
+            if (index++ == 0) {
+                info.setFont(FONT_BOLD);
+            } else {
+                info.setFont(FONT);
+                info.setFill(DARK_GREY);
+            }
             propertiesBox.getChildren().add(info);
         }
     }

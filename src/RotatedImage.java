@@ -115,7 +115,7 @@ public class RotatedImage extends Image {
     }
 
     //Some things in Java are still ... a bit overcomplicated
-    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("EEE, dd.MMM yyyy, HH:mm");
+    private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("EEE, dd. MMM yyyy, HH:mm"); //hehe german time format. If ppl want another one, I could also later offer a text box to change this. 
 
     //Based on the available metadata, returns a string of one or several lines of image properties (date, focal length, ...)
     public String getSomeImageProperties() {
@@ -147,6 +147,24 @@ public class RotatedImage extends Image {
             output.add(DATE_FORMATTER.format(date));
         }
 
+        if (dir2 != null) {
+            ArrayList<String> camBits = new ArrayList<String>(); //were doing the list-collecting thing AGAIN argh
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_FOCAL_LENGTH)) {
+                camBits.add(dir2.getString(ExifSubIFDDirectory.TAG_FOCAL_LENGTH) + " mm");
+            }
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT)) {
+                camBits.add("ISO "+dir2.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT));
+            }
+            if (!camBits.isEmpty()) {
+                String allBitsMerged = "";
+                for (int i = 0; i < camBits.size(); i++) {
+                    String bit = camBits.get(i);
+                    if (i != 0) allBitsMerged += " | ";
+                    allBitsMerged += bit;
+                }
+                output.add(allBitsMerged);
+            }
+        }
     /*
      * 
 [Exif IFD0] Date/Time - 2022:02:11 15:40:04

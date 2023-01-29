@@ -45,6 +45,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
+* Better scrolling on touchpads! 
 * Ctrl+left/right to first and last picture? And with shift skipping 10 ones?
 * ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
@@ -53,8 +54,9 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~Small images are stretched out to fit the window. _Master, stop this!_~~
   * ~~Add small arrows \< and > to the navigation buttons at the side~~
   * Show how many images are there in each category
-  * **Show the recording date (and time) at some place** (I really need this) (Also the weekday, please!)
-    * Maybe also when hovering the percentage center top
+  * ~~Show the recording date (and time) at some place** (I really need this) (Also the weekday, please!)~~
+    * ~~Maybe also when hovering the percentage center top~~
+    * Show even more info, like ISO or focal length (Im interested in these values now)
   * ~~Show "filtered" when filtering in the progress bar~~
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~
@@ -75,12 +77,19 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * I think its somewhere in the hardware acceleration, that old images sometimes hang for a second
   * Therefore it should also appear when all images are constantly preloaded, with < 7 images in a folder
   * GENERALLY for good style, RotatedImage should also read its metadata in a separate thread and then maybe update its data
+* I had the impression that the ImageView loads one image after another, so internally its working with a queue, and probably this queue depends on the creation time of each image. 
+  * --> Use this to our advantage to load the upcoming images (depending on the scrolling direction) first
 * Rotate
   * by writing the EXIF data only (keep the existing data!)
   * Context menu and Q and E buttons
-* Video support
-  * Hopefully not too hard since javafx should be a media library
-  * probably no exif rotation?!
+* More formats! 
+  * Video support
+    * Hopefully not too hard since javafx should be a media library
+    * probably no exif rotation?!
+  * HEIC file support
+    * Never heard of this before, container format that iPhones produce. 
+    * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
+  * RAW support
 * ==Copy option==
   * every image can also be copied to the folders 1, 2, 3 (the numbering of the categories is then turned into a, b, c)
   * clickable, or with the keys 1, 2, 3
@@ -90,9 +99,6 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~Scroll also works on it~~
   * ~~Filename below the progress bar?~~
   * Mouse drag allows searching
-* HEIC file support
-  * Never heard of this before, container format that iPhones produce. 
-  * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
 * Menu bar
   * only visible in window mode
   * can rename folders (1, 2, 3, a, b, c) and change quantity of copy and move options
@@ -106,4 +112,3 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
-* RAW support
