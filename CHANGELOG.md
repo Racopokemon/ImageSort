@@ -25,6 +25,8 @@ Initial version.
 - Starts by asking for a folder to load
 - Scroll through the images in the folder, or click the interface
 - Hold the mouse button pressed to zoom
+- Image buffering
+- Exif-tag reading to obtain actual image orientation
 - Select categories: Either keep the image in its original folder, or move it to one of the folders 1-3
 - Instant delete with del or backspace
 - Fullscreen and window mode
