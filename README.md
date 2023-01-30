@@ -15,10 +15,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * .jpg/.jpeg
 * .png
 
-## Known bugs
+# Known issues
 * See the `issues` category in the github page
 
-## Furter feature ideas
+# Furter feature ideas
 * ~~Right click context menu~~
   * ~~Show in explorer~~
   * First entry just states the filename
