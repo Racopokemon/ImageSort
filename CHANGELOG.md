@@ -1,3 +1,12 @@
+# ImageSort 1.3
+_Feb 1, 2023_
+
+Small quality of life improvements
+- Images smaller than the viewport are not anymore stretched to fit the screen
+- When hovering the percentage bar, you also see the image a recording date and focal length + ISO, if available
+- Ctrl+Z to undo deletions
+- Keys 0 ... 9 to skim through the images (as the youtube-player does it)
+
 # ImageSort 1.2
 _Jan 7, 2023_
 
