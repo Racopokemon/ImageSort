@@ -45,6 +45,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
+* Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again
+  * (Probably not even that easy to implement)
 * Better scrolling on touchpads! 
 * Ctrl+left/right to first and last picture? And with shift skipping 10 ones?
 * ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~
@@ -56,7 +58,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Show how many images are there in each category
   * ~~Show the recording date (and time) at some place** (I really need this) (Also the weekday, please!)~~
     * ~~Maybe also when hovering the percentage center top~~
-    * Show even more info, like ISO or focal length (Im interested in these values now)
+    * ~~Show even more info, like ISO or focal length (Im interested in these values now)~~
   * ~~Show "filtered" when filtering in the progress bar~~
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~

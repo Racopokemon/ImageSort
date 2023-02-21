@@ -58,7 +58,7 @@ public class Main extends Application {
 
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
     private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
-    private static final boolean STATIC_PATH = false; //Debug only (also pretty much developer PC only). Uses a predefined folder (on my PC) instead of showing a folder dialog on startup. 
+    private static final boolean STATIC_PATH = false; //Debug only (also pretty much developer PC only). Uses a predefined folder (on my personal PC lol) instead of showing a folder dialog on startup. 
 
     private File directory; 
     private File delDirectory;

@@ -155,6 +155,12 @@ public class RotatedImage extends Image {
             if (dir2.containsTag(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT)) {
                 camBits.add("ISO "+dir2.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT));
             }
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_FNUMBER)) {
+                camBits.add("f/" + dir2.getString(ExifSubIFDDirectory.TAG_FNUMBER));
+            }
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_FNUMBER)) {
+                camBits.add(dir2.getString(ExifSubIFDDirectory.TAG_EXPOSURE_TIME) + " sec");
+            }
             if (!camBits.isEmpty()) {
                 String allBitsMerged = "";
                 for (int i = 0; i < camBits.size(); i++) {
@@ -165,19 +171,7 @@ public class RotatedImage extends Image {
                 output.add(allBitsMerged);
             }
         }
-    /*
-     * 
-[Exif IFD0] Date/Time - 2022:02:11 15:40:04
-[Exif SubIFD] Date/Time Original - 2022:02:11 15:40:04
-[File] File Modified Date - Mo Dez 19 01:46:59 +01:00 2022
 
-[Exif SubIFD] ISO Speed Ratings - 50
-
-[Exif SubIFD] Focal Length - 27 mm
-[Exif SubIFD] Focal Length 35 - 40 mm ???
-     * 
-     * 
-     */
         if (output.isEmpty()) {
             return "no metadata yet";
         } else {
