@@ -52,7 +52,7 @@ import javafx.stage.Stage;
  * TODO: Watch out for ToDos!
  */
 
-public class MainWindow {
+public class Gallery {
 
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
     private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
@@ -118,6 +118,10 @@ public class MainWindow {
         this.targetDirectory = targetDirectory;
         this.delDirectory = deleteDirectory;
         this.copy = copy;
+        //TODO 
+        //I literally just wrote these 4 lines, half of the vars are not even used yet. 
+        //TODO and of course the copy / move option is also not implemented yet in all its details. 
+        //TODO make the 3 categories (which are hardcoded by now) a constant var
 
         Stage stage = new Stage();
 
@@ -348,7 +352,6 @@ public class MainWindow {
 
         if (STATIC_PATH) {            
             directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
-            //directory = new File("D:\\Mein Terrarium\\Bilder\\Fotos\\2023_01_21 Birbs in Krakow");
         } else {
             DirectoryChooser ch = new DirectoryChooser();
             directory = ch.showDialog(stage);

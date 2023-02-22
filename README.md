@@ -19,13 +19,13 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * See the `issues` category in the github page
 
 # Furter feature ideas
-* ~~Right click context menu~~
+* Right click context menu
   * ~~Show in explorer~~
   * First entry just states the filename
   * Open with default app
   * (later rotate)
   * ~~Context menu key also opens context menu (did always work actually)~~
-  * Enter key opens with default app
+* Enter key opens with default app
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
 * Safety
@@ -114,3 +114,5 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
+* Let the users decide how many categories they need (and let them rename later?) instead of the static 3
+  * The 3 is not even a constant, its just hardcoded. Change this

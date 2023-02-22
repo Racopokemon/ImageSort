@@ -1,3 +1,5 @@
+import java.io.File;
+
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -14,6 +16,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class Launcher {
@@ -22,7 +25,12 @@ public class Launcher {
     private static final double BIG_GAP = 12;
     private static final double BIG_INTEND_GAP = 34;
 
-    public static void start(Stage stage) {
+    private static final String CHECK_DELETE_FOLDER_SEL_TEXT   = "Also create the 'delete' folder here. (Otherwise, it is created in the images folder)";
+    private static final String CHECK_DELETE_FOLDER_UNSEL_TEXT = "Also create the 'delete' folder here. (Right now, it is created in the images folder)";
+
+    //TODO: You promised it, now give us the persistency! 
+
+    public void start(Stage stage) {
         Insets indent = new Insets(0, 0, 0, BIG_GAP);
         Insets indentBig = new Insets(0, 0, 0, BIG_INTEND_GAP);
 
@@ -36,10 +44,10 @@ public class Launcher {
         labelBrowserIntro.setWrapText(true);
         
         Button buttonBrowserDirUp = new Button("^");
-        TextField buttonBrowserPath = new TextField();
-        HBox.setHgrow(buttonBrowserPath, Priority.ALWAYS);
+        TextField textFieldBrowser = new TextField();
+        HBox.setHgrow(textFieldBrowser, Priority.ALWAYS);
         Button buttonBrowserBrowse = new Button("Browse");
-        HBox boxBrowserLine = new HBox(buttonBrowserDirUp, buttonBrowserPath, buttonBrowserBrowse);
+        HBox boxBrowserLine = new HBox(buttonBrowserDirUp, textFieldBrowser, buttonBrowserBrowse);
 
         ListView<String> browserList = new ListView<>();
         browserList.setPrefHeight(100);
@@ -71,13 +79,13 @@ public class Launcher {
         VBox.setMargin(radioFolderRelative, indent);
         VBox.setMargin(radioFolderAbsolute, indent);
         
-        TextField buttonFolderPath = new TextField();
-        HBox.setHgrow(buttonFolderPath, Priority.ALWAYS);
+        TextField textFieldFolder = new TextField();
+        HBox.setHgrow(textFieldFolder, Priority.ALWAYS);
         Button buttonFolderBrowse = new Button("Browse");
-        HBox boxFolderBrowserLine = new HBox(buttonFolderPath, buttonFolderBrowse);
+        HBox boxFolderBrowserLine = new HBox(textFieldFolder, buttonFolderBrowse);
         VBox.setMargin(boxFolderBrowserLine, indentBig);
         
-        CheckBox checkDeleteFolder = new CheckBox("temp make this good");
+        CheckBox checkDeleteFolder = new CheckBox(CHECK_DELETE_FOLDER_UNSEL_TEXT);
         checkDeleteFolder.setWrapText(true);
         VBox.setMargin(checkDeleteFolder, indentBig);
 
@@ -100,20 +108,38 @@ public class Launcher {
         StackPane root = new StackPane(mainVertical);
         StackPane.setMargin(mainVertical, new Insets(BIG_GAP));
 
-        Scene scene = new Scene(root, 500, 600);
+        Scene scene = new Scene(root, 520, 600);
 
         checkDeleteFolder.disableProperty().bind(radioFolderRelative.selectedProperty());
         boxFolderBrowserLine.disableProperty().bind(radioFolderRelative.selectedProperty());
 
         checkDeleteFolder.selectedProperty().addListener((e) -> {
             if (checkDeleteFolder.isSelected()) {
-                checkDeleteFolder.setText("Also create the 'delete' folder here. (Otherwise, it is created in the images folder)");
+                checkDeleteFolder.setText(CHECK_DELETE_FOLDER_SEL_TEXT);
             } else {
-                checkDeleteFolder.setText("Also create the 'delete' folder here. (Right now, it is created in the images folder)");
+                checkDeleteFolder.setText(CHECK_DELETE_FOLDER_UNSEL_TEXT);
+            }
+        });
+
+        DirectoryChooser folderDirChooser = new DirectoryChooser();
+        folderDirChooser.setTitle("Select a target directory");
+        buttonFolderBrowse.setOnAction((e) -> {
+            File f = new File(textFieldFolder.getText());
+            if (isValidFile(f)) {
+                folderDirChooser.setInitialDirectory(f);
+            }
+            File dir = folderDirChooser.showDialog(stage);
+            if (dir != null) {
+                textFieldFolder.setText(dir.getAbsolutePath());
             }
         });
 
         stage.setScene(scene);
+        stage.setTitle("Launcher");
         stage.show();
+    }
+
+    private boolean isValidFile(File f) {
+        return (f.exists() && f.isDirectory());
     }
 }
