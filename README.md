@@ -1,6 +1,6 @@
 # [Image Sort](https://github.com/Racopokemon/ImageSort)
 
-Simple javafx app that lets you cycle through the .jpg files in a folder, and organise / index / sort them: 
+Simple javafx app that lets you cycle through the .jpg files in a folder, and organize / index / sort them: 
 * click and hold inside a photo to zoom (zoom adjustable)
 * delete or backspace instantly move the shown image to a '/deleted' folder
 * up and down change the category of the shown image, it may either be kept in the directory or moved to one of the subfolders 1, 2 or 3

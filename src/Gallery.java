@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.event.*;
 import javafx.geometry.Pos;
