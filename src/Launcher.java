@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FilenameFilter;
 import java.nio.file.FileSystems;
+import java.util.ArrayList;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -38,7 +39,7 @@ public class Launcher {
     private TextField textFieldBrowser;
 
     private File fallbackDirectory = new File(System.getProperty("user.home"));
-    private File lastValidBrowserDirectory = fallbackDirectory;
+    private File lastValidBrowserDirectory = null;
 
     // TODO: You promised it, now give us the persistency!
 
@@ -124,14 +125,13 @@ public class Launcher {
         VBox mainVertical = new VBox(BIG_GAP,
                 labelIntro,
                 boxBrowser,
-                new Label("TODO: C:/ProgramData/Dokumente crashes. WHY?"),
                 boxOperation,
                 boxFolder,
                 labelPermanent, buttonLaunch);
         StackPane root = new StackPane(mainVertical);
         StackPane.setMargin(mainVertical, new Insets(12));
 
-        Scene scene = new Scene(root, 520, 600);
+        Scene scene = new Scene(root, 520, 800);
 
         checkDeleteFolder.disableProperty().bind(radioFolderRelative.selectedProperty());
         boxFolderBrowserLine.disableProperty().bind(radioFolderRelative.selectedProperty());
@@ -162,6 +162,12 @@ public class Launcher {
                 updateBrowser();
             }
         });
+        if (false) { //temp: preferences data
+
+        } else {
+            textFieldBrowser.setText(fallbackDirectory.getAbsolutePath());
+        }
+        updateBrowser();
         listBrowser.setOnMouseClicked((e) -> {
             if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY && listBrowser.getSelectionModel().getSelectedItem() != null) {
                 //Cheaply faking together the single list elements listening to double clicks. (Don't want to start the cell factory) Actually it's just the whole list listening, 
@@ -218,31 +224,43 @@ public class Launcher {
         ObservableList<String> items = listBrowser.getItems();
         items.clear();
 
-        if (isValidFile(newDir)) {
-            //use newDir
-            lastValidBrowserDirectory = newDir;
-        } else {
-            //we want to use lastValidBrowserDirectory - but is it still valid?
-            if (!isValidFile(lastValidBrowserDirectory)) {
-                lastValidBrowserDirectory = fallbackDirectory;
-                if (isValidFile(lastValidBrowserDirectory)) {
-                    System.out.println("bro as if you just deleted your home folder");
-                    return;
-                }
+        ArrayList<File> fallbackStack = new ArrayList<>();
+        fallbackStack.add(fallbackDirectory);
+        fallbackStack.add(lastValidBrowserDirectory);
+        fallbackStack.add(newDir);
+        
+        File[] contents = null; //this crashes sometimes, even though the directory exists, can read, etc.
+
+        int i = fallbackStack.size();
+        File f = null;
+        boolean loop = true;
+        do {
+            i--;
+            f = fallbackStack.get(i);
+            if (isValidFile(f)) {
+                contents = f.listFiles();
+                loop = contents == null;
+            } else {
+                loop = true;
             }
+        } while (loop && i > 0);
+        if (loop) { //i == 0, none of the directories worked
+            System.out.println("bro as if you just deleted your home folder");
+            lastValidBrowserDirectory = null;
+            return;
         }
-        textFieldBrowser.setText(lastValidBrowserDirectory.getAbsolutePath());
+        lastValidBrowserDirectory = f;
+        textFieldBrowser.setText(f.getAbsolutePath());
 
         //TODO: Do I also need to sort the files?
-        File[] contents = lastValidBrowserDirectory.listFiles();
-        for (File f : contents) {
-            if (f.isDirectory()) {
-                items.add(f.getName());
+        for (File file : contents) {
+            if (isValidFile(file)) {
+                items.add(file.getName());
             }
         }
     }
 
     private boolean isValidFile(File f) {
-        return (f.exists() && f.isDirectory());
+        return f.exists() && f.isDirectory();
     }
 }
