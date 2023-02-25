@@ -1,3 +1,6 @@
+
+package com.github.racopokemon.imagesort;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 

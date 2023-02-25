@@ -1,3 +1,5 @@
+package com.github.racopokemon.imagesort;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.nio.file.FileSystems;
@@ -129,7 +131,7 @@ public class Launcher {
                 boxFolder,
                 labelPermanent, buttonLaunch);
         StackPane root = new StackPane(mainVertical);
-        StackPane.setMargin(mainVertical, new Insets(12));
+        StackPane.setMargin(mainVertical, new Insets(14));
 
         Scene scene = new Scene(root, 520, 800);
 

@@ -1,3 +1,5 @@
+package com.github.racopokemon.imagesort;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
