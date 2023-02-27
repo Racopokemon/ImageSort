@@ -57,12 +57,12 @@ public class Gallery {
 
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
     private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
-    private static final boolean STATIC_PATH = false; //Debug only (also pretty much developer PC only). Uses a predefined folder (on my personal PC lol) instead of showing a folder dialog on startup. 
 
     private File directory;
     private File targetDirectory;
     private File delDirectory;
     private boolean copy;
+    private boolean reopenLauncherAfterwards;
 
     //The current list of images we are cycling through now (with filters not all images might be visible). Subset of allImages, which is all images in the folder
     private ArrayList<String> images = new ArrayList<>();
@@ -114,11 +114,12 @@ public class Gallery {
     private Label noImagesLabel; 
     private LRButton leftButton, rightButton;
 
-    public void start(File directory, File targetDirectory, File deleteDirectory, boolean copy) {
+    public void start(File directory, File targetDirectory, File deleteDirectory, boolean copy, boolean reopenLauncher, boolean showHints) {
         this.directory = directory;
         this.targetDirectory = targetDirectory;
         this.delDirectory = deleteDirectory;
         this.copy = copy;
+        this.reopenLauncherAfterwards = reopenLauncher;
         //TODO 
         //I literally just wrote these 4 lines, half of the vars are not even used yet. 
         //TODO and of course the copy / move option is also not implemented yet in all its details. 
@@ -292,12 +293,17 @@ public class Gallery {
                 if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
                     //prevent close by consuming event
                     event.consume();
+                    return;
                 } else if (result.get() == ButtonType.YES) {
                     //rename (closes automatically on return)
                     //TEMPcopyOnly();
                     moveAllFiles();
                     new Alert(AlertType.NONE, "Finished! \nConsider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
                 }
+            }
+            //the event was not consumed: the window will continue closing now
+            if (reopenLauncherAfterwards) {
+                new Launcher().start(new Stage());
             }
         });
 
@@ -351,32 +357,23 @@ public class Gallery {
         rootPane.widthProperty().addListener((a, oldV, newV) -> {updateViewport(newV.doubleValue(), rootPane.heightProperty().get());});
         rootPane.heightProperty().addListener((a, oldV, newV) -> {updateViewport(rootPane.widthProperty().get(), newV.doubleValue());});
 
-        if (STATIC_PATH) {            
-            directory = new File("D:\\Mein Terrarium\\Bilder\\Art\\barasui");
-        } else {
-            DirectoryChooser ch = new DirectoryChooser();
-            directory = ch.showDialog(stage);
-            if (directory == null) {
-                System.exit(0); //let's just stop here if there was no directory selected. 
-            }
-        }
-        delDirectory = new File(directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + "delete");
-
         view.requestFocus();
 
         updateFilesList(); // includes a call to updateFilter and loadImage()
 
-        Alert useInfo = new Alert(AlertType.NONE, null, ButtonType.OK);
-        useInfo.setHeaderText("How to use");
-        useInfo.setContentText(
-            "Arrow keys or WASD to look through images and change target folder (keep in current or move to \\1, \\2 or \\3). \n"+
-            "Del or Backspace to instantly move to a 'delete' folder. Ctrl + Z to undo.\n"+
-            "Click to zoom. Scroll, + and - to change the zoom strength. Generally, the whole interface is scrollable! \n"+
-            "Context menu to show file in explorer. Youtube-like skimming with number keys.\n"+
-            "Close the window to perform the file operations (you will be asked for confirmation).\n\n"+
-            "Find this project on github.com/Racopokemon/ImageSort"
-        );
-        useInfo.showAndWait();
+        if (showHints) {
+            Alert useInfo = new Alert(AlertType.NONE, null, ButtonType.OK);
+            useInfo.setHeaderText("How to use");
+            useInfo.setContentText(
+                "Arrow keys or WASD to look through images and change target folder (keep in current or move to \\1, \\2 or \\3). \n"+
+                "Del or Backspace to instantly move to a 'delete' folder. Ctrl + Z to undo.\n"+
+                "Click to zoom. Scroll, + and - to change the zoom strength. Generally, the whole interface is scrollable! \n"+
+                "Context menu to show file in explorer. Youtube-like skimming with number keys.\n"+
+                "Close the window to perform the file operations (you will be asked for confirmation).\n\n"+
+                "Find this project on github.com/Racopokemon/ImageSort"
+            );
+            useInfo.showAndWait();
+        }
 
         stage.setFullScreen(true);
     }

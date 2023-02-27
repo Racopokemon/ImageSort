@@ -47,6 +47,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * Also allow redo steps
 * Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again
   * (Probably not even that easy to implement)
+* Simple window with slideshow (inside the gallery which is also a window with a slideshow) that shows the usage, 3 slides with the hints or so
 * Better scrolling on touchpads! 
 * Ctrl+left/right to first and last picture? And with shift skipping 10 ones?
 * ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~

@@ -128,6 +128,12 @@ public class Launcher {
         VBox boxFolder = new VBox(SMALL_GAP, labelFolder, radioFolderRelative, radioFolderAbsolute,
                 boxFolderBrowserLine, checkDeleteFolderAbsolute);
 
+        CheckBox checkMiscRelaunch = new CheckBox("Reopen this launcher");
+        checkMiscRelaunch.setSelected(prefs.getBoolean("miscRelaunch", false));
+        CheckBox checkMiscShowUsage = new CheckBox("Show usage hints when the gallery starts");
+        checkMiscShowUsage.setSelected(prefs.getBoolean("miscShowUsage", true));
+        VBox miscBox = new VBox(SMALL_GAP, checkMiscRelaunch, checkMiscShowUsage);
+
         Label labelPermanent = new Label(
                 "All settings you're making here are stored throughout sessions for your convenience.");
         labelPermanent.setWrapText(true);
@@ -142,7 +148,9 @@ public class Launcher {
                 boxBrowser,
                 boxOperation,
                 boxFolder,
-                labelPermanent, buttonLaunch);
+                miscBox,
+                labelPermanent, 
+                buttonLaunch);
         StackPane root = new StackPane(mainVertical);
         StackPane.setMargin(mainVertical, new Insets(14));
 
@@ -215,6 +223,38 @@ public class Launcher {
         });
         
         updateBrowser(); //a start path is already written to the textFieldBrowser at its creation. 
+
+        checkMiscRelaunch.selectedProperty().addListener((obs, oldV, newV) -> {
+            prefs.putBoolean("miscRelaunch", newV);
+        });
+        checkMiscShowUsage.selectedProperty().addListener((obs, oldV, newV) -> {
+            prefs.putBoolean("miscShowUsage", newV);
+        });
+
+
+        buttonLaunch.setOnAction((e) -> {
+            String deleteSuffix = FileSystems.getDefault().getSeparator() + "delete";
+            File directory = new File(textFieldBrowser.getText());
+            File delDirectory = new File(textFieldBrowser.getText() + deleteSuffix);
+            File targetDirectory = directory;
+            if (radioFolderAbsolute.isSelected()) {
+                targetDirectory = new File(textFieldFolder.getText());
+                if (checkDeleteFolderAbsolute.isSelected()) {
+                    delDirectory = new File(textFieldFolder.getText() + deleteSuffix);
+                }
+            }
+            //check files again. 
+            //check if there are image files inside (updateBrowser?)
+            //TODO: There are no checks yet, and no dialogs about it yet
+
+            //TODO: The following test cases: Each check box in both states: 
+            //- move, copy. delete folder with relative, absolute, absolute + tick. move to absolute path, relative path. copy to absolute, relative. 
+            
+            stage.close();
+
+            new Gallery().start(directory, targetDirectory, delDirectory, 
+                    radioOperationCopy.isSelected(), checkMiscRelaunch.isSelected(), checkMiscShowUsage.isSelected());
+        });
         
         stage.setScene(scene);
         stage.setTitle("Launcher");
@@ -262,12 +302,8 @@ public class Launcher {
         do {
             i--;
             f = fallbackStack.get(i);
-            if (isValidFile(f)) {
-                contents = f.listFiles();
-                loop = contents == null;
-            } else {
-                loop = true;
-            }
+            contents = tryListFiles(f);
+            loop = contents == null; 
         } while (loop && i > 0);
         if (loop) { //i == 0, none of the directories worked
             System.out.println("bro as if you just deleted your home folder");
@@ -286,7 +322,17 @@ public class Launcher {
         }
     }
 
+    //Weak check, let's see if the base requirements are met
     private boolean isValidFile(File f) {
         return f.exists() && f.isDirectory();
+    }
+
+    //Stronger check if the dir is valid, if sucessfull, returns an array of containing files. 
+    private File[] tryListFiles(File f) {
+        if (!isValidFile(f)) {
+            return null;
+        }
+        return f.listFiles();
+        //stronger check if the directory is valid (in windows, there are some weird folders that seem valid but cant be read, like 'documents and settings' in newer windows versions)
     }
 }
