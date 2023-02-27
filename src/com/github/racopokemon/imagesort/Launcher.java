@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
+import java.util.prefs.*;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -43,7 +44,7 @@ public class Launcher {
     private File fallbackDirectory = new File(System.getProperty("user.home"));
     private File lastValidBrowserDirectory = null;
 
-    // TODO: You promised it, now give us the persistency!
+    private Preferences prefs = Preferences.userNodeForPackage(Launcher.class);
 
     public void start(Stage stage) {
         this.stage = stage;
@@ -63,6 +64,7 @@ public class Launcher {
 
         Button buttonBrowserDirUp = new Button("^");
         textFieldBrowser = new TextField();
+        textFieldBrowser.setText(prefs.get("browserPath", fallbackDirectory.getAbsolutePath())); //2nd is the default value if nothing is stored yet
         HBox.setHgrow(textFieldBrowser, Priority.ALWAYS);
         Button buttonBrowserBrowse = new Button("Browse");
         HBox boxBrowserLine = new HBox(buttonBrowserDirUp, textFieldBrowser, buttonBrowserBrowse);
@@ -81,7 +83,11 @@ public class Launcher {
         ToggleGroup groupOperation = new ToggleGroup();
         radioOperationMove.setToggleGroup(groupOperation);
         radioOperationCopy.setToggleGroup(groupOperation);
-        radioOperationMove.setSelected(true);
+        if (prefs.getBoolean("operationMove", true)) {
+            radioOperationMove.setSelected(true);
+        } else {
+            radioOperationCopy.setSelected(true);
+        }
         VBox.setMargin(radioOperationMove, indent);
         VBox.setMargin(radioOperationCopy, indent);
         radioOperationMove.setMaxWidth(Double.POSITIVE_INFINITY);
@@ -95,6 +101,11 @@ public class Launcher {
         ToggleGroup groupFolder = new ToggleGroup();
         radioFolderRelative.setToggleGroup(groupFolder);
         radioFolderAbsolute.setToggleGroup(groupFolder);
+        if (prefs.getBoolean("folderRelative", true)) {
+            radioFolderRelative.setSelected(true);
+        } else {
+            radioFolderAbsolute.setSelected(true);
+        }
         radioFolderRelative.setSelected(true);
         VBox.setMargin(radioFolderRelative, indent);
         VBox.setMargin(radioFolderAbsolute, indent);
@@ -102,18 +113,20 @@ public class Launcher {
         radioFolderAbsolute.setMaxWidth(Double.POSITIVE_INFINITY);
 
         TextField textFieldFolder = new TextField();
+        textFieldFolder.setText(prefs.get("folderPath", fallbackDirectory.getAbsolutePath()));
         HBox.setHgrow(textFieldFolder, Priority.ALWAYS);
         Button buttonFolderBrowse = new Button("Browse");
         HBox boxFolderBrowserLine = new HBox(textFieldFolder, buttonFolderBrowse);
         VBox.setMargin(boxFolderBrowserLine, indentBig);
 
-        CheckBox checkDeleteFolder = new CheckBox(CHECK_DELETE_FOLDER_UNSEL_TEXT);
-        checkDeleteFolder.setWrapText(true);
-        checkDeleteFolder.setMaxWidth(Double.POSITIVE_INFINITY);
-        VBox.setMargin(checkDeleteFolder, indentBig);
+        CheckBox checkDeleteFolderAbsolute = new CheckBox(CHECK_DELETE_FOLDER_UNSEL_TEXT);
+        checkDeleteFolderAbsolute.setWrapText(true);
+        checkDeleteFolderAbsolute.setMaxWidth(Double.POSITIVE_INFINITY);
+        VBox.setMargin(checkDeleteFolderAbsolute, indentBig);
+        checkDeleteFolderAbsolute.setSelected(prefs.getBoolean("deleteFolderAbsolute", false));
 
         VBox boxFolder = new VBox(SMALL_GAP, labelFolder, radioFolderRelative, radioFolderAbsolute,
-                boxFolderBrowserLine, checkDeleteFolder);
+                boxFolderBrowserLine, checkDeleteFolderAbsolute);
 
         Label labelPermanent = new Label(
                 "All settings you're making here are stored throughout sessions for your convenience.");
@@ -135,18 +148,32 @@ public class Launcher {
 
         Scene scene = new Scene(root, 520, 800);
 
-        checkDeleteFolder.disableProperty().bind(radioFolderRelative.selectedProperty());
+        checkDeleteFolderAbsolute.disableProperty().bind(radioFolderRelative.selectedProperty());
         boxFolderBrowserLine.disableProperty().bind(radioFolderRelative.selectedProperty());
+        radioFolderRelative.selectedProperty().addListener((obs, oldV, newV) -> {
+            prefs.putBoolean("folderRelative", newV);
+        });
+        radioOperationMove.selectedProperty().addListener((obs, oldV, newV) -> {
+            prefs.putBoolean("operationMove", newV);
+        });
 
-        checkDeleteFolder.selectedProperty().addListener((e) -> {
-            if (checkDeleteFolder.isSelected()) {
-                checkDeleteFolder.setText(CHECK_DELETE_FOLDER_SEL_TEXT);
+        checkDeleteFolderAbsolute.selectedProperty().addListener((e) -> {
+            boolean selected = checkDeleteFolderAbsolute.isSelected();
+            if (selected) {
+                checkDeleteFolderAbsolute.setText(CHECK_DELETE_FOLDER_SEL_TEXT);
             } else {
-                checkDeleteFolder.setText(CHECK_DELETE_FOLDER_UNSEL_TEXT);
+                checkDeleteFolderAbsolute.setText(CHECK_DELETE_FOLDER_UNSEL_TEXT);
+            }
+            prefs.putBoolean("deleteFolderAbsolute", selected);
+        });
+
+        buttonBrowserBrowse.setOnAction((e) -> {
+            boolean success = showBrowserDialogForTextField("Select your image directory", textFieldBrowser);
+            if (success) {
+                updateBrowser();
             }
         });
 
-        buttonBrowserBrowse.setOnAction(new BrowseHandler("Select your image directory", textFieldBrowser, true));
         buttonBrowserDirUp.setOnAction((e) -> {
             File f = new File(textFieldBrowser.getText());
             if (!isValidFile(f)) {
@@ -164,12 +191,13 @@ public class Launcher {
                 updateBrowser();
             }
         });
-        if (false) { //temp: preferences data
-
-        } else {
-            textFieldBrowser.setText(fallbackDirectory.getAbsolutePath());
-        }
-        updateBrowser();
+        textFieldFolder.focusedProperty().addListener((obs, oldV, newV) -> {
+            if (!newV) {
+                //focus left!
+                prefs.put("folderPath", textFieldFolder.getText());
+            }
+        });
+        
         listBrowser.setOnMouseClicked((e) -> {
             if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY && listBrowser.getSelectionModel().getSelectedItem() != null) {
                 //Cheaply faking together the single list elements listening to double clicks. (Don't want to start the cell factory) Actually it's just the whole list listening, 
@@ -178,9 +206,16 @@ public class Launcher {
                 updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
             }
         });
-
-        buttonFolderBrowse.setOnAction(new BrowseHandler("Select the target directory", textFieldFolder, false));
-
+        
+        buttonFolderBrowse.setOnAction((e) -> {
+            boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);
+            if (success) {
+                prefs.put("folderPath", textFieldFolder.getText());
+            }
+        });
+        
+        updateBrowser(); //a start path is already written to the textFieldBrowser at its creation. 
+        
         stage.setScene(scene);
         stage.setTitle("Launcher");
         stage.show();
@@ -188,32 +223,20 @@ public class Launcher {
         buttonBrowserBrowse.requestFocus();
     }
 
-    private class BrowseHandler implements EventHandler<ActionEvent> {
-        private DirectoryChooser folderDirChooser;
-        private TextField target;
-        private boolean update;
+    private boolean showBrowserDialogForTextField(String title, TextField field) {
+        DirectoryChooser folderDirChooser = new DirectoryChooser();
+        folderDirChooser.setTitle(title);
 
-        public BrowseHandler(String title, TextField field, boolean updateBrowser) {
-            folderDirChooser = new DirectoryChooser();
-            folderDirChooser.setTitle(title);
-            target = field;
-            update = updateBrowser;
+        File f = new File(field.getText());
+        if (isValidFile(f)) {
+            folderDirChooser.setInitialDirectory(f);
         }
-
-        @Override
-        public void handle(ActionEvent event) {
-            File f = new File(target.getText());
-            if (isValidFile(f)) {
-                folderDirChooser.setInitialDirectory(f);
-            }
-            File dir = folderDirChooser.showDialog(stage);
-            if (dir != null) {
-                target.setText(dir.getAbsolutePath());
-                if (update) {
-                    updateBrowser();
-                }
-            }
+        File dir = folderDirChooser.showDialog(stage);
+        boolean successful = dir != null;
+        if (successful) {
+            field.setText(dir.getAbsolutePath());
         }
+        return successful;
     }
 
     private void updateBrowser() {
@@ -253,6 +276,7 @@ public class Launcher {
         }
         lastValidBrowserDirectory = f;
         textFieldBrowser.setText(f.getAbsolutePath());
+        prefs.put("browserPath", f.getAbsolutePath());
 
         //TODO: Do I also need to sort the files?
         for (File file : contents) {
