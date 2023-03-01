@@ -61,6 +61,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * ~~Maybe also when hovering the percentage center top~~
     * ~~Show even more info, like ISO or focal length (Im interested in these values now)~~
   * ~~Show "filtered" when filtering in the progress bar~~
+  * We need an app icon!
+  * Fainly show a big arrow when reaching the first image again? On top of it all, fades quickly? 
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~
   * ~~no filter, keep only, 1-3 only~~
@@ -112,6 +114,15 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * \[tick box] also show videos (if we finally have video support)
 * Launcher
   * A simple folder view where single folders can be double-clicked / selected and then this app launches with this folder already preselected. 
+  * Became a bit bigger, this is basically our settings-window now. 
+  * Mature the launcher: 
+    * Clicking a folder means that the user wants to launch into this specific folder! 
+      * Observe this for the launch button etc. 
+        * Make a function to determine the current file (if selected, the selection, if not, what is written in the textFieldBrowser)
+      * Make a separate method for scanning for files in a separate directory, the launch button needs this then! 
+    * Find out how these factories work in listBoxes, and create different custom-coded entries for folders and files: 
+      * They can finally listen for themselves for double clicks etc.
+      * Clicking the outside of the listBox then also finally unselects the current folder! 
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
