@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.prefs.*;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -15,6 +17,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -23,10 +26,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.collections.ObservableList;
-import javafx.event.*;
 
 public class Launcher {
 
@@ -40,11 +43,16 @@ public class Launcher {
     private Stage stage;
     private ListView<String> listBrowser;
     private TextField textFieldBrowser;
+    private TextField textFieldFolder;
+    private RadioButton radioFolderRelative, radioOperationMove;
+    private Button buttonLaunch;
 
     private File fallbackDirectory = new File(System.getProperty("user.home"));
     private File lastValidBrowserDirectory = null;
 
-    private Preferences prefs = Preferences.userNodeForPackage(Launcher.class);
+    private Preferences prefs = Common.getPreferences();
+
+    private int currentImageCount;
 
     public void start(Stage stage) {
         this.stage = stage;
@@ -78,7 +86,7 @@ public class Launcher {
 
         Label labelOperation = new Label("Once you finished sorting your files, what should we do with them?");
         labelOperation.setWrapText(true);
-        RadioButton radioOperationMove = new RadioButton("Move to the folder of their category");
+        radioOperationMove = new RadioButton("Move to the folder of their category");
         RadioButton radioOperationCopy = new RadioButton("Copy to the folder of their category");
         ToggleGroup groupOperation = new ToggleGroup();
         radioOperationMove.setToggleGroup(groupOperation);
@@ -96,7 +104,7 @@ public class Launcher {
 
         Label labelFolder = new Label("Where should we create the category folders?");
         labelFolder.setWrapText(true);
-        RadioButton radioFolderRelative = new RadioButton("Inside the images folder selected above");
+        radioFolderRelative = new RadioButton("Inside the images folder selected above");
         RadioButton radioFolderAbsolute = new RadioButton("In a separate folder:");
         ToggleGroup groupFolder = new ToggleGroup();
         radioFolderRelative.setToggleGroup(groupFolder);
@@ -111,7 +119,7 @@ public class Launcher {
         radioFolderRelative.setMaxWidth(Double.POSITIVE_INFINITY);
         radioFolderAbsolute.setMaxWidth(Double.POSITIVE_INFINITY);
 
-        TextField textFieldFolder = new TextField();
+        textFieldFolder = new TextField();
         textFieldFolder.setText(prefs.get("folderPath", fallbackDirectory.getAbsolutePath()));
         HBox.setHgrow(textFieldFolder, Priority.ALWAYS);
         Button buttonFolderBrowse = new Button("Browse");
@@ -137,9 +145,10 @@ public class Launcher {
                 "All settings you're making here are stored throughout sessions for your convenience.");
         labelPermanent.setWrapText(true);
         labelPermanent.setFont(fontItalic);
-        Button buttonLaunch = new Button("LAUNCH GALLERY");
+        buttonLaunch = new Button("LAUNCH GALLERY");
         buttonLaunch.setMaxWidth(Double.POSITIVE_INFINITY); // thats a VERY big boii
-        buttonLaunch.setMaxHeight(50);
+        buttonLaunch.setMaxHeight(70);
+        buttonLaunch.setTextAlignment(TextAlignment.CENTER);
         VBox.setVgrow(buttonLaunch, Priority.ALWAYS);
 
         VBox mainVertical = new VBox(BIG_GAP,
@@ -159,9 +168,11 @@ public class Launcher {
         boxFolderBrowserLine.disableProperty().bind(radioFolderRelative.selectedProperty());
         radioFolderRelative.selectedProperty().addListener((obs, oldV, newV) -> {
             prefs.putBoolean("folderRelative", newV);
+            updateLaunchButton();
         });
         radioOperationMove.selectedProperty().addListener((obs, oldV, newV) -> {
             prefs.putBoolean("operationMove", newV);
+            updateLaunchButton();
         });
 
         checkDeleteFolderAbsolute.selectedProperty().addListener((e) -> {
@@ -183,7 +194,7 @@ public class Launcher {
 
         buttonBrowserDirUp.setOnAction((e) -> {
             File f = new File(textFieldBrowser.getText());
-            if (!isValidFile(f)) {
+            if (!Common.isValidFolder(f)) {
                 return;
             }
             String parent = f.getParent();
@@ -202,6 +213,7 @@ public class Launcher {
             if (!newV) {
                 //focus left!
                 prefs.put("folderPath", textFieldFolder.getText());
+                updateLaunchButton();
             }
         });
         
@@ -209,7 +221,11 @@ public class Launcher {
             if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY && listBrowser.getSelectionModel().getSelectedItem() != null) {
                 //Cheaply faking together the single list elements listening to double clicks. (Don't want to start the cell factory) Actually it's just the whole list listening, 
                 //and let's hope the cursor didn't move between both clicks between two elements (well it can happen.) Also lets hope that the user doesn't keep clicking, we register only click 2
-                textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + listBrowser.getSelectionModel().getSelectedItem());
+                String selected = listBrowser.getSelectionModel().getSelectedItem();
+                if (selected.startsWith(" ")) {
+                    return; //VERY cheap and simple, at least NTFS trims filenames, and we set a space before all file annotations. And even if not, updateBrowser validates the new path anyway
+                }
+                textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + selected);
                 updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
             }
         });
@@ -230,7 +246,6 @@ public class Launcher {
             prefs.putBoolean("miscShowUsage", newV);
         });
 
-
         buttonLaunch.setOnAction((e) -> {
             String deleteSuffix = FileSystems.getDefault().getSeparator() + "delete";
             File directory = new File(textFieldBrowser.getText());
@@ -242,12 +257,27 @@ public class Launcher {
                     delDirectory = new File(textFieldFolder.getText() + deleteSuffix);
                 }
             }
-            //check files again. 
-            //check if there are image files inside (updateBrowser?)
-            //TODO: There are no checks yet, and no dialogs about it yet
 
-            //TODO: Count images inside the folder. 
-            //TODO: Write 3 lines of info or so (see .pptx) into the LAUNCH button
+            ArrayList<File> foldersToCheck = new ArrayList<>();
+            foldersToCheck.add(directory);
+            if (targetDirectory != directory) foldersToCheck.add(targetDirectory);
+            for (File f : foldersToCheck) {
+                if (Common.tryListFiles(f) == null) {
+                    Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe can't read folder \n"+f.getAbsolutePath());
+                    alert.setHeaderText("Could not launch");
+                    alert.showAndWait();
+                    return;
+                }
+            }
+
+            //recount images in folder: 
+            updateBrowser();
+            if (currentImageCount == 0) {
+                Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe could find no supported files in folder \n"+textFieldBrowser.getText());
+                alert.setHeaderText("Could not launch");
+                alert.showAndWait();
+                return;
+            }
 
             stage.close();
 
@@ -255,6 +285,8 @@ public class Launcher {
                     radioOperationCopy.isSelected(), checkMiscRelaunch.isSelected(), checkMiscShowUsage.isSelected());
         });
         
+        updateLaunchButton();
+
         stage.setScene(scene);
         stage.setTitle("Launcher");
         stage.show();
@@ -267,7 +299,7 @@ public class Launcher {
         folderDirChooser.setTitle(title);
 
         File f = new File(field.getText());
-        if (isValidFile(f)) {
+        if (Common.isValidFolder(f)) {
             folderDirChooser.setInitialDirectory(f);
         }
         File dir = folderDirChooser.showDialog(stage);
@@ -290,7 +322,7 @@ public class Launcher {
 
         ArrayList<File> fallbackStack = new ArrayList<>();
         fallbackStack.add(fallbackDirectory);
-        fallbackStack.add(lastValidBrowserDirectory);
+        if (lastValidBrowserDirectory != null) fallbackStack.add(lastValidBrowserDirectory);
         fallbackStack.add(newDir);
         
         File[] contents = null; //this crashes sometimes, even though the directory exists, can read, etc.
@@ -301,7 +333,7 @@ public class Launcher {
         do {
             i--;
             f = fallbackStack.get(i);
-            contents = tryListFiles(f);
+            contents = Common.tryListFiles(f);
             loop = contents == null; 
         } while (loop && i > 0);
         if (loop) { //i == 0, none of the directories worked
@@ -313,25 +345,72 @@ public class Launcher {
         textFieldBrowser.setText(f.getAbsolutePath());
         prefs.put("browserPath", f.getAbsolutePath());
 
-        //TODO: Do I also need to sort the files?
+        FilenameFilter filter = Common.getFilenameFilter();
+        currentImageCount = 0;
+        ArrayList<String> dirs = new ArrayList<>();
         for (File file : contents) {
-            if (isValidFile(file)) {
-                items.add(file.getName());
+            if (Common.isValidFolder(file)) {
+                dirs.add(file.getName());
+            } else if (filter.accept(f, file.getName())) {
+                currentImageCount++;
             }
         }
-    }
-
-    //Weak check, let's see if the base requirements are met
-    public static boolean isValidFile(File f) {
-        return f.exists() && f.isDirectory();
-    }
-
-    //Stronger check if the dir is valid, if sucessfull, returns an array of containing files. 
-    public static File[] tryListFiles(File f) {
-        if (!isValidFile(f)) {
-            return null;
+        Collections.sort(dirs);
+        items.addAll(dirs);
+        if (currentImageCount != 0) {
+            if (dirs.isEmpty()) {
+                items.add(" " + currentImageCount + " supported files");
+            } else {
+                items.add(" ");
+                items.add(" +" + currentImageCount + " supported files");
+            }
         }
-        return f.listFiles();
-        //stronger check if the directory is valid (in windows, there are some weird folders that seem valid but cant be read, like 'documents and settings' in newer windows versions)
+        updateLaunchButton();
+    }
+
+    private void updateLaunchButton() {
+        boolean relative = radioFolderRelative.isSelected();
+        boolean move = radioOperationMove.isSelected();
+        
+        File mainDir = new File(textFieldBrowser.getText());
+        boolean mainDirInvalid = !Common.isValidFolder(mainDir);
+        boolean absoulteDirInvalid = false;
+
+        String text = "LAUNCH\n for ";
+
+        if (mainDirInvalid) {
+            text += "invalid directory";
+        } else {
+            text += "'" + mainDir.getName() + "' ";
+        }
+        if (currentImageCount == 0) {
+            text += "(no valid files found!)\n";
+        } else {
+            text += "(" + currentImageCount + " vaild files)\n";
+        }
+        if (move) {
+            text += "MOVE ";
+        } else {
+            text += "COPY ";
+        }
+        File absoluteDir = null;
+        if (relative) {
+            text += "the same directory";
+        } else {
+            absoluteDir = new File(textFieldFolder.getText());
+            absoulteDirInvalid = !Common.isValidFolder(absoluteDir);
+            if (absoulteDirInvalid) {
+                text += "to invalid directory";
+            } else {
+                text += "to '" + absoluteDir.getName() + "'";
+            }
+        }
+
+        boolean disable = mainDirInvalid;
+        disable |= absoulteDirInvalid;
+        disable |= currentImageCount == 0;
+
+        buttonLaunch.setDisable(disable);
+        buttonLaunch.setText(text);
     }
 }
