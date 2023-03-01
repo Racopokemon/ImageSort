@@ -60,7 +60,7 @@ public class ImprovisedProgressBar extends VBox {
         propertiesBox.setAlignment(Pos.CENTER);
         
         marginPropertiesBox = new VBox(propertiesBox); 
-        marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.3), null, null)));
+        marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.45), null, null)));
 
         getChildren().add(stack);
         getChildren().add(marginPropertiesBox);

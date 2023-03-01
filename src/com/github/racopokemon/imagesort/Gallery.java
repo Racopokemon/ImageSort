@@ -3,7 +3,6 @@ package com.github.racopokemon.imagesort;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -120,27 +119,12 @@ public class Gallery {
         this.delDirectory = deleteDirectory;
         this.copy = copy;
         this.reopenLauncherAfterwards = reopenLauncher;
-        //TODO 
-        //I literally just wrote these 4 lines, half of the vars are not even used yet. 
-        //TODO and of course the copy / move option is also not implemented yet in all its details. 
+
         //TODO make the 3 categories (which are hardcoded by now) a constant var
 
         Stage stage = new Stage();
 
-        filenameFilter = new FilenameFilter() {
-            @Override
-            public boolean accept(File f, String name) {
-                String[] split = name.split("[.]");
-                String suffix = split[split.length-1];
-                return (suffix.equalsIgnoreCase("jpg") || 
-                        suffix.equalsIgnoreCase("jpeg") || 
-                        suffix.equalsIgnoreCase("png"));
-                //I see the advantages of python and probably other high level languages ...
-                //where you would have a ends with ignore case ...
-                //or could access the last element of split in one line [-1] or .last (maybe c#)
-                //... this is too much writing for something trivial
-            }
-        };
+        filenameFilter = Common.getFilenameFilter();
         imageCategory = new Hashtable<>();
         imageBuffer = new Hashtable<>();
 
@@ -1054,7 +1038,7 @@ public class Gallery {
     //The final call, that actually executes all the move operations. 
     //Right now it is only possible to do this on close (which makes sense, after that the program would close anyway)
     private void moveAllFiles() { 
-        if (Launcher.isValidFile(targetDirectory)) {
+        if (Common.isValidFolder(targetDirectory)) {
             System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
             //Should be added later to a proper error handling
         }
@@ -1086,7 +1070,7 @@ public class Gallery {
     }
 
     private void copyAllFiles() { 
-        if (Launcher.isValidFile(targetDirectory)) {
+        if (Common.isValidFolder(targetDirectory)) {
             System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
             //Should be added later to a proper error handling
         }
