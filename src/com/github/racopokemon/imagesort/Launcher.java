@@ -106,7 +106,6 @@ public class Launcher {
         } else {
             radioFolderAbsolute.setSelected(true);
         }
-        radioFolderRelative.setSelected(true);
         VBox.setMargin(radioFolderRelative, indent);
         VBox.setMargin(radioFolderAbsolute, indent);
         radioFolderRelative.setMaxWidth(Double.POSITIVE_INFINITY);
@@ -247,9 +246,9 @@ public class Launcher {
             //check if there are image files inside (updateBrowser?)
             //TODO: There are no checks yet, and no dialogs about it yet
 
-            //TODO: The following test cases: Each check box in both states: 
-            //- move, copy. delete folder with relative, absolute, absolute + tick. move to absolute path, relative path. copy to absolute, relative. 
-            
+            //TODO: Count images inside the folder. 
+            //TODO: Write 3 lines of info or so (see .pptx) into the LAUNCH button
+
             stage.close();
 
             new Gallery().start(directory, targetDirectory, delDirectory, 
@@ -323,12 +322,12 @@ public class Launcher {
     }
 
     //Weak check, let's see if the base requirements are met
-    private boolean isValidFile(File f) {
+    public static boolean isValidFile(File f) {
         return f.exists() && f.isDirectory();
     }
 
     //Stronger check if the dir is valid, if sucessfull, returns an array of containing files. 
-    private File[] tryListFiles(File f) {
+    public static File[] tryListFiles(File f) {
         if (!isValidFile(f)) {
             return null;
         }

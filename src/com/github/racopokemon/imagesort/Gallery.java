@@ -285,19 +285,31 @@ public class Gallery {
                 }
             }
             if (unsavedChanges) {
-                Alert closeAlert = new Alert(AlertType.NONE, "Move all files now before closing?\n" +
-                "'No' keeps the files unchanged, but discards your work here.",
-                ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+
+                //TODO: Better info management, like 'there are 14 images to be moved, 3 are moved to /1, 11 are moved to /2, 84 remain.'
+                String closeMessage;
+                if (copy) {
+                    closeMessage = "Copy all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
+                } else {
+                    closeMessage = "Move all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
+                }
+                closeMessage += "'No' keeps the files unchanged, but discards your work here.";
+                Alert closeAlert = new Alert(AlertType.NONE, closeMessage, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                 closeAlert.setHeaderText("Move files now?");
                 Optional<ButtonType> result = closeAlert.showAndWait();
                 if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
-                    //prevent close by consuming event
+                    //prevent window close by consuming event
                     event.consume();
                     return;
                 } else if (result.get() == ButtonType.YES) {
                     //rename (closes automatically on return)
-                    //TEMPcopyOnly();
-                    moveAllFiles();
+                    //TODO: Better error communication! Like, moved abc files successfully, error with 2. 
+                    //TODO: Also, what if there is an error in between? Should we present the retry / ignore / cancel dialog? 
+                    if (copy) {
+                        copyAllFiles();
+                    } else {
+                        moveAllFiles();
+                    }
                     new Alert(AlertType.NONE, "Finished! \nConsider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
                 }
             }
@@ -688,9 +700,17 @@ public class Gallery {
         }
         int index = imageCategory.get(currentImage);
         if (index == 0) {
-            label.setText("keep");
+            if (copy) {
+                label.setText("no copy");
+            } else {
+                label.setText("keep");
+            }
         } else {
-            label.setText("move to "+index);
+            if (copy) {
+                label.setText("copy to "+index);
+            } else {
+                label.setText("move to "+index);
+            }
         }
     }
     private void incrementCurrentImageCategory() {
@@ -1033,12 +1053,17 @@ public class Gallery {
 
     //The final call, that actually executes all the move operations. 
     //Right now it is only possible to do this on close (which makes sense, after that the program would close anyway)
-    private void moveAllFiles() {
+    private void moveAllFiles() { 
+        if (Launcher.isValidFile(targetDirectory)) {
+            System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
+            //Should be added later to a proper error handling
+        }
+
         for (String key : imageCategory.keySet()) {
             int category = imageCategory.get(key);
             if (category != 0) {
                 //if folder doesnt exist: create. 
-                String dirPath = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + category;
+                String dirPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + category;
                 File dir = new File(dirPath);
                 if (!dir.exists()) {
                     try {
@@ -1060,27 +1085,31 @@ public class Gallery {
         }
     }
 
-    private void TEMPcopyOnly() {
-        //String copyDestination = "C:\\Users\\ramus\\Desktop\\Alle Jahre wieder Adventsbasteln nen\\";
-        String copyDestination = "C:\\Fotos\\";
-        File dir = new File(copyDestination);
-        if (!dir.exists()) {
-            try {
-                dir.mkdir();
-            } catch (Exception e) {
-                System.out.println("Could not create folder " + copyDestination);
-                e.printStackTrace();
-            }
+    private void copyAllFiles() { 
+        if (Launcher.isValidFile(targetDirectory)) {
+            System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
+            //Should be added later to a proper error handling
         }
-        for (String key : imageCategory.keySet()) {
-            int category = imageCategory.get(key);
+
+        for (String filename : imageCategory.keySet()) {
+            int category = imageCategory.get(filename);
             if (category != 0) {
-                File origin = new File(getFullPathForImage(key));
-                File dest = new File(copyDestination + key);
+                String dirPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + category;
+                File dir = new File(dirPath);
+                if (!dir.exists()) {
+                    try {
+                        dir.mkdir();
+                    } catch (Exception e) {
+                        System.out.println("Could not create folder for category " + category);
+                        e.printStackTrace();
+                    }
+                }
+                File origin = new File(getFullPathForImage(filename));
+                File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + filename);
                 try {
                     Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
                 } catch (Exception e) {
-                    System.out.println("Could not copy file " + key + " to folder "+ copyDestination);
+                    System.out.println("Could not copy file " + filename + " to "+ dest.getAbsolutePath());
                     e.printStackTrace();
                 }
             }
