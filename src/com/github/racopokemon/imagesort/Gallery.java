@@ -14,11 +14,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.event.*;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -45,8 +49,8 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /*
  * TODO: Watch out for ToDos!
@@ -112,6 +116,9 @@ public class Gallery {
     private Label errorLabel; 
     private Label noImagesLabel; 
     private LRButton leftButton, rightButton;
+
+    private Text wrapSearchIndicator;
+    private Timeline wrapSearchIndicatorTimeline;
 
     public void start(File directory, File targetDirectory, File deleteDirectory, boolean copy, boolean reopenLauncher, boolean showHints) {
         this.directory = directory;
@@ -245,10 +252,19 @@ public class Gallery {
         imageAndLoadingPane.getChildren().add(errorLabel);
         imageAndLoadingPane.getChildren().add(zoomPane);
 
+        wrapSearchIndicator = new Text("1/70");
+        wrapSearchIndicator.setFont(new Font(85));
+        wrapSearchIndicator.setFill(Color.WHITE);
+        wrapSearchIndicator.setStroke(Color.BLACK);
+        wrapSearchIndicator.setStrokeWidth(2);
+        wrapSearchIndicator.setVisible(false);
+        wrapSearchIndicator.setMouseTransparent(true);
+
         rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         rootPane.getChildren().add(invisibleContextMenuSource);
         rootPane.getChildren().add(noImagesLabel);
         rootPane.getChildren().add(imageAndLoadingPane);
+        rootPane.getChildren().add(wrapSearchIndicator);
 
         leftButton = new LRButton(rootPane, true); //this also adds them to the rootPane
         rightButton = new LRButton(rootPane, false);
@@ -272,7 +288,7 @@ public class Gallery {
 
                 //TODO: Better info management, like 'there are 14 images to be moved, 3 are moved to /1, 11 are moved to /2, 84 remain.'
                 String closeMessage;
-                if (copy) {
+                if (copy) { 
                     closeMessage = "Copy all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
                 } else {
                     closeMessage = "Move all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
@@ -625,6 +641,7 @@ public class Gallery {
         }
 
         progress.setProgress(currentImageIndex, images.size(), new String[] {currentImage, img.getSomeImageProperties()}, filter != -1);
+        wrapSearchIndicator.setText(currentImageIndex+1 + "/" + images.size()); //kind of doubled here, but I think its important that the indicator is updated as well
         updateLabel();
         updateImageStatus();
     }
@@ -893,6 +910,7 @@ public class Gallery {
         int index = getCurrentImageIndex();
         if (++index >= images.size()) {
             index = 0;
+            indicateEndOfFolder(true);
         }
         currentImage = images.get(index);
         lastImageManuallySelected = currentImage;
@@ -907,6 +925,7 @@ public class Gallery {
         int index = getCurrentImageIndex();
         if (--index < 0) {
             index = images.size() - 1;
+            indicateEndOfFolder(false);
         }
         currentImage = images.get(index);
         lastImageManuallySelected = currentImage;
@@ -1112,6 +1131,22 @@ public class Gallery {
 
         lastImageManuallySelected = currentImage;
         updateImageFilterAndCursorAfterImageChange();
+    }
+
+    private void indicateEndOfFolder(boolean nowAtBeginning) {
+        double initialOpacity = 0.9;
+        //If not nowAtBeginning, then we're now at the end! 
+        if (wrapSearchIndicatorTimeline == null) {
+            wrapSearchIndicatorTimeline = new Timeline();
+            //wrapSearchIndicatorTimeline.getKeyFrames().add(new KeyFrame(Duration.seconds(0.15), new KeyValue(wrapSearchIndicator.opacityProperty(), initialOpacity)));
+            //wrapSearchIndicatorTimeline.getKeyFrames().add(new KeyFrame(Duration.seconds(0.7), new KeyValue(wrapSearchIndicator.opacityProperty(), initialOpacity)));
+            wrapSearchIndicatorTimeline.getKeyFrames().add(new KeyFrame(Duration.seconds(1), new KeyValue(wrapSearchIndicator.opacityProperty(), 0.0)));
+
+            wrapSearchIndicatorTimeline.setOnFinished((e) -> {wrapSearchIndicator.setVisible(false);});
+        }
+        wrapSearchIndicator.setOpacity(initialOpacity);
+        wrapSearchIndicator.setVisible(true);
+        wrapSearchIndicatorTimeline.playFromStart();
     }
 }
 
