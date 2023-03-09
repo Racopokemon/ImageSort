@@ -7,12 +7,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.prefs.*;
 
+import com.drew.imaging.webp.WebpMetadataReader;
+
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -23,12 +26,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import javafx.collections.ObservableList;
 
 public class Launcher {
@@ -41,7 +47,7 @@ public class Launcher {
     private static final String CHECK_DELETE_FOLDER_UNSEL_TEXT = "Also create the 'delete' folder here. (Right now, it is created in the images folder)";
 
     private Stage stage;
-    private ListView<String> listBrowser;
+    private ListView<BrowserItem> listBrowser;
     private TextField textFieldBrowser;
     private TextField textFieldFolder;
     private RadioButton radioFolderRelative, radioOperationMove;
@@ -80,6 +86,14 @@ public class Launcher {
         listBrowser = new ListView<>();
         listBrowser.setPrefHeight(100);
         VBox.setVgrow(listBrowser, Priority.ALWAYS);
+        listBrowser.setCellFactory(
+            new Callback<ListView<BrowserItem>, ListCell<BrowserItem>>() {
+                @Override 
+                public ListCell<BrowserItem> call(ListView<BrowserItem> list) {
+                    return new BrowserCell();
+                }
+            }
+        );
 
         VBox boxBrowser = new VBox(SMALL_GAP, labelBrowserIntro, boxBrowserLine, listBrowser);
         VBox.setVgrow(boxBrowser, Priority.ALWAYS);
@@ -224,7 +238,7 @@ public class Launcher {
             if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY && listBrowser.getSelectionModel().getSelectedItem() != null) {
                 //Cheaply faking together the single list elements listening to double clicks. (Don't want to start the cell factory) Actually it's just the whole list listening, 
                 //and let's hope the cursor didn't move between both clicks between two elements (well it can happen.) Also lets hope that the user doesn't keep clicking, we register only click 2
-                String selected = listBrowser.getSelectionModel().getSelectedItem();
+                String selected = listBrowser.getSelectionModel().getSelectedItem().name;
                 if (selected.startsWith(" ")) {
                     return; //VERY cheap and simple, at least NTFS trims filenames, and we set a space before all file annotations. And even if not, updateBrowser validates the new path anyway
                 }
@@ -320,7 +334,7 @@ public class Launcher {
             return;
         }
 
-        ObservableList<String> items = listBrowser.getItems();
+        ObservableList<BrowserItem> items = listBrowser.getItems();
         items.clear();
 
         ArrayList<File> fallbackStack = new ArrayList<>();
@@ -367,15 +381,12 @@ public class Launcher {
                 currentImageCount++;
             }
         }
-        Collections.sort(dirs);
-        items.addAll(dirs);
+        Collections.sort(dirs, String.CASE_INSENSITIVE_ORDER);
+        for (String s : dirs) {
+            items.add(new BrowserItem(s, true));
+        }
         if (currentImageCount != 0) {
-            if (dirs.isEmpty()) {
-                items.add(" " + currentImageCount + " supported files");
-            } else {
-                items.add(" ");
-                items.add(" +" + currentImageCount + " supported files");
-            }
+            items.add(new BrowserItem(currentImageCount + " supported files", false));
         }
         updateLaunchButton();
     }
@@ -424,5 +435,30 @@ public class Launcher {
 
         buttonLaunch.setDisable(disable);
         buttonLaunch.setText(text);
+    }
+
+    private class BrowserItem {
+        public String name;
+        public boolean isFolder;
+        public BrowserItem(String name, boolean isFolder) {
+            this.name = name;
+            this.isFolder = isFolder;
+        }
+    }
+
+    static class BrowserCell extends ListCell<BrowserItem> {
+        @Override
+        public void updateItem(BrowserItem item, boolean empty) {
+            super.updateItem(item, empty);
+            Rectangle rect = new Rectangle(20, 20);
+            if (item == null || empty) {
+                setGraphic(null);
+                setText(null);
+            } else {
+                rect.setFill(item.isFolder ? Color.RED : Color.BLUE);
+                setGraphic(rect);
+                setText(item.name);
+            }
+        }
     }
 }

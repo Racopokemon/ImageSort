@@ -1050,7 +1050,7 @@ public class Gallery {
         allImages = new ArrayList<String>();
         String[] newDir = directory.list(filenameFilter);
         Collections.addAll(allImages, newDir);
-        Collections.sort(allImages); //My directory was sorted already, but idk if its always like that, also on other OS
+        Collections.sort(allImages, String.CASE_INSENSITIVE_ORDER); //My directory was sorted already, but idk if its always like that, also on other OS
         updateFilter();
     }
 
