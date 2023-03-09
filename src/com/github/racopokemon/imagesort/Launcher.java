@@ -198,6 +198,9 @@ public class Launcher {
                 return;
             }
             String parent = f.getParent();
+            if (parent == null && Common.isWindows()) {
+                parent = "";
+            }
             if (parent != null) {
                 textFieldBrowser.setText(parent);
                 updateBrowser();
@@ -342,7 +345,12 @@ public class Launcher {
             return;
         }
         lastValidBrowserDirectory = f;
-        textFieldBrowser.setText(f.getAbsolutePath());
+        boolean windowsRootMode = f.toString().equals("");
+        if (windowsRootMode) {
+            textFieldBrowser.setText(""); //Hacky special case: Windows roots are shown for empty string
+        } else {
+            textFieldBrowser.setText(f.getAbsolutePath());
+        }
         prefs.put("browserPath", f.getAbsolutePath());
 
         FilenameFilter filter = Common.getFilenameFilter();
@@ -350,7 +358,11 @@ public class Launcher {
         ArrayList<String> dirs = new ArrayList<>();
         for (File file : contents) {
             if (Common.isValidFolder(file)) {
-                dirs.add(file.getName());
+                if (windowsRootMode) {
+                    dirs.add(file.toString());
+                } else {
+                    dirs.add(file.getName());
+                }
             } else if (filter.accept(f, file.getName())) {
                 currentImageCount++;
             }

@@ -62,7 +62,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * ~~Show even more info, like ISO or focal length (Im interested in these values now)~~
   * ~~Show "filtered" when filtering in the progress bar~~
   * We need an app icon!
-  * Fainly show a big arrow when reaching the first image again? On top of it all, fades quickly? 
+  * ~~Fainly show a big arrow when reaching the first image again? On top of it all, fades quickly?~~
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~
   * ~~no filter, keep only, 1-3 only~~

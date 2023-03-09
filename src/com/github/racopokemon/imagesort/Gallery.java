@@ -522,7 +522,7 @@ public class Gallery {
         if (currentImage == null) return;
         
         //Desktop.getDesktop().browseFileDirectory(<file>) would be better, cross platform, but requires java 9 and im too lazy to install now
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (Common.isWindows()) {
             try {
                 Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForImage(currentImage));
             } catch (IOException e) {

@@ -16,7 +16,11 @@ public class Common {
     }
 
     //Stronger check if the dir is valid, if sucessfull, returns an array of containing files. 
+    //Also, weird warning: Giving a File("") in here returns the windows root dirs under windows. 
     public static File[] tryListFiles(File f) {
+        if (f.toString().equals("") && isWindows()) {
+            return File.listRoots();
+        }
         if (!isValidFolder(f)) {
             return null;
         }
@@ -48,5 +52,9 @@ public class Common {
 
     public static Preferences getPreferences() {
         return Preferences.userNodeForPackage(Main.class);
+    }
+
+    public static boolean isWindows() {
+        return System.getProperty("os.name").startsWith("Windows");
     }
 }
