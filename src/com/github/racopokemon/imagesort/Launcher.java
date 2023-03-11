@@ -235,16 +235,11 @@ public class Launcher {
         });
         
         listBrowser.setOnMouseClicked((e) -> {
-            if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY && listBrowser.getSelectionModel().getSelectedItem() != null) {
-                //Cheaply faking together the single list elements listening to double clicks. (Don't want to start the cell factory) Actually it's just the whole list listening, 
-                //and let's hope the cursor didn't move between both clicks between two elements (well it can happen.) Also lets hope that the user doesn't keep clicking, we register only click 2
-                String selected = listBrowser.getSelectionModel().getSelectedItem().name;
-                if (selected.startsWith(" ")) {
-                    return; //VERY cheap and simple, at least NTFS trims filenames, and we set a space before all file annotations. And even if not, updateBrowser validates the new path anyway
-                }
-                textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + selected);
-                updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
+            if (e.getButton() == MouseButton.PRIMARY) {
+                browserEmptyClicked();
             }
+            //Actually only happens when the listview is completely empty, otherwise you click empty cells. 
+            //The BrowserCell is handling all other click events. 
         });
         
         buttonFolderBrowse.setOnAction((e) -> {
@@ -437,6 +432,10 @@ public class Launcher {
         buttonLaunch.setText(text);
     }
 
+    private void browserEmptyClicked() {
+        listBrowser.getSelectionModel().clearSelection();
+    }
+
     private class BrowserItem {
         public String name;
         public boolean isFolder;
@@ -446,7 +445,31 @@ public class Launcher {
         }
     }
 
-    static class BrowserCell extends ListCell<BrowserItem> {
+    private class BrowserCell extends ListCell<BrowserItem> {
+        public BrowserCell() {
+            this.setOnMouseClicked((e) -> {
+                if (isEmpty() || getItem() == null) {
+                    browserEmptyClicked();
+                } else if (getItem().isFolder) {
+                    if (e.getButton() == MouseButton.PRIMARY) {
+                        if (isEmpty()) {
+                            browserEmptyClicked();
+                        } else {
+                            if (e.getClickCount() == 2) {
+                                textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + getItem().name);
+                                updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
+                            }
+                        }
+                    }
+                }
+                //I like that even if every list item now has its own listener ...
+                //double clicks between two elements still are counted
+                //and also two double clicks in a row are not counted, as the count goes up to 4. 
+                //I *could* fix this ... but no
+                e.consume(); //Otherwise, the onMouseClicked in the ListView is also called
+            });
+        }
+        
         @Override
         public void updateItem(BrowserItem item, boolean empty) {
             super.updateItem(item, empty);

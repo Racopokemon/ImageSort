@@ -39,6 +39,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~In which cases exactly?~~
     * ~~Keystroke or scroll on images?~~
     * ~~Instantly show again on movement~~
+  * Hide mouse after 1 sec in general?! I am starting to really need this rn! 
 * ~~Undo delete~~
   * ~~Ctrl+Z?~~
   * ~~I need it more and more often..~~
