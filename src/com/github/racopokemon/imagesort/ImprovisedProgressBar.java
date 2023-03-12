@@ -60,27 +60,32 @@ public class ImprovisedProgressBar extends VBox {
         propertiesBox.setAlignment(Pos.CENTER);
         
         marginPropertiesBox = new VBox(propertiesBox); 
-        marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.45), null, null)));
+        marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.5), null, null)));
 
         getChildren().add(stack);
-        getChildren().add(marginPropertiesBox);
+        //getChildren().add(marginPropertiesBox);
         setMaxSize(0, 0); //this seems to be the better solution if we want the vbox to use the minimum space possible
         //setSpacing(SPACING); //between bar & properties
         setAlignment(Pos.CENTER); //This gets important when the filename or any of the properties is longer than the percentage bar
 
-        propertiesBox.setMouseTransparent(true);
+        marginPropertiesBox.setMouseTransparent(true);
 
         toBackground();
     }
 
     private void toForeground() {
         setOpacity(1.0);
-        marginPropertiesBox.setVisible(true);
+        if (getChildren().size() == 1) {
+            getChildren().add(marginPropertiesBox); //used to just use setVisible() here which is the nicer solution, ...
+            //but then the mouse still leaves the pane below and the mouse-auto-hide does actually not hide in this area
+        }
     }
 
     private void toBackground() {
         setOpacity(0.1);
-        marginPropertiesBox.setVisible(false);
+        if (getChildren().size() == 2) {
+            getChildren().remove(marginPropertiesBox);
+        }
     }
 
     //You can also make newlines in info strings, then the spacing is smaller than with separate array entries

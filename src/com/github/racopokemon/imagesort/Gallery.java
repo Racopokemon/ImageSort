@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.event.*;
@@ -58,6 +59,7 @@ import javafx.util.Duration;
 public class Gallery {
 
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
+    private static final boolean HIDE_MOUSE_ON_IDLE = true; //Stronger variant basically, automatically hide mouse if not moved for ~1 sec. (Fullscreen only)
     private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
 
     private File directory;
@@ -118,6 +120,8 @@ public class Gallery {
 
     private Text wrapSearchIndicator;
     private Timeline wrapSearchIndicatorTimeline;
+    //https://stackoverflow.com/questions/33066754/javafx-set-mouse-hidden-when-idle Thanks for the great answer, was halfway through Workers, Tasks and Services
+    private PauseTransition hideMouseOnIdle;
 
     public void start(File directory, File targetDirectory, File deleteDirectory, boolean copy, boolean reopenLauncher, boolean showHints) {
         this.directory = directory;
@@ -188,17 +192,24 @@ public class Gallery {
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
                     zoomOut();
+                    hideMouseOnIdle.playFromStart();
                 }
             }
         });
-        EventHandler<MouseEvent> zoomPaneCursorRestoreHandler = new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                zoomPane.setCursor(Cursor.DEFAULT);
-            }
-        };
-        zoomPane.setOnMouseMoved(zoomPaneCursorRestoreHandler);
-        zoomPane.setOnMouseExited(zoomPaneCursorRestoreHandler);
+        hideMouseOnIdle = new PauseTransition(Duration.seconds(0.8));
+        if (HIDE_MOUSE_ON_IDLE) {
+            hideMouseOnIdle.setOnFinished((e) -> {
+                if (stage.isFullScreen()) zoomPane.setCursor(Cursor.NONE);
+            });
+        }
+        zoomPane.setOnMouseMoved((e) -> {
+            zoomPane.setCursor(Cursor.DEFAULT);
+            hideMouseOnIdle.playFromStart();
+        });
+        zoomPane.setOnMouseExited((e) -> {
+            zoomPane.setCursor(Cursor.DEFAULT);
+            hideMouseOnIdle.stop();
+        });
 
         label = new InteractiveLabel(38, 200, Pos.BOTTOM_RIGHT, 
                 () -> {incrementCurrentImageCategory();}, 
