@@ -47,6 +47,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
 * Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again
+* THE PROGRAM does not run anymore on java17, because javafx is not anymore part of the jdk. FIX THIS / port to java17! 
   * (Probably not even that easy to implement)
 * Simple window with slideshow (inside the gallery which is also a window with a slideshow) that shows the usage, 3 slides with the hints or so
 * Better scrolling on touchpads! 

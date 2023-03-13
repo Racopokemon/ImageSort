@@ -1,7 +1,11 @@
 package com.github.racopokemon.imagesort;
 
 import java.io.FilenameFilter;
+import java.util.Hashtable;
 import java.util.prefs.Preferences;
+
+import javafx.scene.image.Image;
+
 import java.io.File;
 
 //Helper class, common methods that come in handy in several places
@@ -9,6 +13,7 @@ import java.io.File;
 public class Common {
     
     private static FilenameFilter filter;
+    private static Hashtable<String, Image> ressources;
 
     //Weak check, let's see if the base requirements are met
     public static boolean isValidFolder(File f) {
@@ -46,7 +51,6 @@ public class Common {
                 }
             };
         }
-
         return filter;
     }
 
@@ -56,5 +60,16 @@ public class Common {
 
     public static boolean isWindows() {
         return System.getProperty("os.name").startsWith("Windows");
+    }
+
+    //Just use the filename, without path, without extension. 
+    public static Image getRessource(String name) {
+        if (ressources == null) {
+            ressources = new Hashtable<>();
+        }
+        if (!ressources.containsKey(name)) {
+            ressources.put(name, new Image(Common.class.getResourceAsStream("res/" + name + ".png")));
+        }
+        return ressources.get(name);
     }
 }

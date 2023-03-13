@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.prefs.*;
 
-import com.drew.imaging.webp.WebpMetadataReader;
-
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -21,6 +19,8 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -301,6 +301,7 @@ public class Launcher {
 
         stage.setScene(scene);
         stage.setTitle("Launcher");
+        stage.getIcons().add(Common.getRessource("logo"));
         stage.show();
 
         buttonBrowserBrowse.requestFocus();
@@ -473,13 +474,14 @@ public class Launcher {
         @Override
         public void updateItem(BrowserItem item, boolean empty) {
             super.updateItem(item, empty);
-            Rectangle rect = new Rectangle(20, 20);
             if (item == null || empty) {
                 setGraphic(null);
                 setText(null);
             } else {
-                rect.setFill(item.isFolder ? Color.RED : Color.BLUE);
-                setGraphic(rect);
+                ImageView view = new ImageView(Common.getRessource(item.isFolder ? "folder" : "image"));
+                view.setFitHeight(22);
+                view.setPreserveRatio(true);
+                setGraphic(view);
                 setText(item.name);
             }
         }
