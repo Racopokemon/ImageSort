@@ -23,6 +23,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~Show in explorer~~
   * First entry just states the filename
   * Open with default app
+  * Move to trash
   * (later rotate)
   * ~~Context menu key also opens context menu (did always work actually)~~
 * Enter key opens with default app
@@ -39,7 +40,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~In which cases exactly?~~
     * ~~Keystroke or scroll on images?~~
     * ~~Instantly show again on movement~~
-  * Hide mouse after 1 sec in general?! I am starting to really need this rn! 
+  * ~~Hide mouse after 1 sec in general?! I am starting to really need this rn!~~
 * ~~Undo delete~~
   * ~~Ctrl+Z?~~
   * ~~I need it more and more often..~~
@@ -49,11 +50,16 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again
 * THE PROGRAM does not run anymore on java17, because javafx is not anymore part of the jdk. FIX THIS / port to java17! 
   * (Probably not even that easy to implement)
-* Simple window with slideshow (inside the gallery which is also a window with a slideshow) that shows the usage, 3 slides with the hints or so
+* Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * Better scrolling on touchpads! 
 * Ctrl+left/right to first and last picture? And with shift skipping 10 ones?
 * ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
+  * I needed it again, doit!!
+  * This requires the java Desktop api, available from Java 9. 
+  * Also, use the open javafx as single library so that modern java 17 people can still run this app
+  * ALSO use the desktop API to reveal in folder! 
+  * On javafx 17, also find out if you get better filtering in the image view. 
 * ~~Alt+Enter / F11 toggle fullscreen~~
 * UI
   * ~~Small images are stretched out to fit the window. _Master, stop this!_~~
@@ -63,7 +69,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * ~~Maybe also when hovering the percentage center top~~
     * ~~Show even more info, like ISO or focal length (Im interested in these values now)~~
   * ~~Show "filtered" when filtering in the progress bar~~
-  * We need an app icon!
+  * ~~We need an app icon!~~
   * ~~Fainly show a big arrow when reaching the first image again? On top of it all, fades quickly?~~
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~
@@ -73,7 +79,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * **indicate that a modified image is moved once the currently previewed image changes**
   * ~~before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)~~
   * Delete during filter only changes it back to keep (?)
-  * The buffer also needs to buffer the images in the category only
+  * ~~The buffer also needs to buffer the images in the category only~~
   * Improvements
     * Constantly find the first images of the other categories and buffer them, so that cycling through the categories is a bit better than *this* right now
       * Only the adjacent categories?
