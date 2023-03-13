@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -52,13 +53,15 @@ public class Launcher {
     private TextField textFieldFolder;
     private RadioButton radioFolderRelative, radioOperationMove;
     private Button buttonLaunch;
+    private CheckBox checkDeleteFolderAbsolute;
+    private CheckBox checkMiscRelaunch;
+    private CheckBox checkMiscShowUsage;
+
 
     private File fallbackDirectory = new File(System.getProperty("user.home"));
     private File lastValidBrowserDirectory = null;
 
     private Preferences prefs = Common.getPreferences();
-
-    private int currentImageCount;
 
     public void start(Stage stage) {
         this.stage = stage;
@@ -140,7 +143,7 @@ public class Launcher {
         HBox boxFolderBrowserLine = new HBox(textFieldFolder, buttonFolderBrowse);
         VBox.setMargin(boxFolderBrowserLine, indentBig);
 
-        CheckBox checkDeleteFolderAbsolute = new CheckBox(CHECK_DELETE_FOLDER_UNSEL_TEXT);
+        checkDeleteFolderAbsolute = new CheckBox(CHECK_DELETE_FOLDER_UNSEL_TEXT);
         checkDeleteFolderAbsolute.setWrapText(true);
         checkDeleteFolderAbsolute.setMaxWidth(Double.POSITIVE_INFINITY);
         VBox.setMargin(checkDeleteFolderAbsolute, indentBig);
@@ -149,9 +152,9 @@ public class Launcher {
         VBox boxFolder = new VBox(SMALL_GAP, labelFolder, radioFolderRelative, radioFolderAbsolute,
                 boxFolderBrowserLine, checkDeleteFolderAbsolute);
 
-        CheckBox checkMiscRelaunch = new CheckBox("Reopen this launcher");
+        checkMiscRelaunch = new CheckBox("Reopen this launcher");
         checkMiscRelaunch.setSelected(prefs.getBoolean("miscRelaunch", false));
-        CheckBox checkMiscShowUsage = new CheckBox("Show usage hints when the gallery starts");
+        checkMiscShowUsage = new CheckBox("Show usage hints when the gallery starts");
         checkMiscShowUsage.setSelected(prefs.getBoolean("miscShowUsage", true));
         VBox miscBox = new VBox(SMALL_GAP, checkMiscRelaunch, checkMiscShowUsage);
 
@@ -226,12 +229,17 @@ public class Launcher {
                 updateBrowser();
             }
         });
+        textFieldBrowser.setOnAction((e) -> {updateBrowser();});
         textFieldFolder.focusedProperty().addListener((obs, oldV, newV) -> {
             if (!newV) {
                 //focus left!
                 prefs.put("folderPath", textFieldFolder.getText());
                 updateLaunchButton();
             }
+        });
+        textFieldFolder.setOnAction((e) -> {
+            prefs.put("folderPath", textFieldFolder.getText());
+            updateLaunchButton();
         });
         
         listBrowser.setOnMouseClicked((e) -> {
@@ -241,7 +249,9 @@ public class Launcher {
             //Actually only happens when the listview is completely empty, otherwise you click empty cells. 
             //The BrowserCell is handling all other click events. 
         });
-        
+        listBrowser.getSelectionModel().selectedItemProperty().addListener((e) -> {
+            updateLaunchButton();
+        });
         buttonFolderBrowse.setOnAction((e) -> {
             boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);
             if (success) {
@@ -259,42 +269,7 @@ public class Launcher {
         });
 
         buttonLaunch.setOnAction((e) -> {
-            String deleteSuffix = FileSystems.getDefault().getSeparator() + "delete";
-            File directory = new File(textFieldBrowser.getText());
-            File delDirectory = new File(textFieldBrowser.getText() + deleteSuffix);
-            File targetDirectory = directory;
-            if (radioFolderAbsolute.isSelected()) {
-                targetDirectory = new File(textFieldFolder.getText());
-                if (checkDeleteFolderAbsolute.isSelected()) {
-                    delDirectory = new File(textFieldFolder.getText() + deleteSuffix);
-                }
-            }
-
-            ArrayList<File> foldersToCheck = new ArrayList<>();
-            foldersToCheck.add(directory);
-            if (targetDirectory != directory) foldersToCheck.add(targetDirectory);
-            for (File f : foldersToCheck) {
-                if (Common.tryListFiles(f) == null) {
-                    Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe can't read folder \n"+f.getAbsolutePath());
-                    alert.setHeaderText("Could not launch");
-                    alert.showAndWait();
-                    return;
-                }
-            }
-
-            //recount images in folder: 
-            updateBrowser();
-            if (currentImageCount == 0) {
-                Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe could find no supported files in folder \n"+textFieldBrowser.getText());
-                alert.setHeaderText("Could not launch");
-                alert.showAndWait();
-                return;
-            }
-
-            stage.close();
-
-            new Gallery().start(directory, targetDirectory, delDirectory, 
-                    radioOperationCopy.isSelected(), checkMiscRelaunch.isSelected(), checkMiscShowUsage.isSelected());
+            launch();
         });
         
         updateLaunchButton();
@@ -305,6 +280,43 @@ public class Launcher {
         stage.show();
 
         buttonBrowserBrowse.requestFocus();
+    }
+
+    private void launch() {
+        String deleteSuffix = FileSystems.getDefault().getSeparator() + "delete";
+        File directory = getCurrentlySelectedDirectory();
+        File delDirectory = new File(textFieldBrowser.getText() + deleteSuffix);
+        File targetDirectory = directory;
+        if (!radioFolderRelative.isSelected()) {
+            targetDirectory = new File(textFieldFolder.getText());
+            if (checkDeleteFolderAbsolute.isSelected()) {
+                delDirectory = new File(textFieldFolder.getText() + deleteSuffix);
+            }
+        }
+
+        ArrayList<File> foldersToCheck = new ArrayList<>();
+        foldersToCheck.add(directory);
+        if (targetDirectory != directory) foldersToCheck.add(targetDirectory);
+        for (File f : foldersToCheck) {
+            if (Common.tryListFiles(f) == null) {
+                Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe can't read folder \n"+f.getAbsolutePath(), ButtonType.OK);
+                alert.setHeaderText("Could not launch");
+                alert.showAndWait();
+                return;
+            }
+        }
+
+        if (getNumberSupportedImages(directory) == 0) {
+            Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe could find no supported files in folder \n"+textFieldBrowser.getText(), ButtonType.OK);
+            alert.setHeaderText("Could not launch");
+            alert.showAndWait();
+            return;
+        }
+
+        stage.close();
+
+        new Gallery().start(directory, targetDirectory, delDirectory, 
+                !radioOperationMove.isSelected(), checkMiscRelaunch.isSelected(), checkMiscShowUsage.isSelected());
     }
 
     private boolean showBrowserDialogForTextField(String title, TextField field) {
@@ -321,6 +333,24 @@ public class Launcher {
             field.setText(dir.getAbsolutePath());
         }
         return successful;
+    }
+
+    //Returns either the base directory in the browser list, if no element is selected, or the selected directory in the browser list. 
+    private File getCurrentlySelectedDirectory() {
+        boolean folderSelected = false;
+        BrowserItem selectedItem = null;
+        if (!listBrowser.getSelectionModel().isEmpty()) {
+            selectedItem = listBrowser.getSelectionModel().getSelectedItem();
+            if (selectedItem.isFolder) {
+                folderSelected = true;
+            }
+        }
+        if (folderSelected) {
+            return new File(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + selectedItem.name);
+        } else {
+            return new File(textFieldBrowser.getText());
+        }
+
     }
 
     private void updateBrowser() {
@@ -364,7 +394,7 @@ public class Launcher {
         prefs.put("browserPath", f.getAbsolutePath());
 
         FilenameFilter filter = Common.getFilenameFilter();
-        currentImageCount = 0;
+        int currentImageCount = 0;
         ArrayList<String> dirs = new ArrayList<>();
         for (File file : contents) {
             if (Common.isValidFolder(file)) {
@@ -387,26 +417,40 @@ public class Launcher {
         updateLaunchButton();
     }
 
+    private int getNumberSupportedImages(File directory) {
+        FilenameFilter filter = Common.getFilenameFilter();
+        int number = 0;
+        for (File f : Common.tryListFiles(directory)) {
+            if (!f.isDirectory() && filter.accept(directory, f.getName())) {
+                number++;
+            }
+        }
+        return number;
+    }
+
     private void updateLaunchButton() {
         boolean relative = radioFolderRelative.isSelected();
         boolean move = radioOperationMove.isSelected();
         
-        File mainDir = new File(textFieldBrowser.getText());
+        File mainDir = getCurrentlySelectedDirectory();
         boolean mainDirInvalid = !Common.isValidFolder(mainDir);
         boolean absoulteDirInvalid = false;
 
         String text = "LAUNCH\n for ";
 
+        int imageCount = 0;
         if (mainDirInvalid) {
             text += "invalid directory";
         } else {
             text += "'" + mainDir.getName() + "' ";
+            imageCount = getNumberSupportedImages(mainDir);
+            if (imageCount == 0) {
+                text += "(no valid files found!)";
+            } else {
+                text += "(" + imageCount + " vaild files)";
+            }
         }
-        if (currentImageCount == 0) {
-            text += "(no valid files found!)\n";
-        } else {
-            text += "(" + currentImageCount + " vaild files)\n";
-        }
+        text += "\n";
         if (move) {
             text += "MOVE ";
         } else {
@@ -427,7 +471,7 @@ public class Launcher {
 
         boolean disable = mainDirInvalid;
         disable |= absoulteDirInvalid;
-        disable |= currentImageCount == 0;
+        disable |= imageCount == 0;
 
         buttonLaunch.setDisable(disable);
         buttonLaunch.setText(text);
