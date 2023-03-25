@@ -118,6 +118,10 @@ public class RotatedImage extends Image {
     //Based on the available metadata, returns a string of one or several lines of image properties (date, focal length, ...)
     public String getSomeImageProperties() {
 
+        if (metadata == null) {
+            return "Could not read metadata from this image (null).";
+        }
+
         ArrayList<String> output = new ArrayList<>();
 
         Date date = null;

@@ -27,6 +27,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * (later rotate)
   * ~~Context menu key also opens context menu (did always work actually)~~
 * Enter key opens with default app
+* **In the info dialog before moving, indicate, how many images are moved where! **
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
 * Safety
@@ -68,6 +69,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~Show the recording date (and time) at some place** (I really need this) (Also the weekday, please!)~~
     * ~~Maybe also when hovering the percentage center top~~
     * ~~Show even more info, like ISO or focal length (Im interested in these values now)~~
+    * **A camera name would also be very nice!**
   * ~~Show "filtered" when filtering in the progress bar~~
   * ~~We need an app icon!~~
   * ~~Fainly show a big arrow when reaching the first image again? On top of it all, fades quickly?~~
