@@ -130,8 +130,6 @@ public class Gallery {
         this.copy = copy;
         this.reopenLauncherAfterwards = reopenLauncher;
 
-        System.out.println("Enter in the browser bars also checks!");
-
         //TODO make the 3 categories (which are hardcoded by now) a constant var
 
         Stage stage = new Stage();

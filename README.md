@@ -126,9 +126,9 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ==can decide if the files should be moved to a relative folder OR to a global folder (which is also stored between the sessions)==
   * \[tick box] also show videos (if we finally have video support)
 * Launcher
-  * A simple folder view where single folders can be double-clicked / selected and then this app launches with this folder already preselected. 
-  * Became a bit bigger, this is basically our settings-window now. 
-  * Mature the launcher: 
+  * ~~A simple folder view where single folders can be double-clicked / selected and then this app launches with this folder already preselected.~~
+  * ~~Became a bit bigger, this is basically our settings-window now.~~
+  * ~~Mature the launcher:~~
     * ~~Clicking a folder means that the user wants to launch into this specific folder!~~
       * ~~Observe this for the launch button etc.~~
         * ~~Make a function to determine the current file (if selected, the selection, if not, what is written in the textFieldBrowser)~~

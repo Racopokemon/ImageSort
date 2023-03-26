@@ -404,7 +404,6 @@ public class Launcher {
         } else {
             textFieldBrowser.setText(f.getAbsolutePath());
         }
-        prefs.put("browserPath", f.getAbsolutePath());
 
         FilenameFilter filter = Common.getFilenameFilter();
         int currentImageCount = 0;
@@ -448,6 +447,8 @@ public class Launcher {
         File mainDir = getCurrentlySelectedDirectory();
         boolean mainDirInvalid = !Common.isValidFolder(mainDir);
         boolean absoulteDirInvalid = false;
+
+        prefs.put("browserPath", mainDir.getAbsolutePath());
 
         String text = "LAUNCH\n for ";
 
