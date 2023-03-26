@@ -61,6 +61,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Also, use the open javafx as single library so that modern java 17 people can still run this app
   * ALSO use the desktop API to reveal in folder! 
   * On javafx 17, also find out if you get better filtering in the image view. 
+* About scrolling: Maybe try quickly flashing the l/r button when you scroll forth / back?
+* Add a shortcut to quit *and move to the next folder*?! I need that right
 * ~~Alt+Enter / F11 toggle fullscreen~~
 * UI
   * ~~Small images are stretched out to fit the window. _Master, stop this!_~~
@@ -126,13 +128,15 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * A simple folder view where single folders can be double-clicked / selected and then this app launches with this folder already preselected. 
   * Became a bit bigger, this is basically our settings-window now. 
   * Mature the launcher: 
-    * Clicking a folder means that the user wants to launch into this specific folder! 
-      * Observe this for the launch button etc. 
-        * Make a function to determine the current file (if selected, the selection, if not, what is written in the textFieldBrowser)
-      * Make a separate method for scanning for files in a separate directory, the launch button needs this then! 
-    * Find out how these factories work in listBoxes, and create different custom-coded entries for folders and files: 
-      * They can finally listen for themselves for double clicks etc.
-      * Clicking the outside of the listBox then also finally unselects the current folder! 
+    * ~~Clicking a folder means that the user wants to launch into this specific folder!~~
+      * ~~Observe this for the launch button etc.~~
+        * ~~Make a function to determine the current file (if selected, the selection, if not, what is written in the textFieldBrowser)~~
+      * ~~Make a separate method for scanning for files in a separate directory, the launch button needs this then!~~
+    * ~~Find out how these factories work in listBoxes, and create different custom-coded entries for folders and files:~~
+      * ~~They can finally listen for themselves for double clicks etc.~~
+      * ~~Clicking the outside of the listBox then also finally unselects the current folder!~~
+  * **Make an option [x] silently move the delete folder to system trash on exit.** 
+    * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
