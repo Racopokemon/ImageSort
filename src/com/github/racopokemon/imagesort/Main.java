@@ -1,4 +1,3 @@
-
 package com.github.racopokemon.imagesort;
 
 import javafx.application.Application;

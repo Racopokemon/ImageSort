@@ -299,15 +299,17 @@ public class Gallery {
             if (unsavedChanges) {
 
                 //TODO: Better info management, like 'there are 14 images to be moved, 3 are moved to /1, 11 are moved to /2, 84 remain.'
-                String closeMessage;
+                String closeMessage, closeHeader;
                 if (copy) { 
                     closeMessage = "Copy all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
+                    closeHeader = "Copy files now?";
                 } else {
                     closeMessage = "Move all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
+                    closeHeader = "Move files now?";
                 }
                 closeMessage += "'No' keeps the files unchanged, but discards your work here.";
                 Alert closeAlert = new Alert(AlertType.NONE, closeMessage, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-                closeAlert.setHeaderText("Move files now?");
+                closeAlert.setHeaderText(closeHeader);
                 Optional<ButtonType> result = closeAlert.showAndWait();
                 if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
                     //prevent window close by consuming event
@@ -1102,7 +1104,7 @@ public class Gallery {
     }
 
     private void copyAllFiles() { 
-        if (Common.isValidFolder(targetDirectory)) {
+        if (!Common.isValidFolder(targetDirectory)) {
             System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
             //Should be added later to a proper error handling
         }

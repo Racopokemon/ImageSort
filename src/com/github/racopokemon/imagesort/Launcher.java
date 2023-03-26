@@ -222,7 +222,7 @@ public class Launcher {
             if (parent != null) {
                 textFieldBrowser.setText(parent);
                 updateBrowser();
-                
+
                 String name = f.getName();
                 if (name.equals("") && Common.isWindows()) { //special case for the base folders C:\ etc
                     name = f.getAbsolutePath();
@@ -517,16 +517,12 @@ public class Launcher {
         public BrowserCell() {
             this.setOnMouseClicked((e) -> {
                 if (isEmpty() || getItem() == null) {
-                    browserEmptyClicked();
+                    return;
                 } else if (getItem().isFolder) {
                     if (e.getButton() == MouseButton.PRIMARY) {
-                        if (isEmpty()) {
-                            browserEmptyClicked();
-                        } else {
-                            if (e.getClickCount() == 2) {
-                                textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + getItem().name);
-                                updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
-                            }
+                        if (e.getClickCount() == 2) {
+                            textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + getItem().name);
+                            updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
                         }
                     }
                 }
@@ -535,6 +531,18 @@ public class Launcher {
                 //and also two double clicks in a row are not counted, as the count goes up to 4. 
                 //I *could* fix this ... but no
                 e.consume(); //Otherwise, the onMouseClicked in the ListView is also called
+            });
+
+            this.setOnMousePressed((e) -> {
+                if (isEmpty() || getItem() == null) {
+                    browserEmptyClicked();
+                }
+                if (e.getButton() == MouseButton.PRIMARY && !isEmpty()) {
+                    if (e.getClickCount() == 1 && isSelected()) {
+                        //the plan was to unselect elements again, but it doesnt work: 
+                        //listBrowser.getSelectionModel().clearSelection(); //The element is selected before when this is called and then just gets instantly unselected. 
+                    }
+                }
             });
         }
         
