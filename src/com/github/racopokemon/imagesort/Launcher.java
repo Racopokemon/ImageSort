@@ -214,6 +214,7 @@ public class Launcher {
             if (!Common.isValidFolder(f)) {
                 return;
             }
+
             String parent = f.getParent();
             if (parent == null && Common.isWindows()) {
                 parent = "";
@@ -221,6 +222,18 @@ public class Launcher {
             if (parent != null) {
                 textFieldBrowser.setText(parent);
                 updateBrowser();
+                
+                String name = f.getName();
+                if (name.equals("") && Common.isWindows()) { //special case for the base folders C:\ etc
+                    name = f.getAbsolutePath();
+                }
+                int index = listBrowser.getItems().indexOf(new BrowserItem(name, true));
+                if (index != -1) {
+                    listBrowser.getSelectionModel().select(index);
+                    listBrowser.scrollTo(index);
+                }
+
+                listBrowser.requestFocus();
             }
         });
         textFieldBrowser.focusedProperty().addListener((obs, oldV, newV) -> {
@@ -487,6 +500,16 @@ public class Launcher {
         public BrowserItem(String name, boolean isFolder) {
             this.name = name;
             this.isFolder = isFolder;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof BrowserItem) {
+                BrowserItem i = (BrowserItem) o;
+                return i.isFolder == isFolder && i.name.equals(name);
+            } else {
+                return false;
+            }
         }
     }
 

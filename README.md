@@ -56,13 +56,14 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Ctrl+left/right to first and last picture? And with shift skipping 10 ones?
 * ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
-  * I needed it again, doit!!
+  * **I needed it again, doit!!**
   * This requires the java Desktop api, available from Java 9. 
   * Also, use the open javafx as single library so that modern java 17 people can still run this app
   * ALSO use the desktop API to reveal in folder! 
   * On javafx 17, also find out if you get better filtering in the image view. 
 * About scrolling: Maybe try quickly flashing the l/r button when you scroll forth / back?
 * Add a shortcut to quit *and move to the next folder*?! I need that right
+* **When relaunching: Select the last folder where you were in**
 * ~~Alt+Enter / F11 toggle fullscreen~~
 * UI
   * ~~Small images are stretched out to fit the window. _Master, stop this!_~~
@@ -136,6 +137,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
       * ~~They can finally listen for themselves for double clicks etc.~~
       * ~~Clicking the outside of the listBox then also finally unselects the current folder!~~
   * **Make an option [x] silently move the delete folder to system trash on exit.** 
+    * **When browsing 1 dir up, select the folder you originated from!**
     * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
