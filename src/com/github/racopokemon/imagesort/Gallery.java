@@ -653,7 +653,10 @@ public class Gallery {
             view.fitHeightProperty().bind(rootPane.heightProperty());
         }
 
-        progress.setProgress(currentImageIndex, images.size(), new String[] {currentImage, img.getSomeImageProperties()}, filter != -1);
+        ArrayList<String> imageInfo = new ArrayList<String>();
+        imageInfo.add(currentImage);
+        imageInfo.addAll(img.getSomeImageProperties());
+        progress.setProgress(currentImageIndex, images.size(), imageInfo, filter != -1);
         wrapSearchIndicator.setText(currentImageIndex+1 + "/" + images.size()); //kind of doubled here, but I think its important that the indicator is updated as well
         updateLabel();
         updateImageStatus();

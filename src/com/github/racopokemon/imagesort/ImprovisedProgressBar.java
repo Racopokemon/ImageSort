@@ -1,5 +1,7 @@
 package com.github.racopokemon.imagesort;
 
+import java.util.ArrayList;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Background;
@@ -10,6 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
@@ -24,6 +27,7 @@ public class ImprovisedProgressBar extends VBox {
 
     private static final double SPACING = 3;
     private static final Font FONT = new Font(14);
+    private static final Font FONT_ITALIC = Font.font(FONT.getFamily(), FontWeight.NORMAL, FontPosture.ITALIC, 12);
     private static final Font FONT_BOLD = Font.font(FONT.getFamily(), FontWeight.SEMI_BOLD, 16);
     private static final Color DARK_GREY = Color.gray(0.2);
 
@@ -56,11 +60,11 @@ public class ImprovisedProgressBar extends VBox {
 
         propertiesBox = new VBox();
         VBox.setMargin(propertiesBox, new Insets(SPACING));
-        propertiesBox.setSpacing(SPACING);
+        propertiesBox.setSpacing(SPACING*0.5);
         propertiesBox.setAlignment(Pos.CENTER);
         
         marginPropertiesBox = new VBox(propertiesBox); 
-        marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.5), null, null)));
+        marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.7), null, null)));
 
         getChildren().add(stack);
         //getChildren().add(marginPropertiesBox);
@@ -89,7 +93,7 @@ public class ImprovisedProgressBar extends VBox {
     }
 
     //You can also make newlines in info strings, then the spacing is smaller than with separate array entries
-    public void setProgress(int value, int outOf, String[] infos, boolean filtered) {
+    public void setProgress(int value, int outOf, ArrayList<String> infos, boolean filtered) {
         percentageText.setText((value+1) + " / " + outOf);
         if (filtered) {
             percentageText.setText(percentageText.getText() + " (filtered)");
@@ -106,7 +110,7 @@ public class ImprovisedProgressBar extends VBox {
             if (index++ == 0) {
                 info.setFont(FONT_BOLD);
             } else {
-                info.setFont(FONT);
+                info.setFont(infos.size() == 3 ? (index == 2 ? FONT_ITALIC : FONT) : FONT);
                 info.setFill(DARK_GREY);
             }
             propertiesBox.getChildren().add(info);

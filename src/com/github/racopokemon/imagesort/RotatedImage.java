@@ -116,16 +116,17 @@ public class RotatedImage extends Image {
     private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("EEE, dd. MMM yyyy, HH:mm"); //hehe german time format. If ppl want another one, I could also later offer a text box to change this. 
 
     //Based on the available metadata, returns a string of one or several lines of image properties (date, focal length, ...)
-    public String getSomeImageProperties() {
-
-        if (metadata == null) {
-            return "Could not read metadata from this image (null).";
-        }
+    public ArrayList<String> getSomeImageProperties() {
 
         ArrayList<String> output = new ArrayList<>();
+        if (metadata == null) {
+            output.add("Could not read metadata from this image (null).");
+            return output;
+        }
 
         Date date = null;
 
+        //let's load some directories first
         ExifIFD0Directory dir1 = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
         if (dir1 != null && dir1.containsTag(ExifIFD0Directory.TAG_DATETIME)) {
             date = dir1.getDate(ExifIFD0Directory.TAG_DATETIME);
@@ -144,11 +145,32 @@ public class RotatedImage extends Image {
                 date = d3;
             }
         }
+        
+        //model line
+        if (dir1 != null) {
+            String makeAndModel = "";
+            if (dir1.containsTag(ExifIFD0Directory.TAG_MAKE)) {
+                makeAndModel += dir1.getString(ExifIFD0Directory.TAG_MAKE);
+            }
+            if (dir1.containsTag(ExifIFD0Directory.TAG_MODEL)) {
+                if (!makeAndModel.equals("")) {
+                    makeAndModel += " ";
+                }
+                makeAndModel += dir1.getString(ExifIFD0Directory.TAG_MODEL);
+            }
+            if (!makeAndModel.equals("")) {
+                output.add(makeAndModel);
+            }
+        }
+        
+        String secondLine = null;
 
+        //date line
         if (date != null) {
-            output.add(DATE_FORMATTER.format(date));
+            secondLine = DATE_FORMATTER.format(date);
         }
 
+        //image properties line
         if (dir2 != null) {
             ArrayList<String> camBits = new ArrayList<String>(); //were doing the list-collecting thing AGAIN argh
             if (dir2.containsTag(ExifSubIFDDirectory.TAG_FOCAL_LENGTH)) {
@@ -170,21 +192,30 @@ public class RotatedImage extends Image {
                     if (i != 0) allBitsMerged += " | ";
                     allBitsMerged += bit;
                 }
-                output.add(allBitsMerged);
+                if (secondLine == null) {
+                    secondLine = allBitsMerged;
+                } else {
+                    secondLine += "\n";
+                    secondLine += allBitsMerged;
+                }
             }
+        }
+        if (secondLine != null) {
+            output.add(secondLine);
         }
 
         if (output.isEmpty()) {
-            return "no metadata yet";
+            output.add("no metadata found");
+            return output;
         } else {
-            String out = "";
-            for (int i = 0; i < output.size(); i++) {
-                out += output.get(i);
-                if (i < output.size() - 1) {
-                    out += "\n";
-                }
-            }
-            return out;
+            //String out = "";
+            //for (int i = 0; i < output.size(); i++) {
+            //    out += output.get(i);
+            //    if (i < output.size() - 1) {
+            //        out += "\n";
+            //    }
+            //}
+            return output;
         }
     }
 }

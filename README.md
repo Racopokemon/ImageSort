@@ -72,7 +72,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * ~~Show the recording date (and time) at some place** (I really need this) (Also the weekday, please!)~~
     * ~~Maybe also when hovering the percentage center top~~
     * ~~Show even more info, like ISO or focal length (Im interested in these values now)~~
-    * **A camera name would also be very nice!**
+    * ~~A camera name would also be very nice!~~
   * ~~Show "filtered" when filtering in the progress bar~~
   * ~~We need an app icon!~~
   * ~~Fainly show a big arrow when reaching the first image again? On top of it all, fades quickly?~~
@@ -137,7 +137,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
       * ~~They can finally listen for themselves for double clicks etc.~~
       * ~~Clicking the outside of the listBox then also finally unselects the current folder!~~
   * **Make an option [x] silently move the delete folder to system trash on exit.** 
-    * **When browsing 1 dir up, select the folder you originated from!**
+    * ~~When browsing 1 dir up, select the folder you originated from!~~
     * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
