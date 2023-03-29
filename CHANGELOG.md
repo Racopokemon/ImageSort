@@ -1,3 +1,25 @@
+# ImageSort 1.4
+_March 29, 2023_
+
+(Actually, I should be doing my Master's thesis right now)
+
+We now have a **Launcher window**! 
+_It functions a bit like a big settings window_
+- Select your images folder, using the native system dialog or the launcher itself
+- Decide if you want to *move* or *copy* your images
+- Decide your target directory (relative to your current folder, or an external location)
+- Decide if you want the launcher to reopen
+- Decide if you want to be shown the usage hints
+- All settings made are stored between sessions
+
+Quality of life improvements
+- The mouse generally hides after 1 second
+- We now show more image information: Camera name, exposure and aperture
+- Indication when the search wraps reaching the first (or last) image again
+
+... and more
+- We have an app icon!
+
 # ImageSort 1.3
 _Feb 1, 2023_
 

@@ -63,7 +63,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * On javafx 17, also find out if you get better filtering in the image view. 
 * About scrolling: Maybe try quickly flashing the l/r button when you scroll forth / back?
 * Add a shortcut to quit *and move to the next folder*?! I need that right
-* **When relaunching: Select the last folder where you were in**
+* ~~When relaunching: Select the last folder where you were in~~
 * ~~Alt+Enter / F11 toggle fullscreen~~
 * UI
   * ~~Small images are stretched out to fit the window. _Master, stop this!_~~
