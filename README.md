@@ -19,9 +19,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * See the `issues` category in the github page
 
 # Furter feature ideas
-* RAW duality in Launcher file operations
-  * If there several files with the same name, but different extension, and only one is one of the supported formats, move / copy / delete all. Silently. 
-  * Okay, maybe add a silent +.raw extension or whatever extensions it actually is
+* ~~RAW duality in Launcher file operations~~
+  * ~~If there several files with the same name, but different extension, and only one is one of the supported formats, move / copy / delete all. Silently.~~
+  * ~~Okay, maybe add a silent +.raw extension or whatever extensions it actually is~~
+  * **Write a (+1) or +.RAW or whatever on the percentage bar to indicate this copy along (if it is activated)**
 * Right click context menu
   * ~~Show in explorer~~
   * First entry just states the filename
