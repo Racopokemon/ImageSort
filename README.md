@@ -7,7 +7,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * the moving to the 1, 2 and 3 folders is done when the application is closed
 
 # Installation
-* Download [Java](https://www.java.com/en/) (at least version 8)
+* Download [Java 8](https://www.java.com/en/) (I have been informed that newer versions don't work anymore, I'm on it!)
 * Download the newest `.jar` file from the release section to the right.
 * Simply double click the file to start the application. It will ask you to select a folder of images to work on. 
 
