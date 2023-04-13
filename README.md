@@ -19,6 +19,9 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * See the `issues` category in the github page
 
 # Furter feature ideas
+* RAW duality in Launcher file operations
+  * If there several files with the same name, but different extension, and only one is one of the supported formats, move / copy / delete all. Silently. 
+  * Okay, maybe add a silent +.raw extension or whatever extensions it actually is
 * Right click context menu
   * ~~Show in explorer~~
   * First entry just states the filename
@@ -27,7 +30,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * (later rotate)
   * ~~Context menu key also opens context menu (did always work actually)~~
 * Enter key opens with default app
-* **In the info dialog before moving, indicate, how many images are moved where! **
+* **In the info dialog before moving, indicate, how many images are moved where!**
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
 * Safety
@@ -136,6 +139,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * ~~Find out how these factories work in listBoxes, and create different custom-coded entries for folders and files:~~
       * ~~They can finally listen for themselves for double clicks etc.~~
       * ~~Clicking the outside of the listBox then also finally unselects the current folder!~~
+  * also show .raw formats in the launcher
+  * context menu has options: Move to /raw, move 1 folder up, and move to system trash!
+  * maybe rename folders? Or is this too much? 
+  * I discovered that with openfx or how its called you can also access the forward and back mouse button! Use the back one on the list view in the browser! 
   * **Make an option [x] silently move the delete folder to system trash on exit.** 
     * ~~When browsing 1 dir up, select the folder you originated from!~~
     * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
