@@ -54,6 +54,15 @@ public class Common {
         return filter;
     }
 
+    public static String removeExtensionFromFilename(String filename) {
+        int lastDotIndex = filename.lastIndexOf(".");
+        if (lastDotIndex == 0) {
+            return filename;
+        } else {
+            return filename.substring(0, lastDotIndex);
+        }
+    }
+
     public static Preferences getPreferences() {
         return Preferences.userNodeForPackage(Main.class);
     }

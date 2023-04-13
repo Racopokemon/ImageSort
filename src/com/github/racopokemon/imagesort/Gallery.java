@@ -61,6 +61,7 @@ public class Gallery {
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
     private static final boolean HIDE_MOUSE_ON_IDLE = true; //Stronger variant basically, automatically hide mouse if not moved for ~1 sec. (Fullscreen only)
     private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
+    private static final boolean MOVE_ALONG = true; //Feature that silently also moves/copies/deletes not supported files during file operations, if they have the same file name (but different extension). For .raws
 
     private File directory;
     private File targetDirectory;
@@ -72,10 +73,13 @@ public class Gallery {
     private ArrayList<String> images = new ArrayList<>();
     //All images available in the users folder. Updated by updateFilesList()
     private ArrayList<String> allImages = new ArrayList<>();
+    //A lookup, for every supported image file we store a list of filenames inside this directory, that have the same filename, but another (not supported) extension. 
+    //These files are silently copied / moved / deleted along with the image. (.raw feature, if images exist both as raw and jpg)
+    private Hashtable<String, ArrayList<String>> filesToMoveAlong = new Hashtable<>();
     //The previous version of allImages. We use this to check the neighborhood of a suddenly deleted image (that still exists in allIamges) to prevent simply skipping 
     //to the first image in the entire folder. 
     private ArrayList<String> previouslyAllImages = new ArrayList<>();
-    private ArrayList<String> deleteHistory = new ArrayList<>(); //last element added: First image name to be restored
+    private ArrayList<ArrayList<String>> deleteHistory = new ArrayList<>(); //last element added: First set of image names to be restored (can be multiple because of moveAlong feature)
     private ArrayList<Integer> deleteHistoryCategory = new ArrayList<>(); //We also store which category the deleted image was in
 
     private FilenameFilter filenameFilter;
@@ -972,13 +976,32 @@ public class Gallery {
             if (!delDirectory.exists()) {
                 delDirectory.mkdir();
             }
-            //move file there
+            
+            //move image file there
             String path = getFullPathForImage(currentImage);
             File origin = new File(path);
             File dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + currentImage);
             origin.renameTo(dest);
-            deleteHistory.add(currentImage);
             
+            ArrayList<String> deletedFilenames = new ArrayList<>();
+            deletedFilenames.add(currentImage);
+            deleteHistory.add(deletedFilenames);
+            //move along other files
+            if (filesToMoveAlong.containsKey(currentImage)) {
+                for (String moveAlong : filesToMoveAlong.get(currentImage)) {
+                    try {
+                        path = getFullPathForImage(moveAlong);
+                        origin = new File(path);
+                        dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + moveAlong);
+                        origin.renameTo(dest);     
+                        deletedFilenames.add(moveAlong);
+                    } catch (Exception e) {
+                        System.out.println("Could not move file "+moveAlong+" to 'deleted' folder: ");
+                        e.printStackTrace();            
+                    }
+                }
+            }
+
             int category = 0;
             if (imageCategory.containsKey(currentImage)) category = imageCategory.get(currentImage);
             deleteHistoryCategory.add(category);
@@ -1001,21 +1024,23 @@ public class Gallery {
             return;
         }
 
-        //First and most important: Restore the image itself! 
-        String restore = deleteHistory.get(deleteHistory.size() - 1);
-        String pathBefore = getFullPathForImage(restore);
-        try {
-            File origin = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + restore);
-            File dest = new File(pathBefore);
-            origin.renameTo(dest);
-
-            deleteHistory.remove(deleteHistory.size() - 1);
-            imageCategory.put(restore, deleteHistoryCategory.remove(deleteHistoryCategory.size() - 1));
-        } catch (Exception e) {
-            System.out.println("Could not restore removed image "+restore+" back to its base folder. ");
-            e.printStackTrace();
+        //First and most important: Restore the image(s) themelves! 
+        ArrayList<String> imagesToRestore = deleteHistory.get(deleteHistory.size() - 1);
+        String mainImageFileName = imagesToRestore.get(0);
+        for (String restore : imagesToRestore) {
+            String pathBefore = getFullPathForImage(restore);
+            try {
+                File origin = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + restore);
+                File dest = new File(pathBefore);
+                origin.renameTo(dest);    
+            } catch (Exception e) {
+                System.out.println("Could not restore removed image "+restore+" back to its base folder. ");
+                e.printStackTrace();
+            }
         }
-
+        deleteHistory.remove(deleteHistory.size() - 1);
+        imageCategory.put(mainImageFileName, deleteHistoryCategory.remove(deleteHistoryCategory.size() - 1));
+        
         //Side quest: Delete the delete folder if there is now no files inside anymore. 
         //again, weird solutions for the simplest IO tasks in java. Bro. 
         //However, thanks to baeldung.com/java-check-empty-directory where I got this from
@@ -1039,14 +1064,14 @@ public class Gallery {
 
         //If the restore was sucessfull, we definetly jump to this image to give the user the feedback that the restore was sucessfull
         updateFilesList();
-        if (allImages.contains(restore)) {
+        if (allImages.contains(mainImageFileName)) {
 
-            if (!images.contains(restore)) {
+            if (!images.contains(mainImageFileName)) {
                 //If the image is not visible under the current filter, we disable the filter. 
                 filter = -1; 
                 updateFilterOnNextImage = true; 
             }
-            currentImage = restore;
+            currentImage = mainImageFileName;
             
             //lastImageManuallySelected = currentImage; Maybe it is clever to knowingly NOT do this. 
             //Scrolling up and down between the neighboring categories then brings back the original cursor position. 
@@ -1059,14 +1084,42 @@ public class Gallery {
     }
 
     private void updateFilesList() {
-        //String sep = FileSystems.getDefault().getSeparator();
-        //files.addAll(directory.list(filter)); //again, this should work. 
-        //files = new ArrayList<String>(directory.list(filter)); //or this
         previouslyAllImages = allImages;
         allImages = new ArrayList<String>();
-        String[] newDir = directory.list(filenameFilter);
-        Collections.addAll(allImages, newDir);
-        Collections.sort(allImages, String.CASE_INSENSITIVE_ORDER); //My directory was sorted already, but idk if its always like that, also on other OS
+
+        File[] allFilesUnfiltered = directory.listFiles();
+        Hashtable<String, String> imageNameFrequency = new Hashtable<>(); //contains either the full filename, or "" if there are several images with this name
+        ArrayList<String> notSupportedFilesInFirectory = new ArrayList<>();
+        for (File file : allFilesUnfiltered) {
+            if (!file.isDirectory()) {
+                String filename = file.getName();
+                if (filenameFilter.accept(directory, filename)) {
+                    String filenameWithoutExtension = Common.removeExtensionFromFilename(filename).toLowerCase();
+                    allImages.add(filename);
+                    if (imageNameFrequency.get(filenameWithoutExtension) == null) { //== null: does not contain this key yet
+                        imageNameFrequency.put(filenameWithoutExtension, filename);
+                    } else {
+                        imageNameFrequency.put(filenameWithoutExtension, "");
+                    }
+                } else {
+                    notSupportedFilesInFirectory.add(filename);
+                }
+            }
+        }
+        if (MOVE_ALONG) {
+            filesToMoveAlong = new Hashtable<>();
+            for (String notSupportedFile : notSupportedFilesInFirectory) {
+                String fullFilename = imageNameFrequency.get(Common.removeExtensionFromFilename(notSupportedFile).toLowerCase());
+                if (fullFilename != null && !fullFilename.equals("")) {
+                    if (!filesToMoveAlong.containsKey(fullFilename)) {
+                        filesToMoveAlong.put(fullFilename, new ArrayList<String>());
+                    }
+                    filesToMoveAlong.get(fullFilename).add(notSupportedFile);
+                }
+            }
+        }
+
+        Collections.sort(allImages, String.CASE_INSENSITIVE_ORDER); //My windows directory was sorted already, but idk if its always like that, on other OS
         updateFilter();
     }
 

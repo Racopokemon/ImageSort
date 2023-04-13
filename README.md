@@ -144,6 +144,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * maybe rename folders? Or is this too much? 
   * I discovered that with openfx or how its called you can also access the forward and back mouse button! Use the back one on the list view in the browser! 
   * **Make an option [x] silently move the delete folder to system trash on exit.** 
+  * **If the current dir does not exist on loading, _please_ don't use the default folder but move dirs up until you find a valid dir**
     * ~~When browsing 1 dir up, select the folder you originated from!~~
     * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
 * Session storage
