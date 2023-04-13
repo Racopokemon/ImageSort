@@ -22,6 +22,7 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -264,6 +265,12 @@ public class Launcher {
         });
         listBrowser.getSelectionModel().selectedItemProperty().addListener((e) -> {
             updateLaunchButton();
+        });
+        listBrowser.setOnKeyPressed((e) -> {
+            if (e.getCode() == KeyCode.F5) {
+                textFieldBrowser.setText("/-%*:\\~#[]"); //this should be invalid enough (hacky hacky, sorry)
+                updateBrowser();
+            }
         });
         buttonFolderBrowse.setOnAction((e) -> {
             boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);

@@ -541,7 +541,7 @@ public class Gallery {
         //Desktop.getDesktop().browseFileDirectory(<file>) would be better, cross platform, but requires java 9 and im too lazy to install now
         if (Common.isWindows()) {
             try {
-                Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForImage(currentImage));
+                Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForFileInThisFolder(currentImage));
             } catch (IOException e) {
                 System.out.println("Could not show file " + currentImage + " in explorer:");
                 e.printStackTrace();
@@ -589,7 +589,7 @@ public class Gallery {
 
         //TEMP quick and dirty try to make the loading of the first image faster
         if (!imageBuffer.containsKey(currentImage)) {
-            newImageBuffer.put(currentImage, new RotatedImage(new File (getFullPathForImage(currentImage))));
+            newImageBuffer.put(currentImage, new RotatedImage(new File (getFullPathForFileInThisFolder(currentImage))));
         }
         //END TEMP (since this call also happens in the loop down here:)
 
@@ -602,7 +602,7 @@ public class Gallery {
             if (imageBuffer.containsKey(imageNameAtCursor)) {
                 newImageBuffer.put(imageNameAtCursor, imageBuffer.get(imageNameAtCursor));
             } else {
-                newImageBuffer.put(imageNameAtCursor, new RotatedImage(new File (getFullPathForImage(imageNameAtCursor))));
+                newImageBuffer.put(imageNameAtCursor, new RotatedImage(new File (getFullPathForFileInThisFolder(imageNameAtCursor))));
             }
         }
         //initially we were cool and didnt have loop, but this really helps when scrolling rapidly through the pics.
@@ -978,7 +978,7 @@ public class Gallery {
             }
             
             //move image file there
-            String path = getFullPathForImage(currentImage);
+            String path = getFullPathForFileInThisFolder(currentImage);
             File origin = new File(path);
             File dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + currentImage);
             origin.renameTo(dest);
@@ -990,7 +990,7 @@ public class Gallery {
             if (filesToMoveAlong.containsKey(currentImage)) {
                 for (String moveAlong : filesToMoveAlong.get(currentImage)) {
                     try {
-                        path = getFullPathForImage(moveAlong);
+                        path = getFullPathForFileInThisFolder(moveAlong);
                         origin = new File(path);
                         dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + moveAlong);
                         origin.renameTo(dest);     
@@ -1028,7 +1028,7 @@ public class Gallery {
         ArrayList<String> imagesToRestore = deleteHistory.get(deleteHistory.size() - 1);
         String mainImageFileName = imagesToRestore.get(0);
         for (String restore : imagesToRestore) {
-            String pathBefore = getFullPathForImage(restore);
+            String pathBefore = getFullPathForFileInThisFolder(restore);
             try {
                 File origin = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + restore);
                 File dest = new File(pathBefore);
@@ -1079,7 +1079,7 @@ public class Gallery {
         }
     }
 
-    private String getFullPathForImage(String image) {
+    private String getFullPathForFileInThisFolder(String image) {
         return directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + image;
     }
 
@@ -1145,13 +1145,20 @@ public class Gallery {
                         e.printStackTrace();
                     }
                 }
-                File origin = new File(getFullPathForImage(key));
-                File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + key);
-                try {
-                    origin.renameTo(dest);
-                } catch (Exception e) {
-                    System.out.println("Could not move file " + key + " to category folder "+ category);
-                    e.printStackTrace();
+                ArrayList<String> filesToMove = new ArrayList<>();
+                filesToMove.add(key);
+                if (filesToMoveAlong.containsKey(key)) {
+                    filesToMove.addAll(filesToMoveAlong.get(key));
+                }
+                for (String fileToMove : filesToMove) {
+                    File origin = new File(getFullPathForFileInThisFolder(fileToMove));
+                    File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + fileToMove);
+                    try {
+                        origin.renameTo(dest);
+                    } catch (Exception e) {
+                        System.out.println("Could not move file " + fileToMove + " to category folder "+ category);
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -1176,13 +1183,20 @@ public class Gallery {
                         e.printStackTrace();
                     }
                 }
-                File origin = new File(getFullPathForImage(filename));
-                File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + filename);
-                try {
-                    Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
-                } catch (Exception e) {
-                    System.out.println("Could not copy file " + filename + " to "+ dest.getAbsolutePath());
-                    e.printStackTrace();
+                ArrayList<String> filesToCopy = new ArrayList<>();
+                filesToCopy.add(filename);
+                if (filesToMoveAlong.containsKey(filename)) {
+                    filesToCopy.addAll(filesToMoveAlong.get(filename));
+                }
+                for (String fileToCopy : filesToCopy) {
+                    File origin = new File(getFullPathForFileInThisFolder(fileToCopy));
+                    File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + fileToCopy);
+                    try {
+                        Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
+                    } catch (Exception e) {
+                        System.out.println("Could not copy file " + fileToCopy + " to "+ dest.getAbsolutePath());
+                        e.printStackTrace();
+                    }
                 }
             }
         }

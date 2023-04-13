@@ -139,6 +139,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * ~~Find out how these factories work in listBoxes, and create different custom-coded entries for folders and files:~~
       * ~~They can finally listen for themselves for double clicks etc.~~
       * ~~Clicking the outside of the listBox then also finally unselects the current folder!~~
+    * ~~F5 key in browser window refreshes~~
   * also show .raw formats in the launcher
   * context menu has options: Move to /raw, move 1 folder up, and move to system trash!
   * maybe rename folders? Or is this too much? 
