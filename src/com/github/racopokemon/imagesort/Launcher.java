@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.prefs.*;
 
 import javafx.geometry.Insets;
@@ -22,6 +23,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
@@ -82,7 +85,33 @@ public class Launcher {
 
         Button buttonBrowserDirUp = new Button("^");
         textFieldBrowser = new TextField();
-        textFieldBrowser.setText(prefs.get("browserPath", fallbackDirectory.getAbsolutePath())); //2nd is the default value if nothing is stored yet
+        //If the users clipboard contains a valid path, we want start from this location. If this is not the case, we use the path used last time, if available. 
+        File startPath = null;
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        if (clipboard.hasContent(DataFormat.PLAIN_TEXT)) {
+            startPath = new File(clipboard.getString());
+        } else if (clipboard.hasContent(DataFormat.FILES)) {
+            List<File> filesList = clipboard.getFiles();
+            if (filesList.size() > 0) {
+                startPath = filesList.get(0);
+            }
+        }
+        //isDirectory also checks if the dir exists. So if we have a directory OR a file inside a valid directory, we pass this on,
+        //otherwise we set startPath to null and use a fallback option. 
+        if (startPath != null && !startPath.isDirectory()) {
+            startPath = startPath.getParentFile();
+            if (startPath != null && !startPath.isDirectory()) {
+                startPath = null;
+            }
+        }
+        //This is not the best coding style though, if our checks here are true but later when calling updateBrowser, it is not true anymore, we dont fall back to 
+        //prefs.get browserPath on initialization..
+        if (startPath == null) {
+            //No clipboard option, use the other options
+            textFieldBrowser.setText(prefs.get("browserPath", fallbackDirectory.getAbsolutePath())); //2nd is the default value if nothing is stored yet
+        } else {
+            textFieldBrowser.setText(startPath.getAbsolutePath());
+        }
         HBox.setHgrow(textFieldBrowser, Priority.ALWAYS);
         Button buttonBrowserBrowse = new Button("Browse");
         HBox boxBrowserLine = new HBox(buttonBrowserDirUp, textFieldBrowser, buttonBrowserBrowse);

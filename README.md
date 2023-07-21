@@ -34,6 +34,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * **In the info dialog before moving, indicate, how many images are moved where!**
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
+* Fun idea (let's find out if its only annoying or actually helpful)
+  * ~~on launch of the launcher: check the clipboard. If it contains the path to a valid folder on the PC, paste this already into the browser box!~~
 * Safety
   * What happens, if an image is deleted or renamed externally, and ...
     * the folder is rescanned (needs to be deleted out of all categories?)
