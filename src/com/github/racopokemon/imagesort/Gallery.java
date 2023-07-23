@@ -136,8 +136,6 @@ public class Gallery {
         this.copy = copy;
         this.reopenLauncherAfterwards = reopenLauncher;
 
-        //TODO make the 3 categories (which are hardcoded by now) a constant var
-
         Stage stage = new Stage();
 
         filenameFilter = Common.getFilenameFilter();
@@ -323,6 +321,7 @@ public class Gallery {
                     //rename (closes automatically on return)
                     //TODO: Better error communication! Like, moved abc files successfully, error with 2. 
                     //TODO: Also, what if there is an error in between? Should we present the retry / ignore / cancel dialog? 
+                    //TODO: Also, what if there is an error in between? Should we present the retry / ignore / cancel dialog? 
                     if (copy) {
                         copyAllFiles();
                     } else {
@@ -342,9 +341,21 @@ public class Gallery {
             public void handle(KeyEvent event) {
                 //Fuck switch cases. 
                 if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
-                    nextImage();
+                    if (event.isShortcutDown() && event.getCode() == KeyCode.RIGHT) {
+                        selectImageAtIndex(images.size()-1); //last image
+                    } else if (event.isShiftDown() && event.getCode() == KeyCode.RIGHT) {
+                        nImagesForth(25);
+                    } else {
+                        nextImage();
+                    }
                 } else if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
-                    prevImage();
+                    if (event.isShortcutDown() && event.getCode() == KeyCode.LEFT) {
+                        selectImageAtIndex(0); //first image
+                    } else if (event.isShiftDown() && event.getCode() == KeyCode.LEFT) {
+                        nImagesBack(25);
+                    } else {
+                        prevImage();
+                    }
                 } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
                     incrementCurrentImageCategory();
                 } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.S) {
@@ -924,30 +935,56 @@ public class Gallery {
         return index;
     }
 
-    //Updates currentFile and shows the image
+    //Select & show the next image
     private void nextImage() {
+        nImagesForth(1);
+    }
+    
+    //Updates currentFile and shows the image
+    //If the resulting index would exceed the image number, we stop at the last image. If we skip over from the last image, we always start from the first image again. 
+    private void nImagesForth(int n) {        
         if (currentImage == null) {
             return;
         }
-        int index = getCurrentImageIndex();
-        if (++index >= images.size()) {
-            index = 0;
-            indicateEndOfFolder(true);
+        int currIndex = getCurrentImageIndex();
+        int newIndex = currIndex + n;
+        if (newIndex >= images.size()) {
+            if (currIndex == images.size() - 1) {
+                newIndex = 0;
+                indicateEndOfFolder(true);
+            } else {
+                newIndex = images.size() - 1;
+            }
         }
-        currentImage = images.get(index);
-        lastImageManuallySelected = currentImage;
-        updateImageFilterAndCursorAfterImageChange();
+        selectImageAtIndex(newIndex);    
     }
 
-    //Updates currentFile and shows the image
     private void prevImage() {
+        nImagesBack(1);
+    }
+    
+    //Updates currentFile and shows the image
+    //Wrapping behavior analog to nImagesForth
+    private void nImagesBack(int n) {
         if (currentImage == null) {
             return;
         }
-        int index = getCurrentImageIndex();
-        if (--index < 0) {
-            index = images.size() - 1;
-            indicateEndOfFolder(false);
+        int currIndex = getCurrentImageIndex();
+        int newIndex = currIndex - n;
+        if (newIndex < 0) {
+            if (currIndex == 0) {
+                newIndex = images.size() - 1;
+                indicateEndOfFolder(false);
+            } else {
+                newIndex = 0;
+            }
+        }
+        selectImageAtIndex(newIndex);
+    }
+
+    private void selectImageAtIndex(int index) {
+        if (currentImage == null) {
+            return;
         }
         currentImage = images.get(index);
         lastImageManuallySelected = currentImage;
@@ -1212,10 +1249,7 @@ public class Gallery {
         }
 
         int skimDestination = (int)(images.size() * (numberKey * 0.1));
-        currentImage = images.get(skimDestination);
-
-        lastImageManuallySelected = currentImage;
-        updateImageFilterAndCursorAfterImageChange();
+        selectImageAtIndex(skimDestination);
     }
 
     private void indicateEndOfFolder(boolean nowAtBeginning) {
