@@ -69,6 +69,8 @@ public class Gallery {
     private boolean copy;
     private boolean reopenLauncherAfterwards;
 
+    private int numberOfCategories = 3;
+
     //The current list of images we are cycling through now (with filters not all images might be visible). Subset of allImages, which is all images in the folder
     private ArrayList<String> images = new ArrayList<>();
     //All images available in the users folder. Updated by updateFilesList()
@@ -739,7 +741,7 @@ public class Gallery {
             return;
         }
         int current = imageCategory.get(currentImage);
-        if (++current > 3) {
+        if (++current > numberOfCategories) {
             current = 0;
         }
         imageCategory.put(currentImage, current);
@@ -752,21 +754,21 @@ public class Gallery {
         }
         int current = imageCategory.get(currentImage);
         if (--current < 0) {
-            current = 3;
+            current = numberOfCategories;
         }
         imageCategory.put(currentImage, current);
         updateFilterOnNextImage = true;
         updateLabel();
     }
     private void nextFilter() {
-        if (++filter > 3) {
+        if (++filter > numberOfCategories) {
             filter = -1;
         }
         updateFilter();
     }
     private void previousFilter() {
         if (--filter < -1) {
-            filter = 3;
+            filter = numberOfCategories;
         }
         updateFilter();
     }
