@@ -59,7 +59,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * (Probably not even that easy to implement)
 * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * Better scrolling on touchpads! 
-* Ctrl+left/right to first and last picture? And with shift skipping 10 ones?
+* ~~Ctrl+left/right to first and last picture? And with shift skipping 10 ones?~~
 * ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~
 * Ctrl delete for 'instant delete' which instantly moves it to system trash?
   * **I needed it again, doit!!**
