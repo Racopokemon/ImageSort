@@ -55,6 +55,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
 * Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again
+  * Or maybe we show a button or so
 * THE PROGRAM does not run anymore on java17, because javafx is not anymore part of the jdk. FIX THIS / port to java17! 
   * (Probably not even that easy to implement)
 * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
@@ -148,11 +149,12 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * maybe rename folders? Or is this too much? 
   * I discovered that with openfx or how its called you can also access the forward and back mouse button! Use the back one on the list view in the browser! 
   * **Make an option [x] silently move the delete folder to system trash on exit.** 
-  * **If the current dir does not exist on loading, _please_ don't use the default folder but move dirs up until you find a valid dir**
-    * ~~When browsing 1 dir up, select the folder you originated from!~~
     * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
+  * ~~If the current dir does not exist on loading, _please_ don't use the default folder but move dirs up until you find a valid dir~~
+    * ~~When browsing 1 dir up, select the folder you originated from!~~
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
 * Let the users decide how many categories they need (and let them rename later?) instead of the static 3
   * The 3 is not even a constant, its just hardcoded. Change this
+* Mid-clicking any check or category sets the filter to it or unsets it
