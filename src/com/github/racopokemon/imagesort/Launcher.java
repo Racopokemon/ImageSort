@@ -412,10 +412,18 @@ public class Launcher {
         ObservableList<BrowserItem> items = listBrowser.getItems();
         items.clear();
 
+        //we will traverse the stack from last to first element to find the first valid folder. 
         ArrayList<File> fallbackStack = new ArrayList<>();
         fallbackStack.add(fallbackDirectory);
         if (lastValidBrowserDirectory != null) fallbackStack.add(lastValidBrowserDirectory);
+
         fallbackStack.add(newDir);
+        //adding all parent folders in reverse order 
+        int placementIndex = fallbackStack.size() - 1;
+        File parentDir = newDir;
+        while ((parentDir = parentDir.getParentFile()) != null) {
+            fallbackStack.add(placementIndex, parentDir);
+        }
         
         File[] contents = null; //this crashes sometimes, even though the directory exists, can read, etc.
 
