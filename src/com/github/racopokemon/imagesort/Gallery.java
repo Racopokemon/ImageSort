@@ -23,6 +23,7 @@ import javafx.event.*;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -288,12 +289,34 @@ public class Gallery {
         wrapSearchIndicator.setVisible(false);
         wrapSearchIndicator.setMouseTransparent(true);
 
+        Rectangle exitFullscreenRect = new Rectangle(2, 2);
+        exitFullscreenRect.setFill(Color.TRANSPARENT);
+        StackPane.setAlignment(exitFullscreenRect, Pos.TOP_RIGHT);
+        Text exitFullscreenText = new Text("Click to exit full-screen");
+        exitFullscreenText.setFont(new Font(40));
+        exitFullscreenText.setFill(Color.WHITE);
+        exitFullscreenText.setStroke(Color.BLACK);
+        Rectangle exitFullscreenHintBackground = new Rectangle(600, 200);
+        exitFullscreenHintBackground.setFill(Color.BLACK);
+        exitFullscreenHintBackground.setOpacity(0.65);
+        
+        StackPane exitFullscreenHint = new StackPane(exitFullscreenHintBackground, exitFullscreenText); 
+        exitFullscreenHint.setMouseTransparent(true);
+        exitFullscreenHint.setMaxSize(0, 0);
+        exitFullscreenHint.setVisible(false);
+
+        exitFullscreenRect.setOnMouseEntered((e) -> {exitFullscreenHint.setVisible(true);});
+        exitFullscreenRect.setOnMouseExited((e) -> {exitFullscreenHint.setVisible(false);});
+        exitFullscreenRect.setOnMouseClicked((e) -> {stage.setFullScreen(false);});
+
+        exitFullscreenRect.visibleProperty().bind(stage.fullScreenProperty());
+
         rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         rootPane.getChildren().add(invisibleContextMenuSource);
         rootPane.getChildren().add(noImagesLabel);
         rootPane.getChildren().add(imageAndLoadingPane);
         rootPane.getChildren().add(wrapSearchIndicator);
-
+        
         leftButton = new LRButton(rootPane, true); //this also adds them to the rootPane
         rightButton = new LRButton(rootPane, false);
         
@@ -301,6 +324,8 @@ public class Gallery {
         rootPane.getChildren().add(filterLabel);
         rootPane.getChildren().add(tickLabelVBox);
         rootPane.getChildren().add(progress);
+        rootPane.getChildren().add(exitFullscreenRect);
+        rootPane.getChildren().add(exitFullscreenHint);
 
         Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
