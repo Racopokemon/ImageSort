@@ -356,6 +356,10 @@ public class Gallery {
                     } else {
                         prevImage();
                     }
+                } else if (event.getCode() == KeyCode.HOME) {
+                    selectImageAtIndex(0);
+                } else if (event.getCode() == KeyCode.END) {
+                    selectImageAtIndex(images.size()-1);
                 } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
                     incrementCurrentImageCategory();
                 } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.S) {
