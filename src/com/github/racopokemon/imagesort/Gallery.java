@@ -41,6 +41,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
@@ -70,6 +71,7 @@ public class Gallery {
     private boolean reopenLauncherAfterwards;
 
     private int numberOfCategories = 3;
+    private int numberOfTicks = 4;
 
     //The current list of images we are cycling through now (with filters not all images might be visible). Subset of allImages, which is all images in the folder
     private ArrayList<String> images = new ArrayList<>();
@@ -113,6 +115,7 @@ public class Gallery {
     private StackPane rootPane;
     private InteractiveLabel label;
     private InteractiveLabel filterLabel;
+    private InteractiveLabel[] tickLabels;
     private static final Color LR_HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
     private static final Color LR_ARROW_COLOR = new Color(0, 0, 0, 0.5);
     private static final double BUTTON_WIDTH = 100;
@@ -215,15 +218,26 @@ public class Gallery {
             hideMouseOnIdle.stop();
         });
 
-        label = new InteractiveLabel(38, 200, Pos.BOTTOM_RIGHT, 
+        label = new InteractiveLabel(38, 200, 70, Pos.BOTTOM_RIGHT, 
                 () -> {incrementCurrentImageCategory();}, 
                 () -> {decrementCurrentImageCategory();});
         StackPane.setAlignment(label, Pos.BOTTOM_RIGHT);
 
-        filterLabel = new InteractiveLabel(28, 250, Pos.BOTTOM_CENTER,
+        filterLabel = new InteractiveLabel(28, 250, 70, Pos.BOTTOM_CENTER,
                 () -> {nextFilter();},
                 () -> {previousFilter();});
         StackPane.setAlignment(filterLabel, Pos.BOTTOM_CENTER);
+
+        tickLabels = new InteractiveLabel[numberOfTicks];
+        VBox tickLabelVBox = new VBox();
+        for (int i = 0; i < numberOfTicks; i++) {
+            InteractiveLabel currentTickLabel = new InteractiveLabel(28, 150, 46, Pos.CENTER_LEFT, null, null);
+            currentTickLabel.setText(getTickName(i));
+            tickLabelVBox.getChildren().add(currentTickLabel);
+            tickLabels[i] = currentTickLabel;
+        }
+        tickLabelVBox.setMaxSize(0, 0); //also done in the ImprovisedProgressBar, makes the container only occupy the min possible size
+        StackPane.setAlignment(tickLabelVBox, Pos.BOTTOM_LEFT);
         
         errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
@@ -285,6 +299,7 @@ public class Gallery {
         
         rootPane.getChildren().add(label);
         rootPane.getChildren().add(filterLabel);
+        rootPane.getChildren().add(tickLabelVBox);
         rootPane.getChildren().add(progress);
 
         Scene scene = new Scene(rootPane, 800, 600);
@@ -1270,6 +1285,15 @@ public class Gallery {
         wrapSearchIndicator.setOpacity(initialOpacity);
         wrapSearchIndicator.setVisible(true);
         wrapSearchIndicatorTimeline.playFromStart();
+    }
+
+    //Lookup for tick names. Right now we use letters, so index 0 is "a" etc.
+    //So you may only look up ticks from 0 to 25
+    private String getTickName(int index) {
+        if (index < 0 || index > 25) {
+            throw new IllegalArgumentException("tick index not in bounds (0-25)");
+        }
+        return (((char)index) + 'a') + "";
     }
 }
 

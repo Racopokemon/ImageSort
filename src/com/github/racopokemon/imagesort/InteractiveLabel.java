@@ -21,9 +21,7 @@ public class InteractiveLabel extends StackPane {
     private double unhoverOpacity = 1.0;
     private boolean hovered = false;
     
-    public InteractiveLabel (double textSize, double width, Pos alignment, Action up, Action down) {
-
-        double height = 70;
+    public InteractiveLabel (double textSize, double width, double height, Pos alignment, Action up, Action down) {
 
         label = new Text("bottom text");
         label.setFont(new Font(textSize));
@@ -56,7 +54,7 @@ public class InteractiveLabel extends StackPane {
         });
 
         StackPane.setAlignment(label, alignment);
-        StackPane.setMargin(label, new Insets(5, 10, 5, 10));
+        StackPane.setMargin(label, new Insets(2, 10, 2, 10));
         StackPane.setAlignment(scrollAbsorber, alignment);
 
         getChildren().addAll(label, scrollAbsorber);
