@@ -117,6 +117,7 @@ public class Gallery {
     private InteractiveLabel label;
     private InteractiveLabel filterLabel;
     private InteractiveLabel[] tickLabels;
+    private static final double TICK_LABEL_HEIGHT = 46;
     private static final Color LR_HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
     private static final Color LR_ARROW_COLOR = new Color(0, 0, 0, 0.5);
     private static final double BUTTON_WIDTH = 100;
@@ -219,10 +220,10 @@ public class Gallery {
             hideMouseOnIdle.stop();
         });
 
-        label = new InteractiveLabel(38, 200, 70, Pos.BOTTOM_RIGHT, 
+        label = new InteractiveLabel(38, 200, 70, Pos.BOTTOM_LEFT, 
                 () -> {incrementCurrentImageCategory();}, 
                 () -> {decrementCurrentImageCategory();});
-        StackPane.setAlignment(label, Pos.BOTTOM_RIGHT);
+        StackPane.setAlignment(label, Pos.BOTTOM_LEFT);
 
         filterLabel = new InteractiveLabel(28, 250, 70, Pos.BOTTOM_CENTER,
                 () -> {nextFilter();},
@@ -232,13 +233,28 @@ public class Gallery {
         tickLabels = new InteractiveLabel[numberOfTicks];
         VBox tickLabelVBox = new VBox();
         for (int i = 0; i < numberOfTicks; i++) {
-            InteractiveLabel currentTickLabel = new InteractiveLabel(28, 150, 46, Pos.CENTER_LEFT, null, null);
+            InteractiveLabel currentTickLabel = new InteractiveLabel(28, 150, TICK_LABEL_HEIGHT, Pos.CENTER_RIGHT, 
+                    () -> {/* primary */}, 
+                    () -> {/* sec */}, 
+                    () -> {
+                        Robot r = new Robot();
+                        if (i >= numberOfTicks-1) {
+                            //skip up ...
+                        } else {
+                            // bruuuuu
+                        }
+                    }, 
+                    () -> {
+                        
+                    }
+                    );
             currentTickLabel.setText(getTickName(i));
+            currentTickLabel.setUserData(i);
             tickLabelVBox.getChildren().add(currentTickLabel);
             tickLabels[i] = currentTickLabel;
         }
         tickLabelVBox.setMaxSize(0, 0); //also done in the ImprovisedProgressBar, makes the container only occupy the min possible size
-        StackPane.setAlignment(tickLabelVBox, Pos.BOTTOM_LEFT);
+        StackPane.setAlignment(tickLabelVBox, Pos.BOTTOM_RIGHT);
         
         errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
