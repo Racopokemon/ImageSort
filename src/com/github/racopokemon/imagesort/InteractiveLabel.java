@@ -3,6 +3,7 @@ package com.github.racopokemon.imagesort;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -21,7 +22,11 @@ public class InteractiveLabel extends StackPane {
     private double unhoverOpacity = 1.0;
     private boolean hovered = false;
     
-    public InteractiveLabel (double textSize, double width, double height, Pos alignment, Action up, Action down) {
+    public InteractiveLabel(double textSize, double width, double height, Pos alignment, Action up, Action down) {
+        this(textSize, width, height, alignment, up, down, up, down);
+    }
+
+    public InteractiveLabel(double textSize, double width, double height, Pos alignment, Action primary, Action secondary, Action scrollUp, Action scrollDown) {
 
         label = new Text("bottom text");
         label.setFont(new Font(textSize));
@@ -32,9 +37,9 @@ public class InteractiveLabel extends StackPane {
         scrollAbsorber = new Rectangle(width, height, Color.TRANSPARENT);
         scrollAbsorber.setOnScroll((event) -> {
             if (event.getDeltaY() >= 4) {
-                up.call();
+                scrollUp.call();
             } else if (event.getDeltaY() <= -4) {
-                down.call();
+                scrollDown.call();
             }
         });
         scrollAbsorber.setOnMouseEntered((event) -> {
@@ -47,9 +52,9 @@ public class InteractiveLabel extends StackPane {
         });
         scrollAbsorber.setOnMousePressed((event) -> {
             if (event.getButton() == MouseButton.PRIMARY) {
-                up.call();
+                primary.call();
             } else if (event.getButton() == MouseButton.SECONDARY) {
-                down.call();
+                secondary.call();
             }
         });
 
