@@ -160,4 +160,4 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Mid-clicking any check or category sets the filter to it or unsets it
 * Launcher: Context menu to open dir in explorer. PLS
 * is there now maybe antialais for image viewer? argh
-* CAN WE PLEASE also see the lens manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos. 
+* ~~CAN WE PLEASE also see the lens manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos.~~

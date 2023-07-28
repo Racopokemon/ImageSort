@@ -147,20 +147,36 @@ public class RotatedImage extends Image {
         }
         
         //model line
+        String makeModelAndLens = "";
         if (dir1 != null) {
-            String makeAndModel = "";
             if (dir1.containsTag(ExifIFD0Directory.TAG_MAKE)) {
-                makeAndModel += dir1.getString(ExifIFD0Directory.TAG_MAKE);
+                makeModelAndLens += dir1.getString(ExifIFD0Directory.TAG_MAKE);
             }
             if (dir1.containsTag(ExifIFD0Directory.TAG_MODEL)) {
-                if (!makeAndModel.equals("")) {
-                    makeAndModel += " ";
+                if (!makeModelAndLens.equals("")) {
+                    makeModelAndLens += " ";
                 }
-                makeAndModel += dir1.getString(ExifIFD0Directory.TAG_MODEL);
+                makeModelAndLens += dir1.getString(ExifIFD0Directory.TAG_MODEL);
             }
-            if (!makeAndModel.equals("")) {
-                output.add(makeAndModel);
+        }
+        String lensLine = "";
+        if (dir2 != null) {
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_LENS_MAKE)) {
+                lensLine += dir2.getString(ExifSubIFDDirectory.TAG_LENS_MAKE);
             }
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_LENS_MODEL)) {
+                if (!lensLine.equals("")) {
+                    lensLine += " ";
+                }
+                lensLine += dir2.getString(ExifSubIFDDirectory.TAG_LENS_MODEL);
+            }
+            if (!lensLine.equals("") && !makeModelAndLens.equals("")) {
+                makeModelAndLens += "\n";
+            }
+            makeModelAndLens += lensLine; 
+        }
+        if (!makeModelAndLens.equals("")) {
+            output.add(makeModelAndLens);
         }
         
         String secondLine = null;
