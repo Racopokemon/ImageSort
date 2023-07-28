@@ -54,10 +54,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
-* Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again
-  * Or maybe we show a button or so
-* THE PROGRAM does not run anymore on java17, because javafx is not anymore part of the jdk. FIX THIS / port to java17! 
-  * (Probably not even that easy to implement)
+* ~~Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again~~
+  * ~~Or maybe we show a button or so~~
+* ~~THE PROGRAM does not run anymore on java17, because javafx is not anymore part of the jdk. FIX THIS / port to java17!~~
+  * ~~(Probably not even that easy to implement)~~
 * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * Better scrolling on touchpads! 
 * ~~Ctrl+left/right to first and last picture? And with shift skipping 10 ones?~~
@@ -147,7 +147,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * also show .raw formats in the launcher
   * context menu has options: Move to /raw, move 1 folder up, and move to system trash!
   * maybe rename folders? Or is this too much? 
-  * I discovered that with openfx or how its called you can also access the forward and back mouse button! Use the back one on the list view in the browser! 
+  * ~~I discovered that with openfx or how its called you can also access the forward and back mouse button! Use the back one on the list view in the browser!~~
   * **Make an option [x] silently move the delete folder to system trash on exit.** 
     * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
   * ~~If the current dir does not exist on loading, _please_ don't use the default folder but move dirs up until you find a valid dir~~
@@ -160,4 +160,4 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Mid-clicking any check or category sets the filter to it or unsets it
 * Launcher: Context menu to open dir in explorer. PLS
 * is there now maybe antialais for image viewer? argh
-* CAN WE PLEASE also see the objective manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos. 
+* CAN WE PLEASE also see the lens manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos. 

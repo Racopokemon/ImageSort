@@ -241,31 +241,7 @@ public class Launcher {
         });
 
         buttonBrowserDirUp.setOnAction((e) -> {
-            File f = new File(textFieldBrowser.getText());
-            if (!Common.isValidFolder(f)) {
-                return;
-            }
-
-            String parent = f.getParent();
-            if (parent == null && Common.isWindows()) {
-                parent = "";
-            }
-            if (parent != null) {
-                textFieldBrowser.setText(parent);
-                updateBrowser();
-
-                String name = f.getName();
-                if (name.equals("") && Common.isWindows()) { //special case for the base folders C:\ etc
-                    name = f.getAbsolutePath();
-                }
-                int index = listBrowser.getItems().indexOf(new BrowserItem(name, true));
-                if (index != -1) {
-                    listBrowser.getSelectionModel().select(index);
-                    listBrowser.scrollTo(index);
-                }
-
-                listBrowser.requestFocus();
-            }
+            dirUp();
         });
         textFieldBrowser.focusedProperty().addListener((obs, oldV, newV) -> {
             if (!newV) {
@@ -289,6 +265,8 @@ public class Launcher {
         listBrowser.setOnMouseClicked((e) -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 browserEmptyClicked();
+            } else if (e.getButton() == MouseButton.BACK) {
+                dirUp();
             }
             //Actually only happens when the listview is completely empty, otherwise you click empty cells. 
             //The BrowserCell is handling all other click events. 
@@ -474,6 +452,35 @@ public class Launcher {
         updateLaunchButton();
     }
 
+    private void dirUp() {
+        File f = new File(textFieldBrowser.getText());
+        if (!Common.isValidFolder(f)) {
+            return;
+        }
+
+        String parent = f.getParent();
+        if (parent == null && Common.isWindows()) {
+            parent = "";
+        }
+        if (parent != null) {
+            textFieldBrowser.setText(parent);
+            updateBrowser();
+
+            String name = f.getName();
+            if (name.equals("") && Common.isWindows()) { //special case for the base folders C:\ etc
+                name = f.getAbsolutePath();
+            }
+            int index = listBrowser.getItems().indexOf(new BrowserItem(name, true));
+            if (index != -1) {
+                listBrowser.getSelectionModel().select(index);
+                listBrowser.scrollTo(index);
+            }
+
+            listBrowser.requestFocus();
+        }
+    }
+
+
     private int getNumberSupportedImages(File directory) {
         FilenameFilter filter = Common.getFilenameFilter();
         int number = 0;
@@ -562,7 +569,9 @@ public class Launcher {
     private class BrowserCell extends ListCell<BrowserItem> {
         public BrowserCell() {
             this.setOnMouseClicked((e) -> {
-                if (isEmpty() || getItem() == null) {
+                if (e.getButton() == MouseButton.BACK) {
+                    dirUp();
+                } else if (isEmpty() || getItem() == null) {
                     return;
                 } else if (getItem().isFolder) {
                     if (e.getButton() == MouseButton.PRIMARY) {
