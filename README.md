@@ -158,3 +158,6 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Let the users decide how many categories they need (and let them rename later?) instead of the static 3
   * The 3 is not even a constant, its just hardcoded. Change this
 * Mid-clicking any check or category sets the filter to it or unsets it
+* Launcher: Context menu to open dir in explorer. PLS
+* is there now maybe antialais for image viewer? argh
+* CAN WE PLEASE also see the objective manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos. 

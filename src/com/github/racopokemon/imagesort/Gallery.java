@@ -237,12 +237,12 @@ public class Gallery {
                     () -> {/* primary */}, 
                     () -> {/* sec */}, 
                     () -> {
-                        Robot r = new Robot();
-                        if (i >= numberOfTicks-1) {
-                            //skip up ...
-                        } else {
-                            // bruuuuu
-                        }
+                        //Robot r = new Robot();
+                        //if (i >= numberOfTicks-1) {
+                        //    //skip up ...
+                        //} else {
+                        //    // bruuuuu
+                        //}
                     }, 
                     () -> {
                         

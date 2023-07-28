@@ -490,7 +490,7 @@ public class Launcher {
         boolean move = radioOperationMove.isSelected();
         
         File mainDir = getCurrentlySelectedDirectory();
-        boolean mainDirInvalid = !Common.isValidFolder(mainDir);
+        boolean mainDirInvalid = !Common.isValidFolder(mainDir) || Common.tryListFiles(mainDir) == null;
         boolean absoulteDirInvalid = false;
 
         prefs.put("browserPath", mainDir.getAbsolutePath());
