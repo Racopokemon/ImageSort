@@ -16,8 +16,10 @@ public class InteractiveLabel extends StackPane {
         public void call();
     }
 
+    protected Action scrollUp, scrollDown, primary, secondary;
+
     private Text label;
-    private Rectangle scrollAbsorber;
+    protected Rectangle scrollAbsorber;
 
     private double unhoverOpacity = 1.0;
     private boolean hovered = false;
@@ -33,13 +35,18 @@ public class InteractiveLabel extends StackPane {
         label.setFill(Color.WHITE);
         label.setStroke(Color.BLACK);
         label.setStrokeWidth(1.1);
+
+        this.scrollUp = scrollUp;
+        this.scrollDown = scrollDown;
+        this.primary = primary;
+        this.secondary = secondary;
         
         scrollAbsorber = new Rectangle(width, height, Color.TRANSPARENT);
         scrollAbsorber.setOnScroll((event) -> {
             if (event.getDeltaY() >= 4) {
-                scrollUp.call();
+                this.scrollUp.call();
             } else if (event.getDeltaY() <= -4) {
-                scrollDown.call();
+                this.scrollDown.call();
             }
         });
         scrollAbsorber.setOnMouseEntered((event) -> {
@@ -52,9 +59,9 @@ public class InteractiveLabel extends StackPane {
         });
         scrollAbsorber.setOnMousePressed((event) -> {
             if (event.getButton() == MouseButton.PRIMARY) {
-                primary.call();
+                this.primary.call();
             } else if (event.getButton() == MouseButton.SECONDARY) {
-                secondary.call();
+                this.secondary.call();
             }
         });
 
@@ -63,7 +70,7 @@ public class InteractiveLabel extends StackPane {
         StackPane.setAlignment(scrollAbsorber, alignment);
 
         getChildren().addAll(label, scrollAbsorber);
-        setMaxSize(width, height);
+        setMaxSize(0, 0);
     }
 
     public void setText(String text) {
