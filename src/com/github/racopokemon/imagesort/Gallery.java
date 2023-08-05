@@ -282,7 +282,7 @@ public class Gallery {
         for (int i = 0; i < numberOfTicks; i++) {
             TickLabel currentTickLabel = new TickLabel(i, numberOfTicks, Pos.CENTER_RIGHT, new TickLabelClickAction(i));
             currentTickLabel.setText(getTickName(i));
-            tickLabelVBox.getChildren().add(currentTickLabel);
+            tickLabelVBox.getChildren().add(0, currentTickLabel);
             tickLabels[i] = currentTickLabel;
         }
         tickLabelVBox.setMaxSize(0, 0); //also done in the ImprovisedProgressBar, makes the container only occupy the min possible size
@@ -838,7 +838,7 @@ public class Gallery {
         ImageFileOperations operations = imageOperations.get(currentImage);
         
         int moveTo = operations.getMoveTo();
-        label.setText(moveTo == 0 ? "keep" : "move to "+moveTo);
+        label.setText(moveTo == 0 ? "don't move" : "move to "+moveTo);
         
         for (int tickNumber = 0; tickNumber < numberOfTicks; tickNumber++) {
             if (operations.getCopyTo(tickNumber)) {
