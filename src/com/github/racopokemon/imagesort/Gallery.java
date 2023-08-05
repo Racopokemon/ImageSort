@@ -434,7 +434,7 @@ public class Gallery {
             @Override
             public void handle(KeyEvent event) {
                 //Fuck switch cases. 
-                if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
+                if (event.getCode() == KeyCode.RIGHT) {// || event.getCode() == KeyCode.D) {
                     if (event.isShortcutDown() && event.getCode() == KeyCode.RIGHT) {
                         selectImageAtIndex(images.size()-1); //last image
                     } else if (event.isShiftDown() && event.getCode() == KeyCode.RIGHT) {
@@ -442,7 +442,7 @@ public class Gallery {
                     } else {
                         nextImage();
                     }
-                } else if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
+                } else if (event.getCode() == KeyCode.LEFT) {//} || event.getCode() == KeyCode.A) {
                     if (event.isShortcutDown() && event.getCode() == KeyCode.LEFT) {
                         selectImageAtIndex(0); //first image
                     } else if (event.isShiftDown() && event.getCode() == KeyCode.LEFT) {
@@ -454,9 +454,9 @@ public class Gallery {
                     selectImageAtIndex(0);
                 } else if (event.getCode() == KeyCode.END) {
                     selectImageAtIndex(images.size()-1);
-                } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
+                } else if (event.getCode() == KeyCode.UP) {// || event.getCode() == KeyCode.W) {
                     incrementCurrentImageCategory();
-                } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.S) {
+                } else if (event.getCode() == KeyCode.DOWN) {// || event.getCode() == KeyCode.S) {
                     decrementCurrentImageCategory();
                 } else if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
                     deleteImage();
@@ -464,10 +464,10 @@ public class Gallery {
                     increaseZoom(40);
                 } else if (event.getCode() == KeyCode.MINUS) {
                     decreaseZoom(40);
-                } else if (event.getCode() == KeyCode.Q) {
-                    previousFilter();
-                } else if (event.getCode() == KeyCode.E) {
-                    nextFilter();
+                //} else if (event.getCode() == KeyCode.Q) {
+                //    previousFilter();
+                //} else if (event.getCode() == KeyCode.E) {
+                //    nextFilter();
                 } else if (event.getCode() == KeyCode.F5) {
                     updateFilesList();
                 } else if (event.getCode().isDigitKey()) {
@@ -482,13 +482,12 @@ public class Gallery {
                     //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
                     //TODO accelerators might actually be the better solution for all shortcuts. Except maybe the + and -?
                     stage.setFullScreen(!stage.isFullScreen());
+                } else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
+                    int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
+                    if (pos >= 0 && pos < numberOfTicks) {
+                        toggleCurrentImageTick(pos);
+                    }
                 }
-                //else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
-                //    int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
-                //    if (pos >= 0 && pos < numberOfTicks) {
-                //        toggleCurrentImageTick(pos);
-                //    }
-                //}
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {
                 //        stage.fireEvent(new WindowEvent(stage,WindowEvent.WINDOW_CLOSE_REQUEST));
