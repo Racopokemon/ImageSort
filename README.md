@@ -161,3 +161,4 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Launcher: Context menu to open dir in explorer. PLS
 * is there now maybe antialais for image viewer? argh
 * ~~CAN WE PLEASE also see the lens manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos.~~
+* In zoom: Spacebar or *whatever* to zoom to 1:1?

@@ -36,6 +36,5 @@ public class TickLabel extends InteractiveLabel {
             r.mouseMove(p);
             //this has been brought to you by github copilot, "the best AI ever" (that also came as suggestion lol)
         };
-    }
-    
+    }    
 }

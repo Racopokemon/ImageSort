@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.github.racopokemon.imagesort.InteractiveLabel.Action;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
@@ -164,6 +166,18 @@ public class Gallery {
         }
     }
 
+    //very bad OO incoming here...
+    public class TickLabelClickAction implements InteractiveLabel.Action {
+        private int tickNumber;
+        public TickLabelClickAction(int tn) {
+            tickNumber = tn;
+        }
+        @Override
+        public void call() {
+            toggleCurrentImageTick(tickNumber);
+        }
+    }
+
     public void start(File directory, File targetDirectory, File deleteDirectory, boolean reopenLauncher, boolean showHints) {
         this.directory = directory;
         this.targetDirectory = targetDirectory;
@@ -265,17 +279,14 @@ public class Gallery {
         //its a bit weird, the tick label now is managing some of its values itself - while all other stuff is done in the gallery, not the best OO today..
         //also like text size and stuff. Still, its height is a public constant from this class. 
         for (int i = 0; i < numberOfTicks; i++) {
-            TickLabel currentTickLabel = new TickLabel(i, numberOfTicks, Pos.CENTER_RIGHT, 
-                    () -> {
-                        toggleCurrentImageTick(1);
-                    });
+            TickLabel currentTickLabel = new TickLabel(i, numberOfTicks, Pos.CENTER_RIGHT, new TickLabelClickAction(i));
             currentTickLabel.setText(getTickName(i));
             tickLabelVBox.getChildren().add(currentTickLabel);
             tickLabels[i] = currentTickLabel;
         }
         tickLabelVBox.setMaxSize(0, 0); //also done in the ImprovisedProgressBar, makes the container only occupy the min possible size
         StackPane.setAlignment(tickLabelVBox, Pos.BOTTOM_RIGHT);
-        
+
         errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
         errorLabel.setVisible(false);
