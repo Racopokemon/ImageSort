@@ -81,4 +81,17 @@ public class Common {
         }
         return ressources.get(name);
     }
+
+    //Right now only for upper case chars, no error checks
+    public static int getPositionInAlphabet(char c) {
+        return (int)c - (int)'A';
+    }
+
+    //Right now only for lower case chars
+    public static String getLetterInAlphabet(int pos) {
+        if (pos < 0 || pos > 25) {
+            throw new IllegalArgumentException("tick index not in bounds (0-25)");
+        }
+        return Character.toString((char)('a' + pos));
+    }
 }

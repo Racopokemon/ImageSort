@@ -9,7 +9,7 @@ public class TickLabel extends InteractiveLabel {
     private int tickNumber, numberOfTicks;
 
     public TickLabel(int tickNumber, int numberOfTicks, Pos alignment, Action action) {
-        super(28, 150, Gallery.TICK_LABEL_HEIGHT, alignment, action, action);
+        super(30, 150, Gallery.TICK_LABEL_HEIGHT, alignment, action, action);
         this.tickNumber = tickNumber;
         this.numberOfTicks = numberOfTicks;
 

@@ -178,7 +178,6 @@ public class Launcher {
         buttonLaunch.setMaxWidth(Double.POSITIVE_INFINITY); // thats a VERY big boii
         buttonLaunch.setMaxHeight(70);
         buttonLaunch.setTextAlignment(TextAlignment.CENTER);
-        buttonLaunch.setDefaultButton(true);
         VBox.setVgrow(buttonLaunch, Priority.ALWAYS);
 
         VBox mainVertical = new VBox(BIG_GAP,
@@ -284,7 +283,8 @@ public class Launcher {
         stage.getIcons().add(Common.getRessource("logo"));
         stage.show();
 
-        buttonBrowserBrowse.requestFocus();
+        //buttonBrowserBrowse.requestFocus();
+        buttonLaunch.requestFocus();
     }
 
     private void launch() {

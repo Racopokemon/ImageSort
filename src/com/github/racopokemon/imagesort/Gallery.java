@@ -121,7 +121,8 @@ public class Gallery {
     private InteractiveLabel label;
     private InteractiveLabel filterLabel;
     private InteractiveLabel[] tickLabels;
-    public static final double TICK_LABEL_HEIGHT = 46;
+    private boolean setAllTickLabelsToFullOpacity = false; 
+    public static final double TICK_LABEL_HEIGHT = 48;
     private static final Color LR_HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
     private static final Color LR_ARROW_COLOR = new Color(0, 0, 0, 0.5);
     private static final double BUTTON_WIDTH = 100;
@@ -287,6 +288,15 @@ public class Gallery {
         tickLabelVBox.setMaxSize(0, 0); //also done in the ImprovisedProgressBar, makes the container only occupy the min possible size
         StackPane.setAlignment(tickLabelVBox, Pos.BOTTOM_RIGHT);
 
+        tickLabelVBox.setOnMouseEntered((e) -> {
+            setAllTickLabelsToFullOpacity = true;
+            updateLabels();
+        });
+        tickLabelVBox.setOnMouseExited((e) -> {
+            setAllTickLabelsToFullOpacity = false;
+            updateLabels();
+        });
+
         errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
         errorLabel.setVisible(false);
@@ -328,7 +338,7 @@ public class Gallery {
         imageAndLoadingPane.getChildren().add(errorLabel);
         imageAndLoadingPane.getChildren().add(zoomPane);
 
-        wrapSearchIndicator = new Text("1/70");
+        wrapSearchIndicator = new Text("./.");
         wrapSearchIndicator.setFont(new Font(85));
         wrapSearchIndicator.setFill(Color.WHITE);
         wrapSearchIndicator.setStroke(Color.BLACK);
@@ -336,7 +346,7 @@ public class Gallery {
         wrapSearchIndicator.setVisible(false);
         wrapSearchIndicator.setMouseTransparent(true);
 
-        Rectangle exitFullscreenRect = new Rectangle(2, 2);
+        Rectangle exitFullscreenRect = new Rectangle(3, 3);
         exitFullscreenRect.setFill(Color.TRANSPARENT);
         StackPane.setAlignment(exitFullscreenRect, Pos.TOP_RIGHT);
         Text exitFullscreenText = new Text("Click to exit full-screen");
@@ -473,6 +483,12 @@ public class Gallery {
                     //TODO accelerators might actually be the better solution for all shortcuts. Except maybe the + and -?
                     stage.setFullScreen(!stage.isFullScreen());
                 }
+                //else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
+                //    int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
+                //    if (pos >= 0 && pos < numberOfTicks) {
+                //        toggleCurrentImageTick(pos);
+                //    }
+                //}
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {
                 //        stage.fireEvent(new WindowEvent(stage,WindowEvent.WINDOW_CLOSE_REQUEST));
@@ -828,10 +844,10 @@ public class Gallery {
         for (int tickNumber = 0; tickNumber < numberOfTicks; tickNumber++) {
             if (operations.getCopyTo(tickNumber)) {
                 tickLabels[tickNumber].setText("copy to " + getTickName(tickNumber));
-                tickLabels[tickNumber].setUnhoverOpacity(1);
+                tickLabels[tickNumber].setUnhoverOpacity(setAllTickLabelsToFullOpacity ? 1 : 0.85);
             } else {
                 tickLabels[tickNumber].setText("no copy to " + getTickName(tickNumber));
-                tickLabels[tickNumber].setUnhoverOpacity(0.11);
+                tickLabels[tickNumber].setUnhoverOpacity(setAllTickLabelsToFullOpacity ? 1 : 0.11);
             }
         }
     }
@@ -1399,10 +1415,7 @@ public class Gallery {
     //Lookup for tick names. Right now we use letters, so index 0 is "a" etc.
     //So you may only look up ticks from 0 to 25
     private String getTickName(int index) {
-        if (index < 0 || index > 25) {
-            throw new IllegalArgumentException("tick index not in bounds (0-25)");
-        }
-        return Character.toString((char)('a' + index));
+        return Common.getLetterInAlphabet(index);
     }
 }
 
