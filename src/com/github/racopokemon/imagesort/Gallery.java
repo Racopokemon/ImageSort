@@ -477,7 +477,7 @@ public class Gallery {
                     skimTo(skim);
                 } else if (event.getCode() == KeyCode.Z && event.isShortcutDown()) {
                     undoDelete();
-                } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown()) || event.getCode() == KeyCode.F) {
+                } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown()) || (event.getCode() == KeyCode.F && numberOfTicks < 6)) {
                     //https://stackoverflow.com/questions/51386423/remove-beep-sound-upon-maximizing-javafx-stage-with-altenter
                     //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
                     //TODO accelerators might actually be the better solution for all shortcuts. Except maybe the + and -?
@@ -561,7 +561,7 @@ public class Gallery {
 
     //sets up the viewport for the current image in the view and the rootPane size: 
     //if the image is smaller than the viewport, dont scale it. 
-    //Call this when the rootPane size has not changed
+    //Call this when the rootPane size has NOT changed (opposed to the overloaded updateViewport(w, h) if the size has changed)
     private void updateViewport() {
         updateViewport(rootPane.widthProperty().get(), rootPane.heightProperty().get());
     }
@@ -577,8 +577,10 @@ public class Gallery {
         double iWidth = ninetyDegrees ? i.getHeight() : i.getWidth();
         double iHeight = ninetyDegrees ? i.getWidth() : i.getHeight();
         if (w < iWidth || h < iHeight) {
+            //image is bigger than viewport, just let it fit automatically (I guess? Why didnt I write the comments when I was working on this?)
             view.setViewport(null);
         } else {
+            //image is smaller than viewport, manually adapt the viewport
             if (ninetyDegrees) {
                 //this line is brought to you by trial and error
                 view.setViewport(new Rectangle2D((int)((iHeight-h)*0.5), (int)((iWidth-w)*0.5), h, w));
@@ -838,7 +840,8 @@ public class Gallery {
         ImageFileOperations operations = imageOperations.get(currentImage);
         
         int moveTo = operations.getMoveTo();
-        label.setText(moveTo == 0 ? "don't move" : "move to "+moveTo);
+        label.setText(moveTo == 0 ? "no move" : "move to "+moveTo);
+        label.setUnhoverOpacity(0.85);
         
         for (int tickNumber = 0; tickNumber < numberOfTicks; tickNumber++) {
             if (operations.getCopyTo(tickNumber)) {
@@ -846,7 +849,7 @@ public class Gallery {
                 tickLabels[tickNumber].setUnhoverOpacity(setAllTickLabelsToFullOpacity ? 1 : 0.85);
             } else {
                 tickLabels[tickNumber].setText("no copy to " + getTickName(tickNumber));
-                tickLabels[tickNumber].setUnhoverOpacity(setAllTickLabelsToFullOpacity ? 1 : 0.11);
+                tickLabels[tickNumber].setUnhoverOpacity(setAllTickLabelsToFullOpacity ? 0.75 : 0.11);
             }
         }
     }
