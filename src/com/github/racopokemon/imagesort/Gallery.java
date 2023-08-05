@@ -208,6 +208,11 @@ public class Gallery {
                     setMousePosition(event);
                     zoomIn();
                     event.consume();
+                } else if (event.getButton() == MouseButton.MIDDLE) {
+                    if (isZooming) {
+                        zoomTo100Percent();
+                        event.consume();
+                    }
                 }
             }
         });
@@ -464,6 +469,8 @@ public class Gallery {
                     increaseZoom(40);
                 } else if (event.getCode() == KeyCode.MINUS) {
                     decreaseZoom(40);
+                } else if (event.getCode() == KeyCode.SPACE) {
+                    if(isZooming) zoomTo100Percent();
                 //} else if (event.getCode() == KeyCode.Q) {
                 //    previousFilter();
                 //} else if (event.getCode() == KeyCode.E) {
@@ -591,10 +598,41 @@ public class Gallery {
         }
     }
 
-    //private double getPixelPercentageWithZoom(double zoom) {
-    //    double iWidth = ninetyDegrees ? i.getHeight() : i.getWidth();
-    //    double iHeight = ninetyDegrees ? i.getWidth() : i.getHeight();
-    //}
+    //Calculates the pixel scale of the image, dependent on the window and image size (without considering current user zoom)
+    //1 is 1 to 1 scaling, as it automatically happens when the image is smaller than the window. 
+    //If the image is bigger than the window, we return the scale factor < 1, that is applied to it to make it fit the window
+    private double calculateBaseImageScale() {
+        Image i = view.getImage();
+        boolean ninetyDegrees = ((RotatedImage)i).isRotatedBy90Degrees();
+        double imgW = ninetyDegrees ? i.getHeight() : i.getWidth();
+        double imgH = ninetyDegrees ? i.getWidth() : i.getHeight();
+        
+        double windowW = rootPane.getWidth();
+        double windowH = rootPane.getHeight();
+        if (windowW > imgW && windowH > imgH) {
+            //this case is handeled manually in updateViewpoint - if the image is smaller than the viewport, we see it at 100%, so factor 1
+            return 1;
+        } else {
+            //in the other case, we must keep the image ratio, so we calculate the required zoom factor for both axis and take the smaller one, to keep the image entirely inside the window
+            double xFactor = windowW / imgW; //illuminati confirmed??
+            double yFactor = windowH / imgH;
+            return Math.min(xFactor, yFactor);
+        }
+    }
+
+    //Tries to zoom into the image, so that pixels are scaled 1 to 1. 
+    //However, always stays inside the valid bounds for zooming. 
+    private void zoomTo100Percent() {
+        if (currentImage == null) {
+            return;
+        }
+        double requiredZoom = 1 / calculateBaseImageScale();
+        zoom = Math.min(Math.max(requiredZoom, MIN_ZOOM), MAX_ZOOM);
+
+        if (isZooming) {
+            zoomIn();
+        }
+    }
 
     // Zooms into the whole scene (the easy way, just setting the scale properties)
     // Also updates the translation, that's the reason it is called so many times
