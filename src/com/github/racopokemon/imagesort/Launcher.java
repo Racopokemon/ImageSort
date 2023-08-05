@@ -252,7 +252,7 @@ public class Launcher {
         });
         listBrowser.setOnKeyPressed((e) -> {
             if (e.getCode() == KeyCode.F5) {
-                textFieldBrowser.setText("/-%*:\\~#[]"); //this should be invalid enough (hacky hacky, sorry)
+                textFieldBrowser.setText("-%*:#[]"); //this should be invalid enough (hacky hacky, sorry)
                 updateBrowser();
             }
         });

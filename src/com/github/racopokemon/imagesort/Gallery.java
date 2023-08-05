@@ -591,13 +591,26 @@ public class Gallery {
         }
     }
 
+    //private double getPixelPercentageWithZoom(double zoom) {
+    //    double iWidth = ninetyDegrees ? i.getHeight() : i.getWidth();
+    //    double iHeight = ninetyDegrees ? i.getWidth() : i.getHeight();
+    //}
+
     // Zooms into the whole scene (the easy way, just setting the scale properties)
     // Also updates the translation, that's the reason it is called so many times
     private void zoomIn() {
-        double width = zoomPane.getWidth();
-        double height = zoomPane.getHeight();
-        double spaceX = (width*zoom) - (width);
+        //we used to work with the zoomPane (obvious choice) here. 
+        //However, for some reasons does the zoomPane grow in certain situations above screen size, probably because the imageview 
+        //makes weird space requirements merging the space of the rotated and un-rotated image ...
+        //this additional space requirement is for some reason not visible (maybe because the stack pane centers anyway, no matter the space around)
+        //but it destroyed our size calculations here
+        double width = rootPane.getWidth(); 
+        double height = rootPane.getHeight();
+        //the non-visible space once zoomed in
+        double spaceX = (width*zoom) - (width); //add stupid elon joke here
         double spaceY = (height*zoom) - (height);
+        //we get the mouse position relative to the screen, 0 is left, 1 right etc. 
+        //now just scale the additional space with this relative mouse percentage!
         double relTransX = -(mouseRelativeX - 0.5);
         double relTransY = -(mouseRelativeY - 0.5);
 
@@ -647,8 +660,8 @@ public class Gallery {
     //because when the zoom (scale) changes, we don't get new information on
     //the mouse, but need to update the zoom based on the mouse position
     private  void setMousePosition(MouseEvent event) {
-        mouseRelativeX = event.getSceneX() / zoomPane.getWidth();
-        mouseRelativeY = event.getSceneY() / zoomPane.getHeight();
+        mouseRelativeX = event.getSceneX() / rootPane.getWidth();
+        mouseRelativeY = event.getSceneY() / rootPane.getHeight();
         mouseRelativeX = Math.max(Math.min(mouseRelativeX, 1), 0);
         mouseRelativeY = Math.max(Math.min(mouseRelativeY, 1), 0);
     }
