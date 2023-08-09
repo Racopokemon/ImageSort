@@ -16,7 +16,7 @@ public class InteractiveLabel extends StackPane {
         public void call();
     }
 
-    protected Action scrollUp, scrollDown, primary, secondary;
+    protected Action scrollUp, scrollDown, primary, secondary, mid;
 
     private Text label;
     protected Rectangle scrollAbsorber;
@@ -24,11 +24,11 @@ public class InteractiveLabel extends StackPane {
     private double unhoverOpacity = 1.0;
     private boolean hovered = false;
     
-    public InteractiveLabel(double textSize, double width, double height, Pos alignment, Action up, Action down) {
-        this(textSize, width, height, alignment, up, down, up, down);
+    public InteractiveLabel(double textSize, double width, double height, Pos alignment, Action up, Action down, Action midAction) {
+        this(textSize, width, height, alignment, up, down, up, down, midAction);
     }
 
-    public InteractiveLabel(double textSize, double width, double height, Pos alignment, Action primary, Action secondary, Action scrollUp, Action scrollDown) {
+    public InteractiveLabel(double textSize, double width, double height, Pos alignment, Action primary, Action secondary, Action scrollUp, Action scrollDown, Action midAction) {
 
         label = new Text("bottom text");
         label.setFont(new Font(textSize));
@@ -40,6 +40,7 @@ public class InteractiveLabel extends StackPane {
         this.scrollDown = scrollDown;
         this.primary = primary;
         this.secondary = secondary;
+        this.mid = midAction;
         
         scrollAbsorber = new Rectangle(width, height, Color.TRANSPARENT);
         scrollAbsorber.setOnScroll((event) -> {
@@ -59,9 +60,11 @@ public class InteractiveLabel extends StackPane {
         });
         scrollAbsorber.setOnMousePressed((event) -> {
             if (event.getButton() == MouseButton.PRIMARY) {
-                this.primary.call();
+                if (primary != null) primary.call();
             } else if (event.getButton() == MouseButton.SECONDARY) {
-                this.secondary.call();
+                if (secondary != null) secondary.call();
+            } else if (event.getButton() == MouseButton.MIDDLE) {
+                if (mid != null) mid.call();
             }
         });
 

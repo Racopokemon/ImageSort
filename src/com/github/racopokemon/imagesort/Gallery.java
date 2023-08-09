@@ -178,6 +178,17 @@ public class Gallery {
             toggleCurrentImageTick(tickNumber);
         }
     }
+    //here as well
+    public class TickLabelMidAction implements InteractiveLabel.Action {
+        private int filterNumber;
+        public TickLabelMidAction(int fn) {
+            filterNumber = fn;
+        }
+        @Override
+        public void call() {
+            toggleFilter(filterNumber);
+        }
+    }
 
     public void start(File directory, File targetDirectory, File deleteDirectory, boolean reopenLauncher, boolean showHints) {
         this.directory = directory;
@@ -271,12 +282,15 @@ public class Gallery {
 
         label = new InteractiveLabel(38, 200, 70, Pos.BOTTOM_LEFT, 
                 () -> {incrementCurrentImageCategory();}, 
-                () -> {decrementCurrentImageCategory();});
+                () -> {decrementCurrentImageCategory();},
+                () -> {toggleFilter(imageOperations.get(currentImage).getMoveTo());});
         StackPane.setAlignment(label, Pos.BOTTOM_LEFT);
+        System.out.println("please test the mid click once you have a mouse again!");
 
         filterLabel = new InteractiveLabel(28, 250, 70, Pos.BOTTOM_CENTER,
                 () -> {nextFilter();},
-                () -> {previousFilter();});
+                () -> {previousFilter();},
+                null);
         StackPane.setAlignment(filterLabel, Pos.BOTTOM_CENTER);
 
         tickLabels = new InteractiveLabel[numberOfTicks];
@@ -285,7 +299,7 @@ public class Gallery {
         //its a bit weird, the tick label now is managing some of its values itself - while all other stuff is done in the gallery, not the best OO today..
         //also like text size and stuff. Still, its height is a public constant from this class. 
         for (int i = 0; i < numberOfTicks; i++) {
-            TickLabel currentTickLabel = new TickLabel(i, numberOfTicks, Pos.CENTER_RIGHT, new TickLabelClickAction(i));
+            TickLabel currentTickLabel = new TickLabel(i, numberOfTicks, Pos.CENTER_RIGHT, new TickLabelClickAction(i), new TickLabelMidAction(i + numberOfCategories + 1));
             currentTickLabel.setText(getTickName(i));
             tickLabelVBox.getChildren().add(0, currentTickLabel);
             tickLabels[i] = currentTickLabel;
@@ -955,16 +969,16 @@ public class Gallery {
         }
         updateFilter();
     }
-    //needs to be called from outside, because interactiveLabels need to call it when they are mid-clicked
-    public void switchToFilter(int f) {
-        filter = f;
+    //Sets the filter to the givenn number - except the filter is set already, then switch to no filter (so toggle)
+    private void toggleFilter(int f) {
+        if (filter == f) {
+            filter = -1;
+        } else {
+            filter = f;
+        }
         updateFilter();
     }
-    //TODO: 
-    // - the mid click thing is becoming a problem because of visibility problems, but is necessary anyways.
-    // - clicking a tick still doesnt do anything
-    // - also ticks need to have different opacities
-    // - ofc even if this is solved, the file operations are not implemented yet..
+
 
     private void updateFilter() {
         //Every call here might be the result of the files list changing, this means we know nothing for sure anymore, 
