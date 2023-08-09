@@ -260,6 +260,7 @@ public class Launcher {
             boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);
             if (success) {
                 prefs.put("folderPath", textFieldFolder.getText());
+                updateLaunchButton();
             }
         });
         
