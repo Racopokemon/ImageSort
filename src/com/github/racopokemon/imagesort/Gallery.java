@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.imageio.stream.ImageOutputStream;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
@@ -140,7 +142,7 @@ public class Gallery {
     private PauseTransition hideMouseOnIdle;
 
     private class ImageFileOperations {
-        private int moveTo = 0;
+        private int moveTo = 0; //0: Dont move. 1 - numberOfCategories: Move to this category
         private boolean[] copyTo = new boolean[numberOfTicks];
 
         public int getMoveTo() {
@@ -285,7 +287,6 @@ public class Gallery {
                 () -> {decrementCurrentImageCategory();},
                 () -> {toggleFilter(imageOperations.get(currentImage).getMoveTo());});
         StackPane.setAlignment(label, Pos.BOTTOM_LEFT);
-        System.out.println("please test the mid click once you have a mouse again!");
 
         filterLabel = new InteractiveLabel(28, 250, 70, Pos.BOTTOM_CENTER,
                 () -> {nextFilter();},
@@ -523,7 +524,10 @@ public class Gallery {
                 } else if (event.getCode() == KeyCode.MINUS) {
                     decreaseZoom(40);
                 } else if (event.getCode() == KeyCode.SPACE) {
-                    if(isZooming) zoomTo100Percent();
+                    if (isZooming) zoomTo100Percent();
+                //} else if (event.getCode() == KeyCode.ENTER) {
+                //    view.setSmooth(!view.isSmooth());
+                //    view.setCache(false);
                 //} else if (event.getCode() == KeyCode.Q) {
                 //    previousFilter();
                 //} else if (event.getCode() == KeyCode.E) {
@@ -988,7 +992,6 @@ public class Gallery {
             current = numberOfCategories;
         }
         operations.setMoveTo(current);
-        //TODO: This also needs to be considered when implementing ticks! 
         updateFilterOnNextImage = true;
         updateLabels();
     }
@@ -998,6 +1001,7 @@ public class Gallery {
         }
         ImageFileOperations operations = this.imageOperations.get(currentImage);
         operations.setCopyTo(tickNumber, !operations.getCopyTo(tickNumber));
+        updateFilterOnNextImage = true;
         updateLabels();
     }
 
@@ -1245,7 +1249,7 @@ public class Gallery {
     }
 
     //always calls loadImage() to load a (probably new) image. Also calls updateFilter() [which itself calls loadImage] 
-    //only if currentImagesCategoryWasChanged. You could also just always call updateFilter(), and you would probably never
+    //only if updateFilterOnNextImage. You could also just always call updateFilter(), and you would probably never
     //notice the slightly (slightly) worse performance. 
     private void updateImageFilterAndCursorAfterImageChange() {
         if (updateFilterOnNextImage) {
@@ -1527,6 +1531,36 @@ public class Gallery {
     //So you may only look up ticks from 0 to 25
     private String getTickName(int index) {
         return Common.getLetterInAlphabet(index);
+    }
+
+    //Based on the current state, returns ArrayLists of all file names, that require a file operation. 
+    //Since its several arrayLists, we return them as an arrayList of arrayLists, with the following indices: 
+    //0: images not to move
+    //1 to numberOfCategories + 1: images to be moved to their corresponding categories
+    //numberOfCategories + 1 to numberOfCategories + numberOfTicks + 1 images to copy, corresponding to the tick indices
+    private ArrayList<ArrayList<String>> listAllFileOperations() {
+        ArrayList<ArrayList<String>> result = new ArrayList<>();
+        for (int i = 0; i < numberOfCategories + numberOfTicks + 1; i++) {
+            result.add(new ArrayList<String>());
+        }
+
+        //we need to iterate through the list of files instead of iterating through imageOperations, as some files might not have an entry in the set yet
+        for (String filename : allImages) {
+            ImageFileOperations operations = imageOperations.get(filename);
+            if (operations == null) {
+                result.get(0).add(filename);
+            } else {
+                int moveTo = operations.getMoveTo();
+                result.get(moveTo).add(filename);
+                for (int tickNumer = 0; tickNumer < numberOfTicks; tickNumer++) {
+                    if (operations.getCopyTo(tickNumer)) {
+                        result.get(numberOfCategories + tickNumer + 1).add(filename);
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 }
 
