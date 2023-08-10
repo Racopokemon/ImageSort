@@ -122,6 +122,8 @@ public class Gallery {
     private static final Color LR_ARROW_COLOR = new Color(0, 0, 0, 0.5);
     private static final double BUTTON_WIDTH = 100;
 
+    private static final double HOT_CORNER_SIZE = 3; 
+
     private StackPane zoomIndicator;
     private Text zoomIndicatorText;
 
@@ -327,7 +329,7 @@ public class Gallery {
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
 
-        Rectangle zoomIndicatorBack = new Rectangle(80, 30, Color.DARKGRAY);
+        Rectangle zoomIndicatorBack = new Rectangle(80, 30, Color.BLACK);
         zoomIndicatorBack.setArcHeight(15);
         zoomIndicatorBack.setArcWidth(15);
         zoomIndicatorBack.setOpacity(0.7);
@@ -377,7 +379,7 @@ public class Gallery {
         wrapSearchIndicator.setVisible(false);
         wrapSearchIndicator.setMouseTransparent(true);
 
-        Rectangle exitFullscreenRect = new Rectangle(3, 3);
+        Rectangle exitFullscreenRect = new Rectangle(HOT_CORNER_SIZE, HOT_CORNER_SIZE);
         exitFullscreenRect.setFill(Color.TRANSPARENT);
         StackPane.setAlignment(exitFullscreenRect, Pos.TOP_RIGHT);
         Text exitFullscreenText = new Text("Click to exit full-screen");
@@ -387,6 +389,8 @@ public class Gallery {
         Rectangle exitFullscreenHintBackground = new Rectangle(600, 200);
         exitFullscreenHintBackground.setFill(Color.BLACK);
         exitFullscreenHintBackground.setOpacity(0.65);
+        exitFullscreenHintBackground.setArcHeight(20);
+        exitFullscreenHintBackground.setArcWidth(20);
         
         StackPane exitFullscreenHint = new StackPane(exitFullscreenHintBackground, exitFullscreenText); 
         exitFullscreenHint.setMouseTransparent(true);
@@ -398,6 +402,24 @@ public class Gallery {
         exitFullscreenRect.setOnMouseClicked((e) -> {stage.setFullScreen(false);});
 
         exitFullscreenRect.visibleProperty().bind(stage.fullScreenProperty());
+
+        Rectangle hideUiHotcorner = new Rectangle(HOT_CORNER_SIZE, HOT_CORNER_SIZE);
+        hideUiHotcorner.setFill(Color.TRANSPARENT);
+        StackPane.setAlignment(hideUiHotcorner, Pos.TOP_LEFT);
+        hideUiHotcorner.setCursor(Cursor.NONE);
+        hideUiHotcorner.setOnMouseEntered((e) -> {
+            label.setVisible(false);
+            progress.setVisible(false);
+            tickLabelVBox.setVisible(false);
+            filterLabel.setVisible(false);
+        });
+        hideUiHotcorner.setOnMouseExisted((e) -> {
+            label.setVisible(true);
+            progress.setVisible(true);
+            tickLabelVBox.setVisible(true);
+            filterLabel.setVisible(true);
+        });
+        hideUiHotcorner.visibleProperty().bind(stage.fullScreenProperty());
 
         rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         rootPane.getChildren().add(invisibleContextMenuSource);
@@ -415,6 +437,7 @@ public class Gallery {
         rootPane.getChildren().add(zoomIndicator);
         rootPane.getChildren().add(exitFullscreenRect);
         rootPane.getChildren().add(exitFullscreenHint);
+        rootPane.getChildren().add(hideUiHotcorner);
 
         Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
@@ -531,6 +554,8 @@ public class Gallery {
         });
 
         stage.getIcons().add(Common.getRessource("logo"));
+        stage.setMinHeight(400);
+        stage.setMinWidth(600);
         stage.show();
 
         rootPane.widthProperty().addListener((a, oldV, newV) -> {updateViewport(newV.doubleValue(), rootPane.heightProperty().get());});
@@ -1123,7 +1148,7 @@ public class Gallery {
         } else {
             filterLabel.setUnhoverOpacity(1.0);
             if (filter == 0) {
-                filterLabel.setText("only show 'keep'");
+                filterLabel.setText("only show files not to be moved");
             } else if (filter <= numberOfCategories) {
                 filterLabel.setText("only show move to " + filter);
             } else {
