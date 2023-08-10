@@ -161,6 +161,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Launcher: Context menu to open dir in explorer. PLS
 * is there now maybe antialais for image viewer? argh
 * ~~CAN WE PLEASE also see the lens manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos.~~
-* In zoom: Spacebar or mid-click or *whatever* to zoom to 1:1?
-* Also in zoom: show the pixel scale (100% means 1 pixel to 1 pixel)
+* ~~In zoom: Spacebar or mid-click or *whatever* to zoom to 1:1?~~
+* ~~Also in zoom: show the pixel scale (100% means 1 pixel to 1 pixel)~~
 * error handling is very much non-existent when copying files - there is not even stack traces rn if a file to move does not exist..
+* scrolling both l and r buttons scrolls through files as normal
+* Top left hot-corner (full-screen only) to instantly hide cursor and all annotations? For night views, I realized I need this feature. 

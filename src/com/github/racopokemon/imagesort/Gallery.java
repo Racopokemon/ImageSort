@@ -413,13 +413,14 @@ public class Gallery {
             tickLabelVBox.setVisible(false);
             filterLabel.setVisible(false);
         });
-        hideUiHotcorner.setOnMouseExisted((e) -> {
+        hideUiHotcorner.setOnMouseExited((e) -> {
             label.setVisible(true);
             progress.setVisible(true);
             tickLabelVBox.setVisible(true);
             filterLabel.setVisible(true);
         });
         hideUiHotcorner.visibleProperty().bind(stage.fullScreenProperty());
+        hideUiHotcorner.setOnScroll(zoomPaneScrollHandler);
 
         rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         rootPane.getChildren().add(invisibleContextMenuSource);
@@ -429,6 +430,8 @@ public class Gallery {
         
         leftButton = new LRButton(rootPane, true); //this also adds them to the rootPane
         rightButton = new LRButton(rootPane, false);
+        leftButton.setOnScroll(zoomPaneScrollHandler);
+        rightButton.setOnScroll(zoomPaneScrollHandler);
         
         rootPane.getChildren().add(label);
         rootPane.getChildren().add(filterLabel);
