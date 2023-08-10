@@ -14,20 +14,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.github.racopokemon.imagesort.InteractiveLabel.Action;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.event.*;
-import javafx.geometry.Point2D;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
-import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -48,7 +44,6 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.robot.Robot;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
@@ -126,6 +121,9 @@ public class Gallery {
     private static final Color LR_HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
     private static final Color LR_ARROW_COLOR = new Color(0, 0, 0, 0.5);
     private static final double BUTTON_WIDTH = 100;
+
+    private StackPane zoomIndicator;
+    private Text zoomIndicatorText;
 
     private ImprovisedProgressBar progress;
 
@@ -328,6 +326,20 @@ public class Gallery {
         progress = new ImprovisedProgressBar(350, 30);
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
+
+        Rectangle zoomIndicatorBack = new Rectangle(80, 30, Color.DARKGRAY);
+        zoomIndicatorBack.setArcHeight(15);
+        zoomIndicatorBack.setArcWidth(15);
+        zoomIndicatorBack.setOpacity(0.7);
+        zoomIndicatorText = new Text("xx%");
+        zoomIndicatorText.setFont(new Font(15));
+        zoomIndicatorText.setFill(Color.WHITE);
+        zoomIndicator = new StackPane(zoomIndicatorBack, zoomIndicatorText);
+        zoomIndicator.setMaxSize(0, 0);
+        zoomIndicator.setMouseTransparent(true);
+        zoomIndicator.setVisible(false);
+        StackPane.setAlignment(zoomIndicator, Pos.TOP_CENTER);
+        StackPane.setMargin(zoomIndicator, new Insets(50, 0, 0, 0));
         
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});
@@ -400,6 +412,7 @@ public class Gallery {
         rootPane.getChildren().add(filterLabel);
         rootPane.getChildren().add(tickLabelVBox);
         rootPane.getChildren().add(progress);
+        rootPane.getChildren().add(zoomIndicator);
         rootPane.getChildren().add(exitFullscreenRect);
         rootPane.getChildren().add(exitFullscreenHint);
 
@@ -672,6 +685,8 @@ public class Gallery {
         zoomPane.setTranslateX(spaceX * relTransX);
         zoomPane.setTranslateY(spaceY * relTransY);
 
+        zoomIndicator.setVisible(true);
+        zoomIndicatorText.setText(Math.round(calculateBaseImageScale() * zoom * 100) + "%");
         zoomPane.setCursor(Cursor.NONE);
         isZooming = true;
     }
@@ -682,6 +697,7 @@ public class Gallery {
         zoomPane.setTranslateX(0);
         zoomPane.setTranslateY(0);
 
+        zoomIndicator.setVisible(false);
         zoomPane.setCursor(Cursor.DEFAULT);
         isZooming = false;
     }
