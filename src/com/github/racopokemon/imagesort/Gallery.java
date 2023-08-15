@@ -70,7 +70,7 @@ public class Gallery {
 
     private File directory;
     private File targetDirectory;
-    private File delDirectory;
+    private File deleteDirectory;
     private boolean reopenLauncherAfterwards;
 
     private int numberOfCategories = 3;
@@ -112,6 +112,7 @@ public class Gallery {
     private static final double MIN_ZOOM = 1.15;
     private static final double MAX_ZOOM = 10;
 
+    private Stage stage;
     private ImageView view;
     private StackPane zoomPane;
     private StackPane imageAndLoadingPane;
@@ -119,6 +120,7 @@ public class Gallery {
     private InteractiveLabel label;
     private InteractiveLabel filterLabel;
     private InteractiveLabel[] tickLabels;
+    private VBox tickLabelVBox;
     private boolean setAllTickLabelsToFullOpacity = false; 
     public static final double TICK_LABEL_HEIGHT = 48;
     private static final Color LR_HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
@@ -126,6 +128,7 @@ public class Gallery {
     private static final double BUTTON_WIDTH = 100;
 
     private static final double HOT_CORNER_SIZE = 3; 
+    private Rectangle hideUiHotcorner;
 
     private StackPane zoomIndicator;
     private Text zoomIndicatorText;
@@ -196,10 +199,10 @@ public class Gallery {
     public void start(File directory, File targetDirectory, File deleteDirectory, boolean reopenLauncher, boolean showHints) {
         this.directory = directory;
         this.targetDirectory = targetDirectory;
-        this.delDirectory = deleteDirectory;
+        this.deleteDirectory = deleteDirectory;
         this.reopenLauncherAfterwards = reopenLauncher;
 
-        Stage stage = new Stage();
+        stage = new Stage();
 
         filenameFilter = Common.getFilenameFilter();
         imageOperations = new Hashtable<>();
@@ -296,7 +299,7 @@ public class Gallery {
         StackPane.setAlignment(filterLabel, Pos.BOTTOM_CENTER);
 
         tickLabels = new InteractiveLabel[numberOfTicks];
-        VBox tickLabelVBox = new VBox();
+        tickLabelVBox = new VBox();
         tickLabelVBox.setAlignment(Pos.CENTER_RIGHT);
         //its a bit weird, the tick label now is managing some of its values itself - while all other stuff is done in the gallery, not the best OO today..
         //also like text size and stuff. Still, its height is a public constant from this class. 
@@ -402,10 +405,8 @@ public class Gallery {
         exitFullscreenRect.setOnMouseEntered((e) -> {exitFullscreenHint.setVisible(true);});
         exitFullscreenRect.setOnMouseExited((e) -> {exitFullscreenHint.setVisible(false);});
         exitFullscreenRect.setOnMouseClicked((e) -> {stage.setFullScreen(false);});
-
-        exitFullscreenRect.visibleProperty().bind(stage.fullScreenProperty());
-
-        Rectangle hideUiHotcorner = new Rectangle(HOT_CORNER_SIZE, HOT_CORNER_SIZE);
+        
+        hideUiHotcorner = new Rectangle(HOT_CORNER_SIZE, HOT_CORNER_SIZE);
         hideUiHotcorner.setFill(Color.TRANSPARENT);
         StackPane.setAlignment(hideUiHotcorner, Pos.TOP_LEFT);
         hideUiHotcorner.setCursor(Cursor.NONE);
@@ -421,9 +422,13 @@ public class Gallery {
             tickLabelVBox.setVisible(true);
             filterLabel.setVisible(true);
         });
-        hideUiHotcorner.visibleProperty().bind(stage.fullScreenProperty());
         hideUiHotcorner.setOnScroll(zoomPaneScrollHandler);
 
+        stage.fullScreenProperty().addListener((target, oldValue, newValue) -> {
+            exitFullscreenRect.setVisible(newValue);
+            hideUiHotcorner.setVisible(newValue);
+        });
+        
         rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         rootPane.getChildren().add(invisibleContextMenuSource);
         rootPane.getChildren().add(noImagesLabel);
@@ -1147,6 +1152,8 @@ public class Gallery {
         leftButton.setVisible(imageAvailable);
         rightButton.setVisible(imageAvailable);
         progress.setVisible(imageAvailable);
+        tickLabelVBox.setVisible(imageAvailable);
+        hideUiHotcorner.setVisible(imageAvailable && stage.isFullScreen());
 
         if (!imageAvailable) {
             if (filter == -1) {
@@ -1289,14 +1296,14 @@ public class Gallery {
         }
         try {
             //if folder doesnt exist, create it
-            if (!delDirectory.exists()) {
-                delDirectory.mkdir();
+            if (!deleteDirectory.exists()) {
+                deleteDirectory.mkdir();
             }
             
             //move image file there
             String path = getFullPathForFileInThisFolder(currentImage);
             File origin = new File(path);
-            File dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + currentImage);
+            File dest = new File(deleteDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + currentImage);
             origin.renameTo(dest);
             
             ArrayList<String> deletedFilenames = new ArrayList<>();
@@ -1308,7 +1315,7 @@ public class Gallery {
                     try {
                         path = getFullPathForFileInThisFolder(moveAlong);
                         origin = new File(path);
-                        dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + moveAlong);
+                        dest = new File(deleteDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + moveAlong);
                         origin.renameTo(dest);     
                         deletedFilenames.add(moveAlong);
                     } catch (Exception e) {
@@ -1346,7 +1353,7 @@ public class Gallery {
         for (String restore : imagesToRestore) {
             String pathBefore = getFullPathForFileInThisFolder(restore);
             try {
-                File origin = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + restore);
+                File origin = new File(deleteDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + restore);
                 File dest = new File(pathBefore);
                 origin.renameTo(dest);    
             } catch (Exception e) {
@@ -1360,12 +1367,12 @@ public class Gallery {
         //Side quest: Delete the delete folder if there is now no files inside anymore. 
         //again, weird solutions for the simplest IO tasks in java. Bro. 
         //However, thanks to baeldung.com/java-check-empty-directory where I got this from
-        if (delDirectory.exists()) {
-            try (Stream<Path> entries = Files.list(delDirectory.toPath())) {
+        if (deleteDirectory.exists()) {
+            try (Stream<Path> entries = Files.list(deleteDirectory.toPath())) {
                 boolean empty = !entries.findFirst().isPresent();
                 if (empty) {
                     try {
-                        delDirectory.delete();
+                        deleteDirectory.delete();
                     } catch (Exception e) {
                         //should be empty, just checked for that
                         System.out.println("Could not delete the delete folder (how ironic)");
