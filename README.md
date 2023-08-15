@@ -166,4 +166,4 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * error handling is very much non-existent when copying files - there is not even stack traces rn if a file to move does not exist..
 * ~~scrolling both l and r buttons scrolls through files as normal~~
 * ~~Top left hot-corner (full-screen only) to instantly hide cursor and all annotations? For night views, I realized I need this feature.~~
-* new key combination to switch between categories: ctrl + up / down
+* ~~new key combination to switch between filters: ctrl + up / down~~

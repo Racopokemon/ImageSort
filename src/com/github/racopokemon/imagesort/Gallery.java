@@ -530,9 +530,17 @@ public class Gallery {
                 } else if (event.getCode() == KeyCode.END) {
                     selectImageAtIndex(images.size()-1);
                 } else if (event.getCode() == KeyCode.UP) {// || event.getCode() == KeyCode.W) {
-                    incrementCurrentImageCategory();
+                    if (event.isShortcutDown()) {
+                        nextFilter();
+                    } else {
+                        incrementCurrentImageCategory();
+                    }
                 } else if (event.getCode() == KeyCode.DOWN) {// || event.getCode() == KeyCode.S) {
-                    decrementCurrentImageCategory();
+                    if (event.isShortcutDown()) {
+                        previousFilter();
+                    } else {
+                        decrementCurrentImageCategory();
+                    }
                 } else if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
                     deleteImage();
                 } else if (event.getCode() == KeyCode.PLUS) {
@@ -544,10 +552,6 @@ public class Gallery {
                 //} else if (event.getCode() == KeyCode.ENTER) {
                 //    view.setSmooth(!view.isSmooth());
                 //    view.setCache(false);
-                //} else if (event.getCode() == KeyCode.Q) {
-                //    previousFilter();
-                //} else if (event.getCode() == KeyCode.E) {
-                //    nextFilter();
                 } else if (event.getCode() == KeyCode.F5) {
                     updateFilesList();
                 } else if (event.getCode().isDigitKey()) {
