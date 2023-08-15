@@ -3,6 +3,7 @@ package com.github.racopokemon.imagesort;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -15,28 +16,38 @@ public class InteractiveLabel extends StackPane {
         public void call();
     }
 
+    protected Action scrollUp, scrollDown, primary, secondary, mid;
+
     private Text label;
-    private Rectangle scrollAbsorber;
+    protected Rectangle scrollAbsorber;
 
     private double unhoverOpacity = 1.0;
     private boolean hovered = false;
     
-    public InteractiveLabel (double textSize, double width, Pos alignment, Action up, Action down) {
+    public InteractiveLabel(double textSize, double width, double height, Pos alignment, Action up, Action down, Action midAction) {
+        this(textSize, width, height, alignment, up, down, up, down, midAction);
+    }
 
-        double height = 70;
+    public InteractiveLabel(double textSize, double width, double height, Pos alignment, Action primary, Action secondary, Action scrollUp, Action scrollDown, Action midAction) {
 
         label = new Text("bottom text");
         label.setFont(new Font(textSize));
         label.setFill(Color.WHITE);
         label.setStroke(Color.BLACK);
         label.setStrokeWidth(1.1);
+
+        this.scrollUp = scrollUp;
+        this.scrollDown = scrollDown;
+        this.primary = primary;
+        this.secondary = secondary;
+        this.mid = midAction;
         
         scrollAbsorber = new Rectangle(width, height, Color.TRANSPARENT);
         scrollAbsorber.setOnScroll((event) -> {
             if (event.getDeltaY() >= 4) {
-                up.call();
+                this.scrollUp.call();
             } else if (event.getDeltaY() <= -4) {
-                down.call();
+                this.scrollDown.call();
             }
         });
         scrollAbsorber.setOnMouseEntered((event) -> {
@@ -49,18 +60,20 @@ public class InteractiveLabel extends StackPane {
         });
         scrollAbsorber.setOnMousePressed((event) -> {
             if (event.getButton() == MouseButton.PRIMARY) {
-                up.call();
+                if (primary != null) primary.call();
             } else if (event.getButton() == MouseButton.SECONDARY) {
-                down.call();
+                if (secondary != null) secondary.call();
+            } else if (event.getButton() == MouseButton.MIDDLE) {
+                if (mid != null) mid.call();
             }
         });
 
         StackPane.setAlignment(label, alignment);
-        StackPane.setMargin(label, new Insets(5, 10, 5, 10));
+        StackPane.setMargin(label, new Insets(2, 10, 2, 10));
         StackPane.setAlignment(scrollAbsorber, alignment);
 
         getChildren().addAll(label, scrollAbsorber);
-        setMaxSize(width, height);
+        setMaxSize(0, 0);
     }
 
     public void setText(String text) {

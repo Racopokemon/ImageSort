@@ -14,12 +14,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.imageio.stream.ImageOutputStream;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.event.*;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
@@ -41,6 +44,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
@@ -49,6 +53,7 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -65,11 +70,11 @@ public class Gallery {
 
     private File directory;
     private File targetDirectory;
-    private File delDirectory;
-    private boolean copy;
+    private File deleteDirectory;
     private boolean reopenLauncherAfterwards;
 
     private int numberOfCategories = 3;
+    private int numberOfTicks = 4;
 
     //The current list of images we are cycling through now (with filters not all images might be visible). Subset of allImages, which is all images in the folder
     private ArrayList<String> images = new ArrayList<>();
@@ -82,16 +87,16 @@ public class Gallery {
     //to the first image in the entire folder. 
     private ArrayList<String> previouslyAllImages = new ArrayList<>();
     private ArrayList<ArrayList<String>> deleteHistory = new ArrayList<>(); //last element added: First set of image names to be restored (can be multiple because of moveAlong feature)
-    private ArrayList<Integer> deleteHistoryCategory = new ArrayList<>(); //We also store which category the deleted image was in
+    private ArrayList<ImageFileOperations> deleteHistoryCategory = new ArrayList<>(); //We also store which category the deleted image was in
 
     private FilenameFilter filenameFilter;
 
     private String currentImage = null; //filename OR null if in the current filter category there are no images to show at all
     private String lastImageManuallySelected = null;
-    private int filter = -1; //-1: No filter. 0: Keep only. 1-3: Only this category. 
+    private int filter = -1; //-1: No filter. 0: Keep only. 1-numberOfCategories: Only this category (move). From that on: Only this category (copy / ticks)
     private boolean updateFilterOnNextImage = false; //slight acceleration, only reload the whole filter when this actually occured
 
-    private Hashtable<String, Integer> imageCategory; //images are only added once seen. All not contained images are expected to have category 0. Iterate over allImages for all images instead. 
+    private Hashtable<String, ImageFileOperations> imageOperations; //only added once seen, so might not contain all images. The expected state for non contained images is category 0, no copies.
     private Hashtable<String, RotatedImage> imageBuffer; //holds the current image and some images before and after it, updated with every loadImage. 
     //we use here that javaFX images already load in the background and provide an empty image until they finished loading, so just creating  and 
     //updating references to the (probably still loading) images is enough. 
@@ -107,15 +112,26 @@ public class Gallery {
     private static final double MIN_ZOOM = 1.15;
     private static final double MAX_ZOOM = 10;
 
+    private Stage stage;
     private ImageView view;
     private StackPane zoomPane;
     private StackPane imageAndLoadingPane;
     private StackPane rootPane;
     private InteractiveLabel label;
     private InteractiveLabel filterLabel;
+    private InteractiveLabel[] tickLabels;
+    private VBox tickLabelVBox;
+    private boolean setAllTickLabelsToFullOpacity = false; 
+    public static final double TICK_LABEL_HEIGHT = 48;
     private static final Color LR_HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
     private static final Color LR_ARROW_COLOR = new Color(0, 0, 0, 0.5);
     private static final double BUTTON_WIDTH = 100;
+
+    private static final double HOT_CORNER_SIZE = 3; 
+    private Rectangle hideUiHotcorner;
+
+    private StackPane zoomIndicator;
+    private Text zoomIndicatorText;
 
     private ImprovisedProgressBar progress;
 
@@ -129,17 +145,67 @@ public class Gallery {
     //https://stackoverflow.com/questions/33066754/javafx-set-mouse-hidden-when-idle Thanks for the great answer, was halfway through Workers, Tasks and Services
     private PauseTransition hideMouseOnIdle;
 
-    public void start(File directory, File targetDirectory, File deleteDirectory, boolean copy, boolean reopenLauncher, boolean showHints) {
+    private class ImageFileOperations {
+        private int moveTo = 0; //0: Dont move. 1 - numberOfCategories: Move to this category
+        private boolean[] copyTo = new boolean[numberOfTicks];
+
+        public int getMoveTo() {
+            return moveTo;
+        }
+        public void setMoveTo(int moveTo) {
+            this.moveTo = moveTo;
+        }
+
+        public boolean getCopyTo(int i) {
+            return copyTo[i];
+        }
+        public void setCopyTo(int i, boolean copyTo) {
+            this.copyTo[i] = copyTo;
+        }
+
+        public boolean hasInitialState() {
+            for (int i = 0; i < copyTo.length; i++) {
+                if (copyTo[i]) {
+                    return false;
+                }
+            }
+            return moveTo == 0;
+        }
+    }
+
+    //very bad OO incoming here...
+    public class TickLabelClickAction implements InteractiveLabel.Action {
+        private int tickNumber;
+        public TickLabelClickAction(int tn) {
+            tickNumber = tn;
+        }
+        @Override
+        public void call() {
+            toggleCurrentImageTick(tickNumber);
+        }
+    }
+    //here as well
+    public class TickLabelMidAction implements InteractiveLabel.Action {
+        private int filterNumber;
+        public TickLabelMidAction(int fn) {
+            filterNumber = fn;
+        }
+        @Override
+        public void call() {
+            toggleFilter(filterNumber);
+        }
+    }
+
+    public void start(File directory, File targetDirectory, File deleteDirectory, boolean reopenLauncher, boolean showHints) {
         this.directory = directory;
         this.targetDirectory = targetDirectory;
-        this.delDirectory = deleteDirectory;
-        this.copy = copy;
+        this.deleteDirectory = deleteDirectory;
         this.reopenLauncherAfterwards = reopenLauncher;
 
-        Stage stage = new Stage();
+        stage = new Stage();
 
         filenameFilter = Common.getFilenameFilter();
-        imageCategory = new Hashtable<>();
+        imageOperations = new Hashtable<>();
         imageBuffer = new Hashtable<>();
 
         stage.setTitle("Image Sort");
@@ -159,6 +225,11 @@ public class Gallery {
                     setMousePosition(event);
                     zoomIn();
                     event.consume();
+                } else if (event.getButton() == MouseButton.MIDDLE) {
+                    if (isZooming) {
+                        zoomTo100Percent();
+                        event.consume();
+                    }
                 }
             }
         });
@@ -215,16 +286,41 @@ public class Gallery {
             hideMouseOnIdle.stop();
         });
 
-        label = new InteractiveLabel(38, 200, Pos.BOTTOM_RIGHT, 
+        label = new InteractiveLabel(38, 200, 70, Pos.BOTTOM_LEFT, 
                 () -> {incrementCurrentImageCategory();}, 
-                () -> {decrementCurrentImageCategory();});
-        StackPane.setAlignment(label, Pos.BOTTOM_RIGHT);
+                () -> {decrementCurrentImageCategory();},
+                () -> {toggleFilter(imageOperations.get(currentImage).getMoveTo());});
+        StackPane.setAlignment(label, Pos.BOTTOM_LEFT);
 
-        filterLabel = new InteractiveLabel(28, 250, Pos.BOTTOM_CENTER,
+        filterLabel = new InteractiveLabel(28, 250, 70, Pos.BOTTOM_CENTER,
                 () -> {nextFilter();},
-                () -> {previousFilter();});
+                () -> {previousFilter();},
+                null);
         StackPane.setAlignment(filterLabel, Pos.BOTTOM_CENTER);
-        
+
+        tickLabels = new InteractiveLabel[numberOfTicks];
+        tickLabelVBox = new VBox();
+        tickLabelVBox.setAlignment(Pos.CENTER_RIGHT);
+        //its a bit weird, the tick label now is managing some of its values itself - while all other stuff is done in the gallery, not the best OO today..
+        //also like text size and stuff. Still, its height is a public constant from this class. 
+        for (int i = 0; i < numberOfTicks; i++) {
+            TickLabel currentTickLabel = new TickLabel(i, numberOfTicks, Pos.CENTER_RIGHT, new TickLabelClickAction(i), new TickLabelMidAction(i + numberOfCategories + 1));
+            currentTickLabel.setText(getTickName(i));
+            tickLabelVBox.getChildren().add(0, currentTickLabel);
+            tickLabels[i] = currentTickLabel;
+        }
+        tickLabelVBox.setMaxSize(0, 0); //also done in the ImprovisedProgressBar, makes the container only occupy the min possible size
+        StackPane.setAlignment(tickLabelVBox, Pos.BOTTOM_RIGHT);
+
+        tickLabelVBox.setOnMouseEntered((e) -> {
+            setAllTickLabelsToFullOpacity = true;
+            updateLabels();
+        });
+        tickLabelVBox.setOnMouseExited((e) -> {
+            setAllTickLabelsToFullOpacity = false;
+            updateLabels();
+        });
+
         errorLabel = new Label();
         errorLabel.setTextFill(Color.RED);
         errorLabel.setVisible(false);
@@ -237,6 +333,20 @@ public class Gallery {
         progress = new ImprovisedProgressBar(350, 30);
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
+
+        Rectangle zoomIndicatorBack = new Rectangle(80, 30, Color.BLACK);
+        zoomIndicatorBack.setArcHeight(15);
+        zoomIndicatorBack.setArcWidth(15);
+        zoomIndicatorBack.setOpacity(0.7);
+        zoomIndicatorText = new Text("xx%");
+        zoomIndicatorText.setFont(new Font(15));
+        zoomIndicatorText.setFill(Color.WHITE);
+        zoomIndicator = new StackPane(zoomIndicatorBack, zoomIndicatorText);
+        zoomIndicator.setMaxSize(0, 0);
+        zoomIndicator.setMouseTransparent(true);
+        zoomIndicator.setVisible(false);
+        StackPane.setAlignment(zoomIndicator, Pos.TOP_CENTER);
+        StackPane.setMargin(zoomIndicator, new Insets(50, 0, 0, 0));
         
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});
@@ -266,7 +376,7 @@ public class Gallery {
         imageAndLoadingPane.getChildren().add(errorLabel);
         imageAndLoadingPane.getChildren().add(zoomPane);
 
-        wrapSearchIndicator = new Text("1/70");
+        wrapSearchIndicator = new Text("./.");
         wrapSearchIndicator.setFont(new Font(85));
         wrapSearchIndicator.setFill(Color.WHITE);
         wrapSearchIndicator.setStroke(Color.BLACK);
@@ -274,42 +384,101 @@ public class Gallery {
         wrapSearchIndicator.setVisible(false);
         wrapSearchIndicator.setMouseTransparent(true);
 
+        Rectangle exitFullscreenRect = new Rectangle(HOT_CORNER_SIZE, HOT_CORNER_SIZE);
+        exitFullscreenRect.setFill(Color.TRANSPARENT);
+        StackPane.setAlignment(exitFullscreenRect, Pos.TOP_RIGHT);
+        Text exitFullscreenText = new Text("Click to exit full-screen");
+        exitFullscreenText.setFont(new Font(40));
+        exitFullscreenText.setFill(Color.WHITE);
+        exitFullscreenText.setStroke(Color.BLACK);
+        Rectangle exitFullscreenHintBackground = new Rectangle(600, 200);
+        exitFullscreenHintBackground.setFill(Color.BLACK);
+        exitFullscreenHintBackground.setOpacity(0.65);
+        exitFullscreenHintBackground.setArcHeight(20);
+        exitFullscreenHintBackground.setArcWidth(20);
+        
+        StackPane exitFullscreenHint = new StackPane(exitFullscreenHintBackground, exitFullscreenText); 
+        exitFullscreenHint.setMouseTransparent(true);
+        exitFullscreenHint.setMaxSize(0, 0);
+        exitFullscreenHint.setVisible(false);
+
+        exitFullscreenRect.setOnMouseEntered((e) -> {exitFullscreenHint.setVisible(true);});
+        exitFullscreenRect.setOnMouseExited((e) -> {exitFullscreenHint.setVisible(false);});
+        exitFullscreenRect.setOnMouseClicked((e) -> {stage.setFullScreen(false);});
+        
+        hideUiHotcorner = new Rectangle(HOT_CORNER_SIZE, HOT_CORNER_SIZE);
+        hideUiHotcorner.setFill(Color.TRANSPARENT);
+        StackPane.setAlignment(hideUiHotcorner, Pos.TOP_LEFT);
+        hideUiHotcorner.setCursor(Cursor.NONE);
+        hideUiHotcorner.setOnMouseEntered((e) -> {
+            label.setVisible(false);
+            progress.setVisible(false);
+            tickLabelVBox.setVisible(false);
+            filterLabel.setVisible(false);
+        });
+        hideUiHotcorner.setOnMouseExited((e) -> {
+            label.setVisible(true);
+            progress.setVisible(true);
+            tickLabelVBox.setVisible(true);
+            filterLabel.setVisible(true);
+        });
+        hideUiHotcorner.setOnScroll(zoomPaneScrollHandler);
+
+        stage.fullScreenProperty().addListener((target, oldValue, newValue) -> {
+            exitFullscreenRect.setVisible(newValue);
+            hideUiHotcorner.setVisible(newValue);
+        });
+        
         rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         rootPane.getChildren().add(invisibleContextMenuSource);
         rootPane.getChildren().add(noImagesLabel);
         rootPane.getChildren().add(imageAndLoadingPane);
         rootPane.getChildren().add(wrapSearchIndicator);
-
+        
         leftButton = new LRButton(rootPane, true); //this also adds them to the rootPane
         rightButton = new LRButton(rootPane, false);
+        leftButton.setOnScroll(zoomPaneScrollHandler);
+        rightButton.setOnScroll(zoomPaneScrollHandler);
         
         rootPane.getChildren().add(label);
         rootPane.getChildren().add(filterLabel);
+        rootPane.getChildren().add(tickLabelVBox);
         rootPane.getChildren().add(progress);
+        rootPane.getChildren().add(zoomIndicator);
+        rootPane.getChildren().add(exitFullscreenRect);
+        rootPane.getChildren().add(exitFullscreenHint);
+        rootPane.getChildren().add(hideUiHotcorner);
 
         Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
         stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
         stage.setOnCloseRequest((event) -> {
             boolean unsavedChanges = false;
-            for (Map.Entry<String, Integer> entry : imageCategory.entrySet()) {
-                if (entry.getValue() != 0) {
+            ArrayList<ArrayList<String>> operations = listAllFileOperations();
+            //we start at 1, because 0 does not move the files
+            for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
+                if (!operations.get(i).isEmpty()) {
                     unsavedChanges = true;
-                    break;
+                    break; 
                 }
             }
             if (unsavedChanges) {
-
-                //TODO: Better info management, like 'there are 14 images to be moved, 3 are moved to /1, 11 are moved to /2, 84 remain.'
                 String closeMessage, closeHeader;
-                if (copy) { 
-                    closeMessage = "Copy all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
-                    closeHeader = "Copy files now?";
-                } else {
-                    closeMessage = "Move all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
-                    closeHeader = "Move files now?";
+                boolean moveOperation = false, copyOperation = false;
+                closeMessage = "Should we now do the following?\n\n";
+                for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
+                    if (!operations.get(i).isEmpty()) {
+                        if (i < numberOfCategories + 1) {
+                            closeMessage += "   move " + operations.get(i).size() + " files to " + targetDirectory.getName() + "/" + i + "\n";
+                            moveOperation = true;
+                        } else {
+                            closeMessage += "   copy " + operations.get(i).size() + " files to " + targetDirectory.getName() + "/" + getTickName(i - numberOfCategories - 1) + "\n";
+                            copyOperation = true;
+                        }
+                    }
                 }
-                closeMessage += "'No' keeps the files unchanged, but discards your work here.";
+                closeHeader = moveOperation ? copyOperation ? "Move & copy files now?" : "Move files now?" : "Copy files now?";
+                closeMessage += "\n'No' keeps the files unchanged and closes the gallery, which discards your work here. ";
                 Alert closeAlert = new Alert(AlertType.NONE, closeMessage, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                 closeAlert.setHeaderText(closeHeader);
                 Optional<ButtonType> result = closeAlert.showAndWait();
@@ -318,16 +487,21 @@ public class Gallery {
                     event.consume();
                     return;
                 } else if (result.get() == ButtonType.YES) {
-                    //rename (closes automatically on return)
-                    //TODO: Better error communication! Like, moved abc files successfully, error with 2. 
-                    //TODO: Also, what if there is an error in between? Should we present the retry / ignore / cancel dialog? 
-                    //TODO: Also, what if there is an error in between? Should we present the retry / ignore / cancel dialog? 
-                    if (copy) {
-                        copyAllFiles();
-                    } else {
-                        moveAllFiles();
+                    //rename (closes automatically on return, if we do not consume the event)
+                    
+                    FileOperationsWindow fileOpWindow = new FileOperationsWindow(operations, filesToMoveAlong, numberOfCategories, numberOfTicks, directory, targetDirectory);
+                    System.out.println("remove the moveAllFiles + method from Gallery.java");
+                    
+                    //this makes the gallery be dependent on this window
+                    fileOpWindow.initOwner(stage);
+                    fileOpWindow.initModality(Modality.WINDOW_MODAL);
+                    fileOpWindow.showAndWait();
+
+                    if (fileOpWindow.shouldWeShowTheGalleryAgain()) {
+                        //Consume the close event, so that the window is actually not closed. 
+                        event.consume();
+                        return;
                     }
-                    new Alert(AlertType.NONE, "Finished! \nConsider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
                 }
             }
             //the event was not consumed: the window will continue closing now
@@ -340,7 +514,7 @@ public class Gallery {
             @Override
             public void handle(KeyEvent event) {
                 //Fuck switch cases. 
-                if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.D) {
+                if (event.getCode() == KeyCode.RIGHT) {// || event.getCode() == KeyCode.D) {
                     if (event.isShortcutDown() && event.getCode() == KeyCode.RIGHT) {
                         selectImageAtIndex(images.size()-1); //last image
                     } else if (event.isShiftDown() && event.getCode() == KeyCode.RIGHT) {
@@ -348,7 +522,7 @@ public class Gallery {
                     } else {
                         nextImage();
                     }
-                } else if (event.getCode() == KeyCode.LEFT || event.getCode() == KeyCode.A) {
+                } else if (event.getCode() == KeyCode.LEFT) {//} || event.getCode() == KeyCode.A) {
                     if (event.isShortcutDown() && event.getCode() == KeyCode.LEFT) {
                         selectImageAtIndex(0); //first image
                     } else if (event.isShiftDown() && event.getCode() == KeyCode.LEFT) {
@@ -360,20 +534,29 @@ public class Gallery {
                     selectImageAtIndex(0);
                 } else if (event.getCode() == KeyCode.END) {
                     selectImageAtIndex(images.size()-1);
-                } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.W) {
-                    incrementCurrentImageCategory();
-                } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.S) {
-                    decrementCurrentImageCategory();
+                } else if (event.getCode() == KeyCode.UP) {// || event.getCode() == KeyCode.W) {
+                    if (event.isShortcutDown()) {
+                        nextFilter();
+                    } else {
+                        incrementCurrentImageCategory();
+                    }
+                } else if (event.getCode() == KeyCode.DOWN) {// || event.getCode() == KeyCode.S) {
+                    if (event.isShortcutDown()) {
+                        previousFilter();
+                    } else {
+                        decrementCurrentImageCategory();
+                    }
                 } else if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
                     deleteImage();
                 } else if (event.getCode() == KeyCode.PLUS) {
                     increaseZoom(40);
                 } else if (event.getCode() == KeyCode.MINUS) {
                     decreaseZoom(40);
-                } else if (event.getCode() == KeyCode.Q) {
-                    previousFilter();
-                } else if (event.getCode() == KeyCode.E) {
-                    nextFilter();
+                } else if (event.getCode() == KeyCode.SPACE) {
+                    if (isZooming) zoomTo100Percent();
+                //} else if (event.getCode() == KeyCode.ENTER) {
+                //    view.setSmooth(!view.isSmooth());
+                //    view.setCache(false);
                 } else if (event.getCode() == KeyCode.F5) {
                     updateFilesList();
                 } else if (event.getCode().isDigitKey()) {
@@ -383,11 +566,16 @@ public class Gallery {
                     skimTo(skim);
                 } else if (event.getCode() == KeyCode.Z && event.isShortcutDown()) {
                     undoDelete();
-                } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown()) || event.getCode() == KeyCode.F) {
+                } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown()) || (event.getCode() == KeyCode.F && numberOfTicks < 6)) {
                     //https://stackoverflow.com/questions/51386423/remove-beep-sound-upon-maximizing-javafx-stage-with-altenter
                     //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
                     //TODO accelerators might actually be the better solution for all shortcuts. Except maybe the + and -?
                     stage.setFullScreen(!stage.isFullScreen());
+                } else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
+                    int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
+                    if (pos >= 0 && pos < numberOfTicks) {
+                        toggleCurrentImageTick(pos);
+                    }
                 }
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {
@@ -398,6 +586,8 @@ public class Gallery {
         });
 
         stage.getIcons().add(Common.getRessource("logo"));
+        stage.setMinHeight(400);
+        stage.setMinWidth(600);
         stage.show();
 
         rootPane.widthProperty().addListener((a, oldV, newV) -> {updateViewport(newV.doubleValue(), rootPane.heightProperty().get());});
@@ -462,7 +652,7 @@ public class Gallery {
 
     //sets up the viewport for the current image in the view and the rootPane size: 
     //if the image is smaller than the viewport, dont scale it. 
-    //Call this when the rootPane size has not changed
+    //Call this when the rootPane size has NOT changed (opposed to the overloaded updateViewport(w, h) if the size has changed)
     private void updateViewport() {
         updateViewport(rootPane.widthProperty().get(), rootPane.heightProperty().get());
     }
@@ -478,8 +668,10 @@ public class Gallery {
         double iWidth = ninetyDegrees ? i.getHeight() : i.getWidth();
         double iHeight = ninetyDegrees ? i.getWidth() : i.getHeight();
         if (w < iWidth || h < iHeight) {
+            //image is bigger than viewport, just let it fit automatically (I guess? Why didnt I write the comments when I was working on this?)
             view.setViewport(null);
         } else {
+            //image is smaller than viewport, manually adapt the viewport
             if (ninetyDegrees) {
                 //this line is brought to you by trial and error
                 view.setViewport(new Rectangle2D((int)((iHeight-h)*0.5), (int)((iWidth-w)*0.5), h, w));
@@ -490,13 +682,57 @@ public class Gallery {
         }
     }
 
+    //Calculates the pixel scale of the image, dependent on the window and image size (without considering current user zoom)
+    //1 is 1 to 1 scaling, as it automatically happens when the image is smaller than the window. 
+    //If the image is bigger than the window, we return the scale factor < 1, that is applied to it to make it fit the window
+    private double calculateBaseImageScale() {
+        Image i = view.getImage();
+        boolean ninetyDegrees = ((RotatedImage)i).isRotatedBy90Degrees();
+        double imgW = ninetyDegrees ? i.getHeight() : i.getWidth();
+        double imgH = ninetyDegrees ? i.getWidth() : i.getHeight();
+        
+        double windowW = rootPane.getWidth();
+        double windowH = rootPane.getHeight();
+        if (windowW > imgW && windowH > imgH) {
+            //this case is handeled manually in updateViewpoint - if the image is smaller than the viewport, we see it at 100%, so factor 1
+            return 1;
+        } else {
+            //in the other case, we must keep the image ratio, so we calculate the required zoom factor for both axis and take the smaller one, to keep the image entirely inside the window
+            double xFactor = windowW / imgW; //illuminati confirmed??
+            double yFactor = windowH / imgH;
+            return Math.min(xFactor, yFactor);
+        }
+    }
+
+    //Tries to zoom into the image, so that pixels are scaled 1 to 1. 
+    //However, always stays inside the valid bounds for zooming. 
+    private void zoomTo100Percent() {
+        if (currentImage == null) {
+            return;
+        }
+        double requiredZoom = 1 / calculateBaseImageScale();
+        zoom = Math.min(Math.max(requiredZoom, MIN_ZOOM), MAX_ZOOM);
+
+        if (isZooming) {
+            zoomIn();
+        }
+    }
+
     // Zooms into the whole scene (the easy way, just setting the scale properties)
     // Also updates the translation, that's the reason it is called so many times
     private void zoomIn() {
-        double width = zoomPane.getWidth();
-        double height = zoomPane.getHeight();
-        double spaceX = (width*zoom) - (width);
+        //we used to work with the zoomPane (obvious choice) here. 
+        //However, for some reasons does the zoomPane grow in certain situations above screen size, probably because the imageview 
+        //makes weird space requirements merging the space of the rotated and un-rotated image ...
+        //this additional space requirement is for some reason not visible (maybe because the stack pane centers anyway, no matter the space around)
+        //but it destroyed our size calculations here
+        double width = rootPane.getWidth(); 
+        double height = rootPane.getHeight();
+        //the non-visible space once zoomed in
+        double spaceX = (width*zoom) - (width); //add stupid elon joke here
         double spaceY = (height*zoom) - (height);
+        //we get the mouse position relative to the screen, 0 is left, 1 right etc. 
+        //now just scale the additional space with this relative mouse percentage!
         double relTransX = -(mouseRelativeX - 0.5);
         double relTransY = -(mouseRelativeY - 0.5);
 
@@ -506,6 +742,8 @@ public class Gallery {
         zoomPane.setTranslateX(spaceX * relTransX);
         zoomPane.setTranslateY(spaceY * relTransY);
 
+        zoomIndicator.setVisible(true);
+        zoomIndicatorText.setText(Math.round(calculateBaseImageScale() * zoom * 100) + "%");
         zoomPane.setCursor(Cursor.NONE);
         isZooming = true;
     }
@@ -516,6 +754,7 @@ public class Gallery {
         zoomPane.setTranslateX(0);
         zoomPane.setTranslateY(0);
 
+        zoomIndicator.setVisible(false);
         zoomPane.setCursor(Cursor.DEFAULT);
         isZooming = false;
     }
@@ -546,8 +785,8 @@ public class Gallery {
     //because when the zoom (scale) changes, we don't get new information on
     //the mouse, but need to update the zoom based on the mouse position
     private  void setMousePosition(MouseEvent event) {
-        mouseRelativeX = event.getSceneX() / zoomPane.getWidth();
-        mouseRelativeY = event.getSceneY() / zoomPane.getHeight();
+        mouseRelativeX = event.getSceneX() / rootPane.getWidth();
+        mouseRelativeY = event.getSceneY() / rootPane.getHeight();
         mouseRelativeX = Math.max(Math.min(mouseRelativeX, 1), 0);
         mouseRelativeY = Math.max(Math.min(mouseRelativeY, 1), 0);
     }
@@ -679,7 +918,7 @@ public class Gallery {
         imageInfo.addAll(img.getSomeImageProperties());
         progress.setProgress(currentImageIndex, images.size(), imageInfo, filter != -1);
         wrapSearchIndicator.setText(currentImageIndex+1 + "/" + images.size()); //kind of doubled here, but I think its important that the indicator is updated as well
-        updateLabel();
+        updateLabels();
         updateImageStatus();
     }
     
@@ -729,64 +968,90 @@ public class Gallery {
         System.out.println("Reduced imageBufferSize to "+imageBufferSize);
     }
 
-    private void updateLabel() {
+    private void updateLabels() {
         if (currentImage == null) {
             return;
         }
-        if (!imageCategory.containsKey(currentImage)) {
-            imageCategory.put(currentImage, 0);
+        if (!imageOperations.containsKey(currentImage)) {
+            imageOperations.put(currentImage, new ImageFileOperations());
         }
-        int index = imageCategory.get(currentImage);
-        if (index == 0) {
-            if (copy) {
-                label.setText("no copy");
+        ImageFileOperations operations = imageOperations.get(currentImage);
+        
+        int moveTo = operations.getMoveTo();
+        label.setText(moveTo == 0 ? "no move" : "move to "+moveTo);
+        label.setUnhoverOpacity(0.85);
+        
+        for (int tickNumber = 0; tickNumber < numberOfTicks; tickNumber++) {
+            if (operations.getCopyTo(tickNumber)) {
+                tickLabels[tickNumber].setText("copy to " + getTickName(tickNumber));
+                tickLabels[tickNumber].setUnhoverOpacity(setAllTickLabelsToFullOpacity ? 1 : 0.85);
             } else {
-                label.setText("keep");
-            }
-        } else {
-            if (copy) {
-                label.setText("copy to "+index);
-            } else {
-                label.setText("move to "+index);
+                tickLabels[tickNumber].setText("no copy to " + getTickName(tickNumber));
+                tickLabels[tickNumber].setUnhoverOpacity(setAllTickLabelsToFullOpacity ? 0.75 : 0.11);
             }
         }
     }
+
+    //TODO: rename category to 'move' - and ticks are also rather misleading
+
     private void incrementCurrentImageCategory() {
         if (currentImage == null) {
             return;
         }
-        int current = imageCategory.get(currentImage);
+        ImageFileOperations operations = this.imageOperations.get(currentImage);
+        int current = operations.getMoveTo();
         if (++current > numberOfCategories) {
             current = 0;
         }
-        imageCategory.put(currentImage, current);
+        operations.setMoveTo(current);
         updateFilterOnNextImage = true;
-        updateLabel();
+        updateLabels();
     }
     private void decrementCurrentImageCategory() {
         if (currentImage == null) {
             return;
         }
-        int current = imageCategory.get(currentImage);
+        ImageFileOperations operations = this.imageOperations.get(currentImage);
+        int current = operations.getMoveTo();
         if (--current < 0) {
             current = numberOfCategories;
         }
-        imageCategory.put(currentImage, current);
+        operations.setMoveTo(current);
         updateFilterOnNextImage = true;
-        updateLabel();
+        updateLabels();
     }
+    private void toggleCurrentImageTick(int tickNumber) {
+        if (currentImage == null) {
+            return;
+        }
+        ImageFileOperations operations = this.imageOperations.get(currentImage);
+        operations.setCopyTo(tickNumber, !operations.getCopyTo(tickNumber));
+        updateFilterOnNextImage = true;
+        updateLabels();
+    }
+
     private void nextFilter() {
-        if (++filter > numberOfCategories) {
+        if (++filter > numberOfCategories+numberOfTicks) {
             filter = -1;
         }
         updateFilter();
     }
     private void previousFilter() {
         if (--filter < -1) {
-            filter = numberOfCategories;
+            filter = numberOfCategories+numberOfTicks;
         }
         updateFilter();
     }
+    //Sets the filter to the givenn number - except the filter is set already, then switch to no filter (so toggle)
+    private void toggleFilter(int f) {
+        if (filter == f) {
+            filter = -1;
+        } else {
+            filter = f;
+        }
+        updateFilter();
+    }
+
 
     private void updateFilter() {
         //Every call here might be the result of the files list changing, this means we know nothing for sure anymore, 
@@ -835,7 +1100,7 @@ public class Gallery {
             }    
         }
 
-        //Recalculate the contents of images, the currently iterated images. 
+        //Recalculate the contents of 'images', the currently iterated images. 
         //Also recalculate which is our currentImage (might have gotten deleted, or we changed categories so our 'cursor' lastImageManuallySelected 
         //might be a currently hidden image)
         //If there are actually no images in the images-array, we detect that below and show a message instead of loading/displaying an image
@@ -851,11 +1116,20 @@ public class Gallery {
                     afterImageIndex = true;
                 }
 
-                Integer category = imageCategory.get(i);
-                if (category == null) {
-                    category = 0;
+                ImageFileOperations operations = imageOperations.get(i);
+                boolean addImage = false; 
+                if (filter <= numberOfCategories) {
+                    int category = 0;
+                    if (operations != null) {
+                        category = operations.getMoveTo();
+                    }
+                    addImage = category == filter;
+                } else {
+                    if (operations != null) {
+                        addImage = operations.getCopyTo(filter-numberOfCategories-1);
+                    }
                 }
-                if (category == filter) {
+                if (addImage) {
                     images.add(i);
                     if (afterImageIndex) {
                         afterImageIndex = false; //it wont become true again in this loop
@@ -878,6 +1152,8 @@ public class Gallery {
         leftButton.setVisible(imageAvailable);
         rightButton.setVisible(imageAvailable);
         progress.setVisible(imageAvailable);
+        tickLabelVBox.setVisible(imageAvailable);
+        hideUiHotcorner.setVisible(imageAvailable && stage.isFullScreen());
 
         if (!imageAvailable) {
             if (filter == -1) {
@@ -887,8 +1163,10 @@ public class Gallery {
             } else {
                 if (filter == 0) {
                     noImagesLabel.setText("There are no images not to be moved. ");
-                } else {
+                } else if (filter <= numberOfCategories) {
                     noImagesLabel.setText("There are no images that should be moved to /" + filter + ". ");
+                } else {
+                    noImagesLabel.setText("There are no images to be copied to /" + getTickName(filter - numberOfCategories - 1) + ". ");
                 }
                 noImagesLabel.setText(noImagesLabel.getText() + "\nYou can change the filter by clicking or scrolling the 'only show ...' below. "); 
             }
@@ -904,9 +1182,11 @@ public class Gallery {
         } else {
             filterLabel.setUnhoverOpacity(1.0);
             if (filter == 0) {
-                filterLabel.setText("only show 'keep'");
+                filterLabel.setText("only show files not to be moved");
+            } else if (filter <= numberOfCategories) {
+                filterLabel.setText("only show move to " + filter);
             } else {
-                filterLabel.setText("only show " + filter);
+                filterLabel.setText("only show copy to " + getTickName(filter - numberOfCategories-1));
             }
         }
         //another TODO: when do we update the filter? Only on next / prev calls. Do we need to always update the filter? 
@@ -996,7 +1276,7 @@ public class Gallery {
     }
 
     //always calls loadImage() to load a (probably new) image. Also calls updateFilter() [which itself calls loadImage] 
-    //only if currentImagesCategoryWasChanged. You could also just always call updateFilter(), and you would probably never
+    //only if updateFilterOnNextImage. You could also just always call updateFilter(), and you would probably never
     //notice the slightly (slightly) worse performance. 
     private void updateImageFilterAndCursorAfterImageChange() {
         if (updateFilterOnNextImage) {
@@ -1016,14 +1296,14 @@ public class Gallery {
         }
         try {
             //if folder doesnt exist, create it
-            if (!delDirectory.exists()) {
-                delDirectory.mkdir();
+            if (!deleteDirectory.exists()) {
+                deleteDirectory.mkdir();
             }
             
             //move image file there
             String path = getFullPathForFileInThisFolder(currentImage);
             File origin = new File(path);
-            File dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + currentImage);
+            File dest = new File(deleteDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + currentImage);
             origin.renameTo(dest);
             
             ArrayList<String> deletedFilenames = new ArrayList<>();
@@ -1035,7 +1315,7 @@ public class Gallery {
                     try {
                         path = getFullPathForFileInThisFolder(moveAlong);
                         origin = new File(path);
-                        dest = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + moveAlong);
+                        dest = new File(deleteDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + moveAlong);
                         origin.renameTo(dest);     
                         deletedFilenames.add(moveAlong);
                     } catch (Exception e) {
@@ -1045,11 +1325,11 @@ public class Gallery {
                 }
             }
 
-            int category = 0;
-            if (imageCategory.containsKey(currentImage)) category = imageCategory.get(currentImage);
-            deleteHistoryCategory.add(category);
+            ImageFileOperations operations = this.imageOperations.get(currentImage);
+            if (imageOperations.containsKey(currentImage)) operations = imageOperations.get(currentImage);
+            deleteHistoryCategory.add(operations);
             
-            imageCategory.remove(currentImage);
+            imageOperations.remove(currentImage);
 
         } catch (Exception e) {
             System.out.println("Could not move image "+currentImage+" to 'deleted' folder: ");
@@ -1073,7 +1353,7 @@ public class Gallery {
         for (String restore : imagesToRestore) {
             String pathBefore = getFullPathForFileInThisFolder(restore);
             try {
-                File origin = new File(delDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + restore);
+                File origin = new File(deleteDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + restore);
                 File dest = new File(pathBefore);
                 origin.renameTo(dest);    
             } catch (Exception e) {
@@ -1082,17 +1362,17 @@ public class Gallery {
             }
         }
         deleteHistory.remove(deleteHistory.size() - 1);
-        imageCategory.put(mainImageFileName, deleteHistoryCategory.remove(deleteHistoryCategory.size() - 1));
+        imageOperations.put(mainImageFileName, deleteHistoryCategory.remove(deleteHistoryCategory.size() - 1));
         
         //Side quest: Delete the delete folder if there is now no files inside anymore. 
         //again, weird solutions for the simplest IO tasks in java. Bro. 
         //However, thanks to baeldung.com/java-check-empty-directory where I got this from
-        if (delDirectory.exists()) {
-            try (Stream<Path> entries = Files.list(delDirectory.toPath())) {
+        if (deleteDirectory.exists()) {
+            try (Stream<Path> entries = Files.list(deleteDirectory.toPath())) {
                 boolean empty = !entries.findFirst().isPresent();
                 if (empty) {
                     try {
-                        delDirectory.delete();
+                        deleteDirectory.delete();
                     } catch (Exception e) {
                         //should be empty, just checked for that
                         System.out.println("Could not delete the delete folder (how ironic)");
@@ -1132,7 +1412,7 @@ public class Gallery {
 
         File[] allFilesUnfiltered = directory.listFiles();
         Hashtable<String, String> imageNameFrequency = new Hashtable<>(); //contains either the full filename, or "" if there are several images with this name
-        ArrayList<String> notSupportedFilesInFirectory = new ArrayList<>();
+        ArrayList<String> notSupportedFilesInDirectory = new ArrayList<>();
         for (File file : allFilesUnfiltered) {
             if (!file.isDirectory()) {
                 String filename = file.getName();
@@ -1145,15 +1425,15 @@ public class Gallery {
                         imageNameFrequency.put(filenameWithoutExtension, "");
                     }
                 } else {
-                    notSupportedFilesInFirectory.add(filename);
+                    notSupportedFilesInDirectory.add(filename);
                 }
             }
         }
         if (MOVE_ALONG) {
             filesToMoveAlong = new Hashtable<>();
-            for (String notSupportedFile : notSupportedFilesInFirectory) {
+            for (String notSupportedFile : notSupportedFilesInDirectory) {
                 String fullFilename = imageNameFrequency.get(Common.removeExtensionFromFilename(notSupportedFile).toLowerCase());
-                if (fullFilename != null && !fullFilename.equals("")) {
+                if (fullFilename != null && !fullFilename.equals("")) { //with "", there are several images (different extensions) with the same name, were powerless here..
                     if (!filesToMoveAlong.containsKey(fullFilename)) {
                         filesToMoveAlong.put(fullFilename, new ArrayList<String>());
                     }
@@ -1164,85 +1444,6 @@ public class Gallery {
 
         Collections.sort(allImages, String.CASE_INSENSITIVE_ORDER); //My windows directory was sorted already, but idk if its always like that, on other OS
         updateFilter();
-    }
-
-    //The final call, that actually executes all the move operations. 
-    //Right now it is only possible to do this on close (which makes sense, after that the program would close anyway)
-    private void moveAllFiles() { 
-        if (Common.isValidFolder(targetDirectory)) {
-            System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
-            //Should be added later to a proper error handling
-        }
-
-        for (String key : imageCategory.keySet()) {
-            int category = imageCategory.get(key);
-            if (category != 0) {
-                //if folder doesnt exist: create. 
-                String dirPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + category;
-                File dir = new File(dirPath);
-                if (!dir.exists()) {
-                    try {
-                        dir.mkdir();
-                    } catch (Exception e) {
-                        System.out.println("Could not create folder for category " + category);
-                        e.printStackTrace();
-                    }
-                }
-                ArrayList<String> filesToMove = new ArrayList<>();
-                filesToMove.add(key);
-                if (filesToMoveAlong.containsKey(key)) {
-                    filesToMove.addAll(filesToMoveAlong.get(key));
-                }
-                for (String fileToMove : filesToMove) {
-                    File origin = new File(getFullPathForFileInThisFolder(fileToMove));
-                    File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + fileToMove);
-                    try {
-                        origin.renameTo(dest);
-                    } catch (Exception e) {
-                        System.out.println("Could not move file " + fileToMove + " to category folder "+ category);
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    private void copyAllFiles() { 
-        if (!Common.isValidFolder(targetDirectory)) {
-            System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
-            //Should be added later to a proper error handling
-        }
-
-        for (String filename : imageCategory.keySet()) {
-            int category = imageCategory.get(filename);
-            if (category != 0) {
-                String dirPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + category;
-                File dir = new File(dirPath);
-                if (!dir.exists()) {
-                    try {
-                        dir.mkdir();
-                    } catch (Exception e) {
-                        System.out.println("Could not create folder for category " + category);
-                        e.printStackTrace();
-                    }
-                }
-                ArrayList<String> filesToCopy = new ArrayList<>();
-                filesToCopy.add(filename);
-                if (filesToMoveAlong.containsKey(filename)) {
-                    filesToCopy.addAll(filesToMoveAlong.get(filename));
-                }
-                for (String fileToCopy : filesToCopy) {
-                    File origin = new File(getFullPathForFileInThisFolder(fileToCopy));
-                    File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + fileToCopy);
-                    try {
-                        Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
-                    } catch (Exception e) {
-                        System.out.println("Could not copy file " + fileToCopy + " to "+ dest.getAbsolutePath());
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
     }
 
     //Youtube-like skimming: 
@@ -1271,8 +1472,40 @@ public class Gallery {
         wrapSearchIndicator.setVisible(true);
         wrapSearchIndicatorTimeline.playFromStart();
     }
-}
 
-//TODO: When implementing TICKS
-// - Delete must delete from all lookups
-// - ticking must update currentImagesCategoryWasChanged [which then needs a new name as well]
+    //Lookup for tick names. Right now we use letters, so index 0 is "a" etc.
+    //So you may only look up ticks from 0 to 25
+    public static String getTickName(int index) {
+        return Common.getLetterInAlphabet(index);
+    }
+
+    //Based on the current state, returns ArrayLists of all file names, that require a file operation. 
+    //Since its several arrayLists, we return them as an arrayList of arrayLists, with the following indices: 
+    //0: images not to move
+    //1 to numberOfCategories + 1: images to be moved to their corresponding categories
+    //numberOfCategories + 1 to numberOfCategories + numberOfTicks + 1 images to copy, corresponding to the tick indices
+    private ArrayList<ArrayList<String>> listAllFileOperations() {
+        ArrayList<ArrayList<String>> result = new ArrayList<>();
+        for (int i = 0; i < numberOfCategories + numberOfTicks + 1; i++) {
+            result.add(new ArrayList<String>());
+        }
+
+        //we need to iterate through the list of files instead of iterating through imageOperations, as some files might not have an entry in the set yet
+        for (String filename : allImages) {
+            ImageFileOperations operations = imageOperations.get(filename);
+            if (operations == null) {
+                result.get(0).add(filename);
+            } else {
+                int moveTo = operations.getMoveTo();
+                result.get(moveTo).add(filename);
+                for (int tickNumer = 0; tickNumer < numberOfTicks; tickNumer++) {
+                    if (operations.getCopyTo(tickNumer)) {
+                        result.get(numberOfCategories + tickNumer + 1).add(filename);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }    
+}

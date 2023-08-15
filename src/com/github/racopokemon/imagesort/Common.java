@@ -15,7 +15,7 @@ public class Common {
     private static FilenameFilter filter;
     private static Hashtable<String, Image> ressources;
 
-    //Weak check, let's see if the base requirements are met
+    //The weak check, let's see if the base requirements are met
     public static boolean isValidFolder(File f) {
         return f.exists() && f.isDirectory();
     }
@@ -56,7 +56,7 @@ public class Common {
 
     public static String removeExtensionFromFilename(String filename) {
         int lastDotIndex = filename.lastIndexOf(".");
-        if (lastDotIndex == 0) {
+        if (lastDotIndex == -1) {
             return filename;
         } else {
             return filename.substring(0, lastDotIndex);
@@ -80,5 +80,18 @@ public class Common {
             ressources.put(name, new Image(Common.class.getResourceAsStream("res/" + name + ".png")));
         }
         return ressources.get(name);
+    }
+
+    //Right now only for upper case chars, no error checks
+    public static int getPositionInAlphabet(char c) {
+        return (int)c - (int)'A';
+    }
+
+    //Right now only for lower case chars
+    public static String getLetterInAlphabet(int pos) {
+        if (pos < 0 || pos > 25) {
+            throw new IllegalArgumentException("tick index not in bounds (0-25)");
+        }
+        return Character.toString((char)('a' + pos));
     }
 }

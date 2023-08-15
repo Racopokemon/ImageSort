@@ -44,9 +44,9 @@ import javafx.collections.ObservableList;
 
 public class Launcher {
 
-    private static final double SMALL_GAP = 4;
-    private static final double BIG_GAP = 16;
-    private static final double BIG_INTEND_GAP = 34;
+    public static final double SMALL_GAP = 4;
+    public static final double BIG_GAP = 16;
+    public static final double BIG_INTEND_GAP = 34;
 
     private static final String CHECK_DELETE_FOLDER_SEL_TEXT = "Also create the 'delete' folder here. (Otherwise, it is created in the images folder)";
     private static final String CHECK_DELETE_FOLDER_UNSEL_TEXT = "Also create the 'delete' folder here. (Right now, it is created in the images folder)";
@@ -55,7 +55,7 @@ public class Launcher {
     private ListView<BrowserItem> listBrowser;
     private TextField textFieldBrowser;
     private TextField textFieldFolder;
-    private RadioButton radioFolderRelative, radioOperationMove;
+    private RadioButton radioFolderRelative;
     private Button buttonLaunch;
     private CheckBox checkDeleteFolderAbsolute;
     private CheckBox checkMiscRelaunch;
@@ -131,24 +131,6 @@ public class Launcher {
         VBox boxBrowser = new VBox(SMALL_GAP, labelBrowserIntro, boxBrowserLine, listBrowser);
         VBox.setVgrow(boxBrowser, Priority.ALWAYS);
 
-        Label labelOperation = new Label("Once you finished sorting your files, what should we do with them?");
-        labelOperation.setWrapText(true);
-        radioOperationMove = new RadioButton("Move to the folder of their category");
-        RadioButton radioOperationCopy = new RadioButton("Copy to the folder of their category");
-        ToggleGroup groupOperation = new ToggleGroup();
-        radioOperationMove.setToggleGroup(groupOperation);
-        radioOperationCopy.setToggleGroup(groupOperation);
-        if (prefs.getBoolean("operationMove", true)) {
-            radioOperationMove.setSelected(true);
-        } else {
-            radioOperationCopy.setSelected(true);
-        }
-        VBox.setMargin(radioOperationMove, indent);
-        VBox.setMargin(radioOperationCopy, indent);
-        radioOperationMove.setMaxWidth(Double.POSITIVE_INFINITY);
-        radioOperationCopy.setMaxWidth(Double.POSITIVE_INFINITY);
-        VBox boxOperation = new VBox(SMALL_GAP, labelOperation, radioOperationMove, radioOperationCopy);
-
         Label labelFolder = new Label("Where should we create the category folders?");
         labelFolder.setWrapText(true);
         radioFolderRelative = new RadioButton("Inside the images folder selected above");
@@ -201,7 +183,6 @@ public class Launcher {
         VBox mainVertical = new VBox(BIG_GAP,
                 labelIntro,
                 boxBrowser,
-                boxOperation,
                 boxFolder,
                 miscBox,
                 labelPermanent, 
@@ -215,10 +196,6 @@ public class Launcher {
         boxFolderBrowserLine.disableProperty().bind(radioFolderRelative.selectedProperty());
         radioFolderRelative.selectedProperty().addListener((obs, oldV, newV) -> {
             prefs.putBoolean("folderRelative", newV);
-            updateLaunchButton();
-        });
-        radioOperationMove.selectedProperty().addListener((obs, oldV, newV) -> {
-            prefs.putBoolean("operationMove", newV);
             updateLaunchButton();
         });
 
@@ -240,31 +217,7 @@ public class Launcher {
         });
 
         buttonBrowserDirUp.setOnAction((e) -> {
-            File f = new File(textFieldBrowser.getText());
-            if (!Common.isValidFolder(f)) {
-                return;
-            }
-
-            String parent = f.getParent();
-            if (parent == null && Common.isWindows()) {
-                parent = "";
-            }
-            if (parent != null) {
-                textFieldBrowser.setText(parent);
-                updateBrowser();
-
-                String name = f.getName();
-                if (name.equals("") && Common.isWindows()) { //special case for the base folders C:\ etc
-                    name = f.getAbsolutePath();
-                }
-                int index = listBrowser.getItems().indexOf(new BrowserItem(name, true));
-                if (index != -1) {
-                    listBrowser.getSelectionModel().select(index);
-                    listBrowser.scrollTo(index);
-                }
-
-                listBrowser.requestFocus();
-            }
+            dirUp();
         });
         textFieldBrowser.focusedProperty().addListener((obs, oldV, newV) -> {
             if (!newV) {
@@ -288,6 +241,8 @@ public class Launcher {
         listBrowser.setOnMouseClicked((e) -> {
             if (e.getButton() == MouseButton.PRIMARY) {
                 browserEmptyClicked();
+            } else if (e.getButton() == MouseButton.BACK) {
+                dirUp();
             }
             //Actually only happens when the listview is completely empty, otherwise you click empty cells. 
             //The BrowserCell is handling all other click events. 
@@ -297,7 +252,7 @@ public class Launcher {
         });
         listBrowser.setOnKeyPressed((e) -> {
             if (e.getCode() == KeyCode.F5) {
-                textFieldBrowser.setText("/-%*:\\~#[]"); //this should be invalid enough (hacky hacky, sorry)
+                textFieldBrowser.setText("-%*:#[]"); //this should be invalid enough (hacky hacky, sorry)
                 updateBrowser();
             }
         });
@@ -305,6 +260,7 @@ public class Launcher {
             boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);
             if (success) {
                 prefs.put("folderPath", textFieldFolder.getText());
+                updateLaunchButton();
             }
         });
         
@@ -328,7 +284,8 @@ public class Launcher {
         stage.getIcons().add(Common.getRessource("logo"));
         stage.show();
 
-        buttonBrowserBrowse.requestFocus();
+        //buttonBrowserBrowse.requestFocus();
+        buttonLaunch.requestFocus();
     }
 
     private void launch() {
@@ -365,7 +322,7 @@ public class Launcher {
         stage.close();
 
         new Gallery().start(directory, targetDirectory, delDirectory, 
-                !radioOperationMove.isSelected(), checkMiscRelaunch.isSelected(), checkMiscShowUsage.isSelected());
+                    checkMiscRelaunch.isSelected(), checkMiscShowUsage.isSelected());
     }
 
     private boolean showBrowserDialogForTextField(String title, TextField field) {
@@ -473,6 +430,35 @@ public class Launcher {
         updateLaunchButton();
     }
 
+    private void dirUp() {
+        File f = new File(textFieldBrowser.getText());
+        if (!Common.isValidFolder(f)) {
+            return;
+        }
+
+        String parent = f.getParent();
+        if (parent == null && Common.isWindows()) {
+            parent = "";
+        }
+        if (parent != null) {
+            textFieldBrowser.setText(parent);
+            updateBrowser();
+
+            String name = f.getName();
+            if (name.equals("") && Common.isWindows()) { //special case for the base folders C:\ etc
+                name = f.getAbsolutePath();
+            }
+            int index = listBrowser.getItems().indexOf(new BrowserItem(name, true));
+            if (index != -1) {
+                listBrowser.getSelectionModel().select(index);
+                listBrowser.scrollTo(index);
+            }
+
+            listBrowser.requestFocus();
+        }
+    }
+
+
     private int getNumberSupportedImages(File directory) {
         FilenameFilter filter = Common.getFilenameFilter();
         int number = 0;
@@ -486,10 +472,9 @@ public class Launcher {
 
     private void updateLaunchButton() {
         boolean relative = radioFolderRelative.isSelected();
-        boolean move = radioOperationMove.isSelected();
         
         File mainDir = getCurrentlySelectedDirectory();
-        boolean mainDirInvalid = !Common.isValidFolder(mainDir);
+        boolean mainDirInvalid = !Common.isValidFolder(mainDir) || Common.tryListFiles(mainDir) == null;
         boolean absoulteDirInvalid = false;
 
         prefs.put("browserPath", mainDir.getAbsolutePath());
@@ -509,21 +494,16 @@ public class Launcher {
             }
         }
         text += "\n";
-        if (move) {
-            text += "MOVE ";
-        } else {
-            text += "COPY ";
-        }
         File absoluteDir = null;
         if (relative) {
-            text += "the same directory";
+            text += "Target directory: The same directory";
         } else {
             absoluteDir = new File(textFieldFolder.getText());
             absoulteDirInvalid = !Common.isValidFolder(absoluteDir);
             if (absoulteDirInvalid) {
-                text += "to invalid directory";
+                text += "Target directory: Invalid";
             } else {
-                text += "to '" + absoluteDir.getName() + "'";
+                text += "Target directory:  '" + absoluteDir.getName() + "'";
             }
         }
 
@@ -561,7 +541,9 @@ public class Launcher {
     private class BrowserCell extends ListCell<BrowserItem> {
         public BrowserCell() {
             this.setOnMouseClicked((e) -> {
-                if (isEmpty() || getItem() == null) {
+                if (e.getButton() == MouseButton.BACK) {
+                    dirUp();
+                } else if (isEmpty() || getItem() == null) {
                     return;
                 } else if (getItem().isFolder) {
                     if (e.getButton() == MouseButton.PRIMARY) {

@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.github.racopokemon.imagesort.Main",
+            "projectName": "ImageSort_a24f9913",
+            //you should obviously add your own path here, the file is not tracked once you checked out, so feel free to do so. 
+            "vmArgs": "--module-path 'C:\\Program Files\\Java\\openjfx-17.0.8_windows-x64_bin-sdk(selbstkopiert)\\lib' --add-modules javafx.controls",
+        }
+    ]
+}

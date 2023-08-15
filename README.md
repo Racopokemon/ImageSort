@@ -31,7 +31,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * (later rotate)
   * ~~Context menu key also opens context menu (did always work actually)~~
 * Enter key opens with default app
-* **In the info dialog before moving, indicate, how many images are moved where!**
+* ~~In the info dialog before moving, indicate, how many images are moved where!~~
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
 * Fun idea (let's find out if its only annoying or actually helpful)
@@ -54,9 +54,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
-* Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again
-* THE PROGRAM does not run anymore on java17, because javafx is not anymore part of the jdk. FIX THIS / port to java17! 
-  * (Probably not even that easy to implement)
+* ~~Moving the mouse to the top right corner in fullscreen exits fullscreen, until the mouse is moved back again~~
+  * ~~Or maybe we show a button or so~~
+* ~~THE PROGRAM does not run anymore on java17, because javafx is not anymore part of the jdk. FIX THIS / port to java17!~~
+  * ~~(Probably not even that easy to implement)~~
 * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * Better scrolling on touchpads! 
 * ~~Ctrl+left/right to first and last picture? And with shift skipping 10 ones?~~
@@ -85,7 +86,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~
   * ~~no filter, keep only, 1-3 only~~
-  * change the accessibility (right now its Q and E keys, I dont want this)
+  * ~~change the accessibility (right now its Q and E keys, I dont want this)~~
   * ~~handle the case when there is no images~~
   * **indicate that a modified image is moved once the currently previewed image changes**
   * ~~before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)~~
@@ -146,13 +147,23 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * also show .raw formats in the launcher
   * context menu has options: Move to /raw, move 1 folder up, and move to system trash!
   * maybe rename folders? Or is this too much? 
-  * I discovered that with openfx or how its called you can also access the forward and back mouse button! Use the back one on the list view in the browser! 
+  * ~~I discovered that with openfx or how its called you can also access the forward and back mouse button! Use the back one on the list view in the browser!~~
   * **Make an option [x] silently move the delete folder to system trash on exit.** 
-  * **If the current dir does not exist on loading, _please_ don't use the default folder but move dirs up until you find a valid dir**
-    * ~~When browsing 1 dir up, select the folder you originated from!~~
     * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
+  * ~~If the current dir does not exist on loading, _please_ don't use the default folder but move dirs up until you find a valid dir~~
+    * ~~When browsing 1 dir up, select the folder you originated from!~~
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
 * Let the users decide how many categories they need (and let them rename later?) instead of the static 3
   * The 3 is not even a constant, its just hardcoded. Change this
+* ~~Mid-clicking any check or category sets the filter to it or unsets it~~
+* Launcher: Context menu to open dir in explorer. PLS
+* is there now maybe antialais for image viewer? argh
+* ~~CAN WE PLEASE also see the lens manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos.~~
+* ~~In zoom: Spacebar or mid-click or *whatever* to zoom to 1:1?~~
+* ~~Also in zoom: show the pixel scale (100% means 1 pixel to 1 pixel)~~
+* error handling is very much non-existent when copying files - there is not even stack traces rn if a file to move does not exist..
+* ~~scrolling both l and r buttons scrolls through files as normal~~
+* ~~Top left hot-corner (full-screen only) to instantly hide cursor and all annotations? For night views, I realized I need this feature.~~
+* ~~new key combination to switch between filters: ctrl + up / down~~
