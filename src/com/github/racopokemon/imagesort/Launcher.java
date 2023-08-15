@@ -44,9 +44,9 @@ import javafx.collections.ObservableList;
 
 public class Launcher {
 
-    private static final double SMALL_GAP = 4;
-    private static final double BIG_GAP = 16;
-    private static final double BIG_INTEND_GAP = 34;
+    public static final double SMALL_GAP = 4;
+    public static final double BIG_GAP = 16;
+    public static final double BIG_INTEND_GAP = 34;
 
     private static final String CHECK_DELETE_FOLDER_SEL_TEXT = "Also create the 'delete' folder here. (Otherwise, it is created in the images folder)";
     private static final String CHECK_DELETE_FOLDER_UNSEL_TEXT = "Also create the 'delete' folder here. (Right now, it is created in the images folder)";

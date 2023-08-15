@@ -53,6 +53,7 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -448,25 +449,31 @@ public class Gallery {
         stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
         stage.setOnCloseRequest((event) -> {
             boolean unsavedChanges = false;
-            for (Map.Entry<String, ImageFileOperations> entry : imageOperations.entrySet()) {
-                if (!entry.getValue().hasInitialState()) {
+            ArrayList<ArrayList<String>> operations = listAllFileOperations();
+            //we start at 1, because 0 does not move the files
+            for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
+                if (!operations.get(i).isEmpty()) {
                     unsavedChanges = true;
-                    break;
+                    break; 
                 }
             }
             if (unsavedChanges) {
-
-                //TODO: Better info management, like 'there are 14 images to be moved, 3 are moved to /1, 11 are moved to /2, 84 remain.'
                 String closeMessage, closeHeader;
-                System.out.println("BRO FIX THE copy / move lines! ");
-                if (true) { 
-                    closeMessage = "Copy all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
-                    closeHeader = "Copy files now?";
-                } else {
-                    closeMessage = "Move all files now (to folder '" + targetDirectory.getName() + "') before closing?\n";
-                    closeHeader = "Move files now?";
+                boolean moveOperation = false, copyOperation = false;
+                closeMessage = "Should we now do the following?\n\n";
+                for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
+                    if (!operations.get(i).isEmpty()) {
+                        if (i < numberOfCategories + 1) {
+                            closeMessage += "   move " + operations.get(i).size() + " files to " + targetDirectory.getName() + "/" + i + "\n";
+                            moveOperation = true;
+                        } else {
+                            closeMessage += "   copy " + operations.get(i).size() + " files to " + targetDirectory.getName() + "/" + getTickName(i - numberOfCategories - 1) + "\n";
+                            copyOperation = true;
+                        }
+                    }
                 }
-                closeMessage += "'No' keeps the files unchanged, but discards your work here.";
+                closeHeader = moveOperation ? copyOperation ? "Move & copy files now?" : "Move files now?" : "Copy files now?";
+                closeMessage += "\n'No' keeps the files unchanged and closes the gallery, which discards your work here. ";
                 Alert closeAlert = new Alert(AlertType.NONE, closeMessage, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                 closeAlert.setHeaderText(closeHeader);
                 Optional<ButtonType> result = closeAlert.showAndWait();
@@ -475,12 +482,21 @@ public class Gallery {
                     event.consume();
                     return;
                 } else if (result.get() == ButtonType.YES) {
-                    //rename (closes automatically on return)
-                    //TODO: Better error communication! Like, moved abc files successfully, error with 2. 
-                    //TODO: Also, what if there is an error in between? Should we present the retry / ignore / cancel dialog? 
-                    //TODO: Also, what if there is an error in between? Should we present the retry / ignore / cancel dialog? 
-                    moveAllFiles();
-                    new Alert(AlertType.NONE, "Finished! \nConsider that other file types (videos) might also be in this folder.", ButtonType.OK).showAndWait();
+                    //rename (closes automatically on return, if we do not consume the event)
+                    
+                    FileOperationsWindow fileOpWindow = new FileOperationsWindow(operations, filesToMoveAlong, numberOfCategories, numberOfTicks, directory, targetDirectory);
+                    System.out.println("remove the moveAllFiles + method from Gallery.java");
+                    
+                    //this makes the gallery be dependent on this window
+                    fileOpWindow.initOwner(stage);
+                    fileOpWindow.initModality(Modality.WINDOW_MODAL);
+                    fileOpWindow.showAndWait();
+
+                    if (fileOpWindow.shouldWeShowTheGalleryAgain()) {
+                        //Consume the close event, so that the window is actually not closed. 
+                        event.consume();
+                        return;
+                    }
                 }
             }
             //the event was not consumed: the window will continue closing now
@@ -1385,7 +1401,7 @@ public class Gallery {
 
         File[] allFilesUnfiltered = directory.listFiles();
         Hashtable<String, String> imageNameFrequency = new Hashtable<>(); //contains either the full filename, or "" if there are several images with this name
-        ArrayList<String> notSupportedFilesInFirectory = new ArrayList<>();
+        ArrayList<String> notSupportedFilesInDirectory = new ArrayList<>();
         for (File file : allFilesUnfiltered) {
             if (!file.isDirectory()) {
                 String filename = file.getName();
@@ -1398,15 +1414,15 @@ public class Gallery {
                         imageNameFrequency.put(filenameWithoutExtension, "");
                     }
                 } else {
-                    notSupportedFilesInFirectory.add(filename);
+                    notSupportedFilesInDirectory.add(filename);
                 }
             }
         }
         if (MOVE_ALONG) {
             filesToMoveAlong = new Hashtable<>();
-            for (String notSupportedFile : notSupportedFilesInFirectory) {
+            for (String notSupportedFile : notSupportedFilesInDirectory) {
                 String fullFilename = imageNameFrequency.get(Common.removeExtensionFromFilename(notSupportedFile).toLowerCase());
-                if (fullFilename != null && !fullFilename.equals("")) {
+                if (fullFilename != null && !fullFilename.equals("")) { //with "", there are several images (different extensions) with the same name, were powerless here..
                     if (!filesToMoveAlong.containsKey(fullFilename)) {
                         filesToMoveAlong.put(fullFilename, new ArrayList<String>());
                     }
@@ -1417,87 +1433,6 @@ public class Gallery {
 
         Collections.sort(allImages, String.CASE_INSENSITIVE_ORDER); //My windows directory was sorted already, but idk if its always like that, on other OS
         updateFilter();
-    }
-
-    //The final call, that actually executes all the move operations. 
-    //Right now it is only possible to do this on close (which makes sense, after that the program would close anyway)
-    private void moveAllFiles() { 
-        if (Common.isValidFolder(targetDirectory)) {
-            System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
-            //Should be added later to a proper error handling
-        }
-
-        for (String key : imageOperations.keySet()) {
-            int category = imageOperations.get(key).getMoveTo();
-            if (category != 0) {
-                //if folder doesnt exist: create. 
-                String dirPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + category;
-                File dir = new File(dirPath);
-                if (!dir.exists()) {
-                    try {
-                        dir.mkdir();
-                    } catch (Exception e) {
-                        System.out.println("Could not create folder for category " + category);
-                        e.printStackTrace();
-                    }
-                }
-                ArrayList<String> filesToMove = new ArrayList<>();
-                filesToMove.add(key);
-                if (filesToMoveAlong.containsKey(key)) {
-                    filesToMove.addAll(filesToMoveAlong.get(key));
-                }
-                for (String fileToMove : filesToMove) {
-                    File origin = new File(getFullPathForFileInThisFolder(fileToMove));
-                    File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + fileToMove);
-                    try {
-                        origin.renameTo(dest);
-                    } catch (Exception e) {
-                        System.out.println("Could not move file " + fileToMove + " to category folder "+ category);
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    private void copyAllFiles() { 
-        if (!Common.isValidFolder(targetDirectory)) {
-            System.out.println("The target directory is not vaild: " + targetDirectory.getAbsolutePath());
-            //Should be added later to a proper error handling
-        }
-
-        for (String filename : imageOperations.keySet()) {
-            //TODO this does obviously not work yet
-            //int category = imageOperations.get(filename);
-            int category = 0;
-            if (category != 0) {
-                String dirPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + category;
-                File dir = new File(dirPath);
-                if (!dir.exists()) {
-                    try {
-                        dir.mkdir();
-                    } catch (Exception e) {
-                        System.out.println("Could not create folder for category " + category);
-                        e.printStackTrace();
-                    }
-                }
-                ArrayList<String> filesToCopy = new ArrayList<>();
-                filesToCopy.add(filename);
-                if (filesToMoveAlong.containsKey(filename)) {
-                    filesToCopy.addAll(filesToMoveAlong.get(filename));
-                }
-                for (String fileToCopy : filesToCopy) {
-                    File origin = new File(getFullPathForFileInThisFolder(fileToCopy));
-                    File dest = new File(dirPath + FileSystems.getDefault().getSeparator() + fileToCopy);
-                    try {
-                        Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
-                    } catch (Exception e) {
-                        System.out.println("Could not copy file " + fileToCopy + " to "+ dest.getAbsolutePath());
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
     }
 
     //Youtube-like skimming: 
@@ -1529,7 +1464,7 @@ public class Gallery {
 
     //Lookup for tick names. Right now we use letters, so index 0 is "a" etc.
     //So you may only look up ticks from 0 to 25
-    private String getTickName(int index) {
+    public static String getTickName(int index) {
         return Common.getLetterInAlphabet(index);
     }
 
@@ -1561,9 +1496,5 @@ public class Gallery {
         }
 
         return result;
-    }
+    }    
 }
-
-//TODO: When implementing TICKS
-// - Delete must delete from all lookups
-// - ticking must update currentImagesCategoryWasChanged [which then needs a new name as well]

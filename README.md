@@ -31,7 +31,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * (later rotate)
   * ~~Context menu key also opens context menu (did always work actually)~~
 * Enter key opens with default app
-* **In the info dialog before moving, indicate, how many images are moved where!**
+* ~~In the info dialog before moving, indicate, how many images are moved where!~~
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
 * Fun idea (let's find out if its only annoying or actually helpful)
@@ -86,7 +86,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Filter by category
   * ~~Copy the behavior of the bottom right text (scrolling, mouse highlight, etc)~~
   * ~~no filter, keep only, 1-3 only~~
-  * change the accessibility (right now its Q and E keys, I dont want this)
+  * ~~change the accessibility (right now its Q and E keys, I dont want this)~~
   * ~~handle the case when there is no images~~
   * **indicate that a modified image is moved once the currently previewed image changes**
   * ~~before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)~~
@@ -157,12 +157,13 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Also save the last position of the cursor
 * Let the users decide how many categories they need (and let them rename later?) instead of the static 3
   * The 3 is not even a constant, its just hardcoded. Change this
-* Mid-clicking any check or category sets the filter to it or unsets it
+* ~~Mid-clicking any check or category sets the filter to it or unsets it~~
 * Launcher: Context menu to open dir in explorer. PLS
 * is there now maybe antialais for image viewer? argh
 * ~~CAN WE PLEASE also see the lens manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos.~~
 * ~~In zoom: Spacebar or mid-click or *whatever* to zoom to 1:1?~~
 * ~~Also in zoom: show the pixel scale (100% means 1 pixel to 1 pixel)~~
 * error handling is very much non-existent when copying files - there is not even stack traces rn if a file to move does not exist..
-* scrolling both l and r buttons scrolls through files as normal
-* Top left hot-corner (full-screen only) to instantly hide cursor and all annotations? For night views, I realized I need this feature. 
+* ~~scrolling both l and r buttons scrolls through files as normal~~
+* ~~Top left hot-corner (full-screen only) to instantly hide cursor and all annotations? For night views, I realized I need this feature.~~
+* new key combination to switch between categories: ctrl + up / down

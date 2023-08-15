@@ -16,7 +16,7 @@ public class TickLabel extends InteractiveLabel {
         scrollUp = () -> {
             Robot r = new Robot();
             double skipSize;
-            if (tickNumber <= 0) {
+            if (tickNumber >= numberOfTicks-1) {
                 skipSize = Gallery.TICK_LABEL_HEIGHT * (numberOfTicks-1);
             } else {
                 skipSize = -Gallery.TICK_LABEL_HEIGHT;
@@ -27,7 +27,7 @@ public class TickLabel extends InteractiveLabel {
         scrollDown = () -> {
             Robot r = new Robot();
             double skipSize;
-            if (tickNumber >= numberOfTicks-1) {
+            if (tickNumber <= 0) {
                 skipSize = -Gallery.TICK_LABEL_HEIGHT * (numberOfTicks-1);
             } else {
                 skipSize = Gallery.TICK_LABEL_HEIGHT;

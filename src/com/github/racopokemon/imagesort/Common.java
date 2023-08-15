@@ -15,7 +15,7 @@ public class Common {
     private static FilenameFilter filter;
     private static Hashtable<String, Image> ressources;
 
-    //Weak check, let's see if the base requirements are met
+    //The weak check, let's see if the base requirements are met
     public static boolean isValidFolder(File f) {
         return f.exists() && f.isDirectory();
     }
@@ -56,7 +56,7 @@ public class Common {
 
     public static String removeExtensionFromFilename(String filename) {
         int lastDotIndex = filename.lastIndexOf(".");
-        if (lastDotIndex == 0) {
+        if (lastDotIndex == -1) {
             return filename;
         } else {
             return filename.substring(0, lastDotIndex);
