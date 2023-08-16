@@ -30,19 +30,19 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Move to trash
   * (later rotate)
   * ~~Context menu key also opens context menu (did always work actually)~~
-* Enter key opens with default app
+* Enter key opens with default app OR opens 'open with' dialog
 * ~~In the info dialog before moving, indicate, how many images are moved where!~~
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
-* Fun idea (let's find out if its only annoying or actually helpful)
+* ~~Fun idea (let's find out if its only annoying or actually helpful)~~
   * ~~on launch of the launcher: check the clipboard. If it contains the path to a valid folder on the PC, paste this already into the browser box!~~
 * Safety
   * What happens, if an image is deleted or renamed externally, and ...
     * the folder is rescanned (needs to be deleted out of all categories?)
     * the window is closed (and we probably start moving these files)
-  * More output and communication when closing the window
-    * n images were moved. m images were copied. 
-    * for x images there was errors. \[also: show error messages every time, with option to show no more and go on]
+  * ~~More output and communication when closing the window~~
+    * ~~n images were moved. m images were copied.~~
+    * ~~for x images there were errors. \[also: show error messages every time, with option to show no more and go on]~~
 * ~~Mouse autohide~~
   * ~~In which cases exactly?~~
     * ~~Keystroke or scroll on images?~~
@@ -62,12 +62,14 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Better scrolling on touchpads! 
 * ~~Ctrl+left/right to first and last picture? And with shift skipping 10 ones?~~
 * ~~Youtube-like quick-jump with the number keys 0-9 (0 for the first, 5 kinda center, ...)~~
-* Ctrl delete for 'instant delete' which instantly moves it to system trash?
+* **Ctrl delete for 'instant delete' which instantly moves it to system trash?**
   * **I needed it again, doit!!**
   * This requires the java Desktop api, available from Java 9. 
-  * Also, use the open javafx as single library so that modern java 17 people can still run this app
-  * ALSO use the desktop API to reveal in folder! 
-  * On javafx 17, also find out if you get better filtering in the image view. 
+  * ~~Also, use the open javafx as single library so that modern java 17 people can still run this app~~
+    * Brought along also several other problems (will I throw maven into this?? Well see)
+  * **ALSO use the desktop API to reveal in folder!**
+  * ~~On javafx 17, also find out if you get better filtering in the image view.~~
+    * ~~sadly, nope..~~
 * About scrolling: Maybe try quickly flashing the l/r button when you scroll forth / back?
 * Add a shortcut to quit *and move to the next folder*?! I need that right
 * ~~When relaunching: Select the last folder where you were in~~
@@ -75,7 +77,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * UI
   * ~~Small images are stretched out to fit the window. _Master, stop this!_~~
   * ~~Add small arrows \< and > to the navigation buttons at the side~~
-  * Show how many images are there in each category
+  * **Show how many images are there in each category**
   * ~~Show the recording date (and time) at some place** (I really need this) (Also the weekday, please!)~~
     * ~~Maybe also when hovering the percentage center top~~
     * ~~Show even more info, like ISO or focal length (Im interested in these values now)~~
@@ -91,17 +93,15 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * **indicate that a modified image is moved once the currently previewed image changes**
   * ~~before next or previous picture is called, store the last image when changing filter (to chose a close start image inside the filtered set)~~
   * Delete during filter only changes it back to keep (?)
+    * ~~didnt miss this feature a single time. Let's not implement it.~~
   * ~~The buffer also needs to buffer the images in the category only~~
   * Improvements
     * Constantly find the first images of the other categories and buffer them, so that cycling through the categories is a bit better than *this* right now
       * Only the adjacent categories?
       * Disable once there are memory errors (test using the command line)
     * On the long run: Improve the priorities when loading images..
-* Origin of the micro lags
-  * It is directly connected to the image resolution, screenshots (relatively small) work a charm
-  * I think its somewhere in the hardware acceleration, that old images sometimes hang for a second
-  * Therefore it should also appear when all images are constantly preloaded, with < 7 images in a folder
-  * GENERALLY for good style, RotatedImage should also read its metadata in a separate thread and then maybe update its data
+* ~~Origin of the micro lags~~
+* GENERALLY for good s  tyle, RotatedImage should also read its metadata in a separate thread and then maybe update its data
 * I had the impression that the ImageView loads one image after another, so internally its working with a queue, and probably this queue depends on the creation time of each image. 
   * --> Use this to our advantage to load the upcoming images (depending on the scrolling direction) first
 * Rotate
@@ -114,11 +114,11 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * HEIC file support
     * Never heard of this before, container format that iPhones produce. 
     * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
-  * RAW support
-* ==Copy option==
-  * every image can also be copied to the folders 1, 2, 3 (the numbering of the categories is then turned into a, b, c)
-  * clickable, or with the keys 1, 2, 3
-  * filter available also for these folders
+  * ~~RAW support (kindof walked around this one)~~
+* ~~Copy option~~
+  * ~~every image can also be copied to the folders 1, 2, 3 (the numbering of the categories is then turned into a, b, c)~~
+  * ~~clickable, or with the keys 1, 2, 3 (now a, b, c, ...)~~
+  * ~~filter available also for these folders~~
 * Progress bar
   * ~~127/238 images and a bar (also for the filtered view)~~
   * ~~Scroll also works on it~~
@@ -148,22 +148,24 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * context menu has options: Move to /raw, move 1 folder up, and move to system trash!
   * maybe rename folders? Or is this too much? 
   * ~~I discovered that with openfx or how its called you can also access the forward and back mouse button! Use the back one on the list view in the browser!~~
-  * **Make an option [x] silently move the delete folder to system trash on exit.** 
+  * Make an option [x] silently move the delete folder to system trash on exit.
     * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
+    * **INSTEAD: Offer a button at the FileOperationsWindow dialog, once copying has finished AND there exists a delete folder!** 
   * ~~If the current dir does not exist on loading, _please_ don't use the default folder but move dirs up until you find a valid dir~~
     * ~~When browsing 1 dir up, select the folder you originated from!~~
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
-* Let the users decide how many categories they need (and let them rename later?) instead of the static 3
-  * The 3 is not even a constant, its just hardcoded. Change this
+* **Let the users decide how many categories they need (and let them rename later?) instead of the static 3**
+  * ~~The 3 is not even a constant, its just hardcoded. Change this~~
 * ~~Mid-clicking any check or category sets the filter to it or unsets it~~
 * Launcher: Context menu to open dir in explorer. PLS
 * is there now maybe antialais for image viewer? argh
 * ~~CAN WE PLEASE also see the lens manufacturer etc if it is known??? I have reached the level where I want to know this at other ppls photos.~~
 * ~~In zoom: Spacebar or mid-click or *whatever* to zoom to 1:1?~~
 * ~~Also in zoom: show the pixel scale (100% means 1 pixel to 1 pixel)~~
-* error handling is very much non-existent when copying files - there is not even stack traces rn if a file to move does not exist..
+* ~~error handling is very much non-existent when copying files - there is not even stack traces rn if a file to move does not exist..~~
 * ~~scrolling both l and r buttons scrolls through files as normal~~
 * ~~Top left hot-corner (full-screen only) to instantly hide cursor and all annotations? For night views, I realized I need this feature.~~
 * ~~new key combination to switch between filters: ctrl + up / down~~
+* TODO: Cleanup these feature requests. 

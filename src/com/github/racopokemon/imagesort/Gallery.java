@@ -56,6 +56,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import java.awt.Desktop;
 
 /*
  * TODO: Watch out for ToDos!
@@ -348,6 +349,11 @@ public class Gallery {
         StackPane.setAlignment(zoomIndicator, Pos.TOP_CENTER);
         StackPane.setMargin(zoomIndicator, new Insets(50, 0, 0, 0));
         
+        MenuItem menuFileName = new MenuItem("here should be the file name");
+        menuFileName.setStyle("-fx-font-style: italic;");
+        menuFileName.setDisable(true);
+        MenuItem menuShowOpenWith = new MenuItem("Show 'open with' dialog");
+        menuShowOpenWith.setOnAction((event) -> {showOpenWithDialog();});
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});
         MenuItem menuUndo = new MenuItem("Undo last deletion");
@@ -357,8 +363,9 @@ public class Gallery {
         
         Rectangle invisibleContextMenuSource = new Rectangle();
         invisibleContextMenuSource.setVisible(false);
-        ContextMenu contextMenu = new ContextMenu(menuShowFile, menuUndo, menuDelete);
+        ContextMenu contextMenu = new ContextMenu(menuFileName, menuShowOpenWith, menuShowFile, menuUndo, menuDelete);
         view.setOnContextMenuRequested((event) -> {
+            menuFileName.setText(currentImage);
             contextMenu.show(invisibleContextMenuSource, event.getScreenX(), event.getScreenY());
             //note that we set invisibleContextMenuSource as anchor and not the view. This is because the context menu hides when
             //the ancor loses focus, and while zooming and scrolling on the view it doesnt so the context menu stays
@@ -576,6 +583,8 @@ public class Gallery {
                     if (pos >= 0 && pos < numberOfTicks) {
                         toggleCurrentImageTick(pos);
                     }
+                } else if (event.getCode() == KeyCode.ENTER) {
+                    showOpenWithDialog();
                 }
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {
@@ -795,15 +804,34 @@ public class Gallery {
         if (currentImage == null) return;
         
         //Desktop.getDesktop().browseFileDirectory(<file>) would be better, cross platform, but requires java 9 and im too lazy to install now
-        if (Common.isWindows()) {
-            try {
-                Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForFileInThisFolder(currentImage));
-            } catch (IOException e) {
-                System.out.println("Could not show file " + currentImage + " in explorer:");
-                e.printStackTrace();
+        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
+            //On windows 11, this for example already *doesnt* work ...
+            Desktop.getDesktop().browseFileDirectory(new File(getFullPathForFileInThisFolder(currentImage)));
+        } else {
+            //... so we keep our little fallback code here
+            if (Common.isWindows()) {
+                try {
+                    Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForFileInThisFolder(currentImage));
+                } catch (IOException e) {
+                    System.out.println("Could not show file " + currentImage + " in explorer:");
+                    e.printStackTrace();
+                }
             }
         }
     }
+
+    private void showOpenWithDialog() {
+        if (currentImage == null) return;
+        if (!Common.isWindows()) return;
+
+        //runs the cmd command Rundll32 Shell32.dll,OpenAs_RunDLL any-file-name.ext to show the windows 'open with' dialog currentImage:
+        try {
+            Runtime.getRuntime().exec("Rundll32 Shell32.dll,OpenAs_RunDLL " + getFullPathForFileInThisFolder(currentImage));
+        } catch (IOException e) {
+            System.out.println("Could not show 'open with' dialog for file " + currentImage + ":");
+            e.printStackTrace();
+        }
+}
 
     private ChangeListener<? super Number> numberListener = (a, b, c) -> {updateImageStatus();};
     private ChangeListener<? super Boolean> booleanListener = (a, b, c) -> {updateImageStatus();};
