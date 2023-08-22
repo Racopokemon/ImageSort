@@ -30,12 +30,14 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Move to trash
   * (later rotate)
   * ~~Context menu key also opens context menu (did always work actually)~~
-* Enter key opens with default app OR opens 'open with' dialog
+* ~~Enter key opens with default app OR opens 'open with' dialog~~
 * ~~In the info dialog before moving, indicate, how many images are moved where!~~
 * ~~F5 Key silently rescans the folder~~
   * ~~That is basically 2 lines~~
 * ~~Fun idea (let's find out if its only annoying or actually helpful)~~
   * ~~on launch of the launcher: check the clipboard. If it contains the path to a valid folder on the PC, paste this already into the browser box!~~
+    * Clipboard addon: Maybe check if there is image files inside before navigating there?
+    * ALSO: Ctrl V reads the clipboard again! 
 * Safety
   * What happens, if an image is deleted or renamed externally, and ...
     * the folder is rescanned (needs to be deleted out of all categories?)
@@ -67,7 +69,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * This requires the java Desktop api, available from Java 9. 
   * ~~Also, use the open javafx as single library so that modern java 17 people can still run this app~~
     * Brought along also several other problems (will I throw maven into this?? Well see)
-  * **ALSO use the desktop API to reveal in folder!**
+  * ~~ALSO use the desktop API to reveal in folder!~~
+    * ~~not even supported for win 11 loll~~
   * ~~On javafx 17, also find out if you get better filtering in the image view.~~
     * ~~sadly, nope..~~
 * About scrolling: Maybe try quickly flashing the l/r button when you scroll forth / back?

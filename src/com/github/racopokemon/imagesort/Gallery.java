@@ -203,6 +203,8 @@ public class Gallery {
         this.deleteDirectory = deleteDirectory;
         this.reopenLauncherAfterwards = reopenLauncher;
 
+        System.out.println("The origin of the micro-lags is apparently loading the image metadata on the main thread. ... Just saying - this *COULD BE FIXED*");
+
         stage = new Stage();
 
         filenameFilter = Common.getFilenameFilter();
@@ -584,7 +586,11 @@ public class Gallery {
                         toggleCurrentImageTick(pos);
                     }
                 } else if (event.getCode() == KeyCode.ENTER) {
-                    showOpenWithDialog();
+                    if (event.isShortcutDown()) {
+                        showInExplorer();
+                    } else {
+                        showOpenWithDialog();
+                    }
                 }
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {

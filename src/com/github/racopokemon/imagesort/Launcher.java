@@ -171,7 +171,8 @@ public class Launcher {
         VBox miscBox = new VBox(SMALL_GAP, checkMiscRelaunch, checkMiscShowUsage);
 
         Label labelPermanent = new Label(
-                "All settings you're making here are stored throughout sessions for your convenience.");
+                "Note: When launching this app, we will start at the path, file or folder that is currently in your clipboard. This might save you some seconds.");
+        //        "All settings you're making here are stored throughout sessions for your convenience.");
         labelPermanent.setWrapText(true);
         labelPermanent.setFont(fontItalic);
         buttonLaunch = new Button("LAUNCH GALLERY");
