@@ -6,15 +6,12 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-
-import javax.imageio.stream.ImageOutputStream;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
