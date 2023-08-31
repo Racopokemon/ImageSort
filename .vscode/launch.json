@@ -6,12 +6,16 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
             "name": "Main",
             "request": "launch",
             "mainClass": "com.github.racopokemon.imagesort.Main",
-            "projectName": "ImageSort_a24f9913",
-            //you should obviously add your own path here, the file is not tracked once you checked out, so feel free to do so. 
-            "vmArgs": "--module-path 'C:\\Program Files\\Java\\openjfx-17.0.8_windows-x64_bin-sdk(selbstkopiert)\\lib' --add-modules javafx.controls",
+            "projectName": "demo"
         }
     ]
 }

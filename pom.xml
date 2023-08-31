@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.racopokemon</groupId>
+    <artifactId>imagesort</artifactId>
+    <version>0.9</version>
+    <packaging>jar</packaging>
+
+    <name>imagesort</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>17.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>17.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>17.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>17.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>17.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.drewnoakes</groupId>
+            <artifactId>metadata-extractor</artifactId>
+            <version>2.18.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- every plugin has its own features accessible in maven -> plugins -->
+        <plugins>
+            <!-- compiler -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <release>11</release>
+                </configuration>
+            </plugin>
+
+
+<!-- 
+THANKS I HATE IT.
+Spent hours figuring this out, time to search for a new, cool language, java has been pretty fucked with this modular concept and maven etc
+
+jlink requires modular (=has module-info.java) modules to build anything, but the metadata extractor isnt modular. I read their discussions 
+from 2 weeks ago on github, their problem is to maintain compatibility to java 8 users and all above at the same time, possibly with the same
+jar, which is a problem, as ppl from both sides are urging the author to change or not change the modularity. Bro. 
+This modularity problem is not getting easier with the requirement of all included projects being modular as well, but eg the adobe xmp lib
+is abandoned and will probably never receive the modular update - and so wont the metadata extractor. This is pretty pretty fckd, and I really did
+not wanted to dive into all this with this depth bc i liked java for always being so easy and one button and its all a jar and you can give it all
+your friends and so on ... well here goes my day...
+But without jlink no export to .exe etc, so what do you do? There is a plugin, that basically adds this modular info *afterwards*, but you need to
+find out what to insert in there yourself (and it must make sense, its being used after all). This seems like absolute madness, the crazy part is,
+this is actually not too hard to archieve and seems to work. 
+I am lucky, that metadata-extractor has only one dependency, and jdeps is a very nice tool to quickly find out what is actually referencing what. 
+.. long story short, moditect adds the module-info into the given jars and places them in target/modules. The contents were written by me myself, 
+and esp for the metadata extractor this is hacky, as I only included exactly the exported parts that my software needs. 
+The idea is probably, that the jars are automatically detected for jlink, but for me it didnt work. 
+
+*** So the even more hacky workaround is: Let maven once generate these jars in target/modules ... and then simply replace them in the internal maven
+folder, because, fuck this. It works, after all. ***
+
+You may try to jlink with the exports already, but for me it didnt work. You'll see the yellow warnings of auto-named (bc they are not initially modular)
+modules. Good thing here: It prints you their install path, so just go there and throw the modded jars in. 
+Only bummer for me right now: Once I want to read out more metadata, I must dive into all this again (but not too deep, just write the java code as if
+it was already done, and the compiler error of maven writes you, what is declared 'but not exported' -> just add the corresponding export in moditect).
+ -->
+<plugin>
+    <groupId>org.moditect</groupId>
+    <artifactId>moditect-maven-plugin</artifactId>
+    <version>1.0.0.RC2</version>
+    <executions>
+        <execution>
+            <?m2e execute onConfiguration?>
+            <id>add-module-infos</id>
+            <phase>generate-resources</phase>
+            <goals>
+                <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+                <overwriteExistingFiles>true</overwriteExistingFiles>
+                <outputDirectory>${project.build.directory}/modules</outputDirectory>
+                <modules>
+                    <module>
+                        <artifact>
+                            <groupId>com.drewnoakes</groupId>
+                            <artifactId>metadata-extractor</artifactId>
+                            <version>2.18.0</version>
+                        </artifact>
+                        <moduleInfoSource>
+                            module metadata.extractor {
+                                requires xmpcore;
+                                exports com.drew.imaging;
+                                exports com.drew.metadata;
+                                exports com.drew.metadata.exif;
+                                exports com.drew.metadata.file;
+                                exports com.drew.tools;
+                                exports com.drew.lang;
+                            }
+                        </moduleInfoSource>
+                    </module>
+                    <module>
+                        <artifact>
+                            <groupId>com.adobe.xmp</groupId>
+                            <artifactId>xmpcore</artifactId>
+                            <version>6.1.11</version>
+                        </artifact>
+                        <moduleInfoSource>
+                            module xmpcore {
+                                requires java.xml;
+                                exports com.adobe.internal.xmp;
+                                exports com.adobe.internal.xmp.impl;
+                                exports com.adobe.internal.xmp.options;
+                                exports com.adobe.internal.xmp.properties;
+                            }
+                        </moduleInfoSource>
+                    </module>
+                </modules>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+
+
+
+
+            <!-- imports the jfx dlls and appends them AND has the option to make a runnable image (or so) with everything required to run the jfx application with its own little jre -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <release>11</release>
+                    <jlinkImageName>imagesort</jlinkImageName>
+                    <launcher>start_imagesort</launcher>
+                    <mainClass>imagesort/com.github.racopokemon.imagesort.Main</mainClass>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>
