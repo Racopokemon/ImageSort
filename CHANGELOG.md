@@ -1,4 +1,49 @@
+# ImageSort 1.5
+
+_September 02, 2023_
+
+That was more complicated than I thought. And looking back, there were quite some features that I added! But what else should I do during the last free weeks before my job starts? 
+
+Organization
+- **We now don't require an installation of java anymore!** 
+  - Instead, we require *windows*. 
+    - *Yes, I know. The app can however easily be ported to all major OS. Contact me!*
+  - We provide an installer file (`.msi`) and a portable `.zip` folder. 
+  - Internally, we have switched to java 11 (or so, now its just one config file) to use newer features of openjfx and the java desktop api etc. 
+    - Internally, this also included the integration to maven and a very hacky approach to get the dependencies modular - please don't ask. 
+
+Features
+- You can now **copy AND move** files from the same UI. Bottom left is the well-known move option. We added ticks at the right side, to first copy the selected images to folders with the names `a` to `d`.
+  - UI is fully adapted to this.
+  - The keys `a` to `d` also toggle the copy option.
+  - Filters also support the new copy options.
+  - Mid-click on any move- or copy-label toggles the filter to exactly preview these images.
+- `.raw` duality: For any image, if there exist other, non-image files with the *same file name* (except for the file extension which will differ), the app will silently delete, move and copy these files along. This is especially interesting for cameras saving both the `.jpg` and `.raw` file: While the app cannot yet *show* the raw-version, it still can give you the `.jpg` preview and just move the connected `.raw`-file along to whatever place you desire! 
+- In gallery, enter key opens the 'open with' dialog for the given file. Ctrl+Enter shows the file in the system explorer. 
+- We also show the lens name and manufacturer in the percentage bar. Works very well esp. with google pixel photos ('google pixel front camera' ...)
+- Zoom indicator while zooming.
+  - Mid-clicking or pressing spacebar while zooming sets the zoom to 100%. 
+- Top-Right hotcorner: 'click to exit fullscreen'.
+- Top-Left hotcorner: Hides all UI as long as the mouse stays there. Good for very dark images. 
+- Home, End, Ctrl-left, Ctrl-right, Shift-left and Shift-right can be used to navigate the images.
+- Ctrl+up and Ctrl+down to walk through the filters (instead of q and e).
+
+More stuff for convenience
+- We now show, how many files are to be moved & copied when asking for user confirmation.
+- Way better progress indication and error communication when applying the file operations, with its own little window. 
+- When the launcher opens, it checks the user clipboard for files, folders or strings containing a path. If one of it exists, the navigation starts from this point. Great for saving time. 
+- When the launcher opens and the last known folder does not exist anymore, we select the first parent folder of this old path that still exists, instead of switching to a default path.
+- LR-Buttons and the hotcorners now can be scrolled like the rest of the image. 
+- First entry of the image context menu just shows the filename. 
+- Back mouse key now works in the launcher browser window.
+- (Cleaned up the readme feature ideas)
+
+Removed features
+- The previous handling of copy / move in the launcher.
+- The keys `wasd` navigating were removed to make space for setting the copy option `abcd`. 
+
 # ImageSort 1.4
+
 _March 29, 2023_
 
 (Actually, I should be doing my Master's thesis right now)

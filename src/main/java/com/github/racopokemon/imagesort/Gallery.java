@@ -613,11 +613,13 @@ public class Gallery {
             Alert useInfo = new Alert(AlertType.NONE, null, ButtonType.OK);
             useInfo.setHeaderText("How to use");
             useInfo.setContentText(
-                "Arrow keys or WASD to look through images and change target folder (keep in current or move to \\1, \\2 or \\3). \n"+
+                "Arrow keys to look through images and mark them to be moved to a folder (keep in current or move to \\1, \\2 or \\3). \n"+
+                "Keys A, B, C, D to mark the images to be copied to the corresponding folder \\a, \\b, ... "+
                 "Del or Backspace to instantly move to a 'delete' folder. Ctrl + Z to undo.\n"+
                 "Click to zoom. Scroll, + and - to change the zoom strength. Generally, the whole interface is scrollable! \n"+
-                "Context menu to show file in explorer. Youtube-like skimming with number keys.\n"+
-                "Close the window to perform the file operations (you will be asked for confirmation).\n\n"+
+                "Context menu to show file in explorer or open with. Youtube-like skimming with number keys.\n"+
+                "Close the window to perform the file operations (don't worry, you will be asked for confirmation).\n"+
+                "When executing the file operations, first all copy operations are done, and afterwards the move operations.\n\n"+
                 "Find this project on github.com/Racopokemon/ImageSort"
             );
             useInfo.showAndWait();
@@ -1472,7 +1474,6 @@ public class Gallery {
                 }
             }
         }
-
         Collections.sort(allImages, String.CASE_INSENSITIVE_ORDER); //My windows directory was sorted already, but idk if its always like that, on other OS
         updateFilter();
     }
