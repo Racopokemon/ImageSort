@@ -33,6 +33,7 @@ public class FileOperationsWindow extends Stage {
     private int stepsFinished = 0;
     private int overallSteps;
     private String errorText = "";
+    private String currentOperation = "File operations should start soon";
 
     private boolean guiUpdatedForError = false;
 
@@ -60,7 +61,7 @@ public class FileOperationsWindow extends Stage {
 
         VBox vbox = new VBox(Launcher.SMALL_GAP);
 
-        Label label = new Label("We are copying / moving your files ...");
+        Label label = new Label("File operations should start soon");
         ProgressBar progress = new ProgressBar();
         progress.setMinHeight(20);
         progress.setPrefWidth(10000000);
@@ -139,6 +140,7 @@ public class FileOperationsWindow extends Stage {
                     button.requestFocus();
                 } else {
                     progress.setProgress(((double)stepsFinished) / overallSteps);
+                    label.setText(currentOperation);
                 }
             }
         };
@@ -167,7 +169,9 @@ public class FileOperationsWindow extends Stage {
                     continue;
                 }
                 //if folder doesnt exist: create. 
-                String destPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + Gallery.getTickName(i - numberOfCategories - 1);
+                String tickName = Gallery.getTickName(i - numberOfCategories - 1);
+                String destPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + tickName;
+                currentOperation = "Creating folder " + tickName;
                 if (tryCreateFolder(destPath)) {
                     //creation was successfull: Lets move all files now!
                     copyAllFiles(allFilesInTick, destPath);
@@ -186,6 +190,7 @@ public class FileOperationsWindow extends Stage {
                 }
                 //if folder doesnt exist: create. 
                 String destPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + i;
+                currentOperation = "Creating folder " + i;
                 if (tryCreateFolder(destPath)) {
                     //creation was successfull: Lets move all files now!
                     moveAllFiles(allFilesInCategory, destPath);
@@ -227,6 +232,7 @@ public class FileOperationsWindow extends Stage {
                 filesToMove.addAll(filesToCopyAlong.get(key));
             }
             for (String fileToMove : filesToMove) {
+                currentOperation = "Moving " + fileToMove;
                 File origin = new File(imageDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + fileToMove);
                 File dest = new File(destPath + FileSystems.getDefault().getSeparator() + fileToMove);
                 try {
@@ -250,6 +256,7 @@ public class FileOperationsWindow extends Stage {
                 filesToCopy.addAll(filesToCopyAlong.get(key));
             }
             for (String fileToCopy : filesToCopy) {
+                currentOperation = "Copying " + fileToCopy;
                 File origin = new File(imageDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + fileToCopy);
                 File dest = new File(destPath + FileSystems.getDefault().getSeparator() + fileToCopy);
                 try {

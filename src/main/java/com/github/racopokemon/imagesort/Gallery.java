@@ -471,6 +471,7 @@ public class Gallery {
             if (unsavedChanges) {
                 String closeMessage, closeHeader;
                 boolean moveOperation = false, copyOperation = false;
+                eafgsrtzdh
                 closeMessage = "Should we now do the following?\n\n";
                 for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
                     if (!operations.get(i).isEmpty()) {
@@ -583,7 +584,7 @@ public class Gallery {
                         toggleCurrentImageTick(pos);
                     }
                 } else if (event.getCode() == KeyCode.ENTER) {
-                    if (event.isShortcutDown()) {
+                    if (event.isShortcutDown() || event.isShiftDown()) {
                         showInExplorer();
                     } else {
                         showOpenWithDialog();
@@ -1540,4 +1541,19 @@ public class Gallery {
 
         return result;
     }    
+
+    //Returns a boolean array with 2 elements: {hasMoveOperations, hasCopyOperations}
+    public static boolean[] getFileOperationTypes(int numberOfTicks, int numberOfCategories, ArrayList<ArrayList<String>> operations) {
+        boolean moveOperation = false, copyOperation = false;
+        for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
+            if (!operations.get(i).isEmpty()) {
+                if (i < numberOfCategories + 1) {
+                    moveOperation = true;
+                } else {
+                    copyOperation = true;
+                }
+            }
+        }
+        return new boolean[] {moveOperation, copyOperation};
+    }
 }
