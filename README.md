@@ -19,22 +19,27 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * See the `issues` category in the github page
 
 # Furter feature ideas
+
 ## Launcher
 * Clipboard addon: Maybe check if there is image files inside before navigating there?
   * ALSO clean the clipboard afterwards. Please. 
+* **Clipboard: If the folder was read from an image file or path and NOT changed, start the gallery from this file!** 
+  * (Comes in handy for a folder of ~10000 images)
 * ALSO: Ctrl V reads the clipboard again! 
 * **Change the number of ticks and categories here!**
+  * store the numbers in the preferences!
 * also show .raw formats in the launcher
+* maybe also show other images (?) here
 * context menu (please!)
   * **Open in system explorer!**
   * **move 1 folder up**
   * (Move to /raw)
   * and move to system trash!
+* Enter key should also enter the selected directory
+* **Move the destination folder option to the confirmation dialog**
+  * Remove the option where to place the delete-folder, I used it 0 times
+  * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
   
-  * Make an option [x] silently move the delete folder to system trash on exit.
-    * I thought about this, if it makes sense to ask every time, since now its unavoidable etc., but usually you want to silently delete it and otherwise its only the system trash. 
-    * **INSTEAD: Offer a button at the FileOperationsWindow dialog, once copying has finished AND there exists a delete folder!** 
-
 ## Gallery
 * General
   * **indicate that a modified image is moved once the currently previewed image changes**
@@ -58,7 +63,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * Also allow redo steps
 * Filter label
   * **Show how many images are there in each category**
-  * Show here a big exit button
+  * Show here a big exit button on hover
 * New file formats?
   * Video support
     * Hopefully not too hard since javafx should be a media library
@@ -67,6 +72,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * Never heard of this before, container format that iPhones produce. 
     * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
   * RAW support (kindof walked around this one, but still there would be options!)
+* Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)
+
+## File operations window
+  * **Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!** 
 
 ## Other
 * Progress Window

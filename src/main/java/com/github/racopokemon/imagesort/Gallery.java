@@ -470,20 +470,18 @@ public class Gallery {
             }
             if (unsavedChanges) {
                 String closeMessage, closeHeader;
-                boolean moveOperation = false, copyOperation = false;
-                eafgsrtzdh
                 closeMessage = "Should we now do the following?\n\n";
                 for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
                     if (!operations.get(i).isEmpty()) {
                         if (i < numberOfCategories + 1) {
                             closeMessage += "   move " + operations.get(i).size() + " files to " + targetDirectory.getName() + "/" + i + "\n";
-                            moveOperation = true;
                         } else {
                             closeMessage += "   copy " + operations.get(i).size() + " files to " + targetDirectory.getName() + "/" + getTickName(i - numberOfCategories - 1) + "\n";
-                            copyOperation = true;
                         }
                     }
                 }
+                boolean[] operationTypes = getFileOperationTypes(numberOfTicks, numberOfCategories, operations);
+                boolean moveOperation = operationTypes[0], copyOperation = operationTypes[1];
                 closeHeader = moveOperation ? copyOperation ? "Move & copy files now?" : "Move files now?" : "Copy files now?";
                 closeMessage += "\n'No' keeps the files unchanged and closes the gallery, which discards your work here. ";
                 Alert closeAlert = new Alert(AlertType.NONE, closeMessage, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
