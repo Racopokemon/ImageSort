@@ -351,7 +351,7 @@ public class Gallery {
         MenuItem menuFileName = new MenuItem("here should be the file name");
         menuFileName.setStyle("-fx-font-style: italic;");
         menuFileName.setDisable(true);
-        MenuItem menuShowOpenWith = new MenuItem("Show 'open with' dialog");
+        MenuItem menuShowOpenWith = new MenuItem("Open with ...");
         menuShowOpenWith.setOnAction((event) -> {showOpenWithDialog();});
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});

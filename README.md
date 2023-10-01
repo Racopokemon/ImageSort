@@ -57,6 +57,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Mouse drag allows searching
 * Context menu
   * Move to trash
+  * Copy image to clipboard
+  * Copy path to clipboard
   * (later rotate)
 * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)

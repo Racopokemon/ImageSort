@@ -94,4 +94,9 @@ public class Common {
         }
         return Character.toString((char)('a' + pos));
     }
+
+    public static String formatException(Exception e) {
+        return e.getClass() + " - '" + e.getMessage() + "'";
+    }
+
 }

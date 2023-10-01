@@ -24,7 +24,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
-public class FileOperationsWindow extends Stage {
+public class FileOperationsWindow extends Stage implements JobReportingInterface {
 
     //If true, we do a thread.sleep after every file operation. Solely for debug purposes, see if multithreading and progress bar works etc.
     private static final boolean SLOW_PROGRESS_DOWN = false;
@@ -178,7 +178,6 @@ public class FileOperationsWindow extends Stage {
                 } else {
                     //error while creating..
                     stepsFinished += allFilesInTick.size();
-                    break;
                 }
             }
 
@@ -197,31 +196,12 @@ public class FileOperationsWindow extends Stage {
                 } else {
                     //error while creating..
                     stepsFinished += allFilesInCategory.size();
-                    break;
                 }
             }
         } finally {
             //stepsFinished = overallSteps; //lets have a little bit trust in this code and hope it manages this simple maths also without us helping here..
             finished = true;
         }
-    }
-
-    //Returns true if the creation was sucessful, false otherwise. On error, the errorText is already written
-    private boolean tryCreateFolder(String dirPath) {
-        File dir = new File(dirPath);
-        if (!dir.exists()) {
-            try {
-                dir.mkdir();
-            } catch (Exception e) {
-                errorText += ">>> Could not create folder " + dirPath + ": " + formatException(e) 
-                        + "\nWhen you close this progress window, you will be back at the gallery to try again. Note however, that some of the file operations may have been executed already\n";
-                System.out.println("Could not create folder " + dirPath);
-                e.printStackTrace();
-                showGalleryAgain = true;
-                return false;
-            }
-        }
-        return true;
     }
 
     private void moveAllFiles(ArrayList<String> allFilesInCategory, String destPath) {
@@ -271,11 +251,7 @@ public class FileOperationsWindow extends Stage {
             stepsFinished++;
         }
     }
-
-    private String formatException(Exception e) {
-        return e.getClass() + " - '" + e.getMessage() + "'";
-    }
-
+    
     //Debug method that causes artificial delay to test the progress bar and multi threading
     private void debugSleep() {
         if (!SLOW_PROGRESS_DOWN) {return;}
