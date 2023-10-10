@@ -40,6 +40,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -48,6 +50,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
@@ -130,6 +134,11 @@ public class Gallery {
 
     private StackPane zoomIndicator;
     private Text zoomIndicatorText;
+    private StackPane resolutionIndicator;
+    private Text resolutionTextDimension;
+    private Text resolutionTextEstimate;
+    private static final int NUMBER_OF_RESOLUTION_RECTS = 15;
+    private Rectangle[] resolutionGraphicRects;
 
     private ImprovisedProgressBar progress;
 
@@ -329,24 +338,62 @@ public class Gallery {
         loadingProgress = new ProgressIndicator(0.2);
         loadingProgress.setMaxSize(50, 50);
         loadingProgress.setVisible(false);
-
-        progress = new ImprovisedProgressBar(350, 30);
-        StackPane.setAlignment(progress, Pos.TOP_CENTER);
-        progress.setOnScroll(zoomPaneScrollHandler);
-
+        
         Rectangle zoomIndicatorBack = new Rectangle(80, 30, Color.BLACK);
         zoomIndicatorBack.setArcHeight(15);
         zoomIndicatorBack.setArcWidth(15);
         zoomIndicatorBack.setOpacity(0.7);
         zoomIndicatorText = new Text("xx%");
-        zoomIndicatorText.setFont(new Font(15));
+        zoomIndicatorText.setFont(Font.font(zoomIndicatorText.getFont().getFamily(), FontWeight.NORMAL, FontPosture.REGULAR, 15));
         zoomIndicatorText.setFill(Color.WHITE);
+        zoomIndicatorText.setTextAlignment(TextAlignment.CENTER);
+        //zoomIndicatorKLabel = new Text("x.xk");
+        //zoomIndicatorKLabel.setFont(new Font(11));
+        //zoomIndicatorKLabel.setFill(Color.GRAY);
+        //zoomIndicatorKLabel.setOpacity(0.8);
+        //zoomIndicatorKLabel.setTextAlignment(TextAlignment.CENTER);
         zoomIndicator = new StackPane(zoomIndicatorBack, zoomIndicatorText);
+        //StackPane.setMargin(zoomIndicatorKLabel, new Insets(26, 0, 0, 0));
+        //StackPane.setMargin(zoomIndicatorText, new Insets(0, 0, 4, 0));
         zoomIndicator.setMaxSize(0, 0);
         zoomIndicator.setMouseTransparent(true);
         zoomIndicator.setVisible(false);
         StackPane.setAlignment(zoomIndicator, Pos.TOP_CENTER);
         StackPane.setMargin(zoomIndicator, new Insets(50, 0, 0, 0));
+        
+        resolutionTextEstimate = new Text("xK filler");
+        resolutionTextEstimate.setFont(Font.font(resolutionTextEstimate.getFont().getFamily(), FontWeight.BOLD, FontPosture.REGULAR, 14));
+        resolutionTextDimension = new Text("filler text");
+        resolutionTextDimension.setFont(Font.font(resolutionTextDimension.getFont().getFamily(), 12));
+        resolutionTextDimension.setFill(Color.BLACK);
+        resolutionGraphicRects = new Rectangle[NUMBER_OF_RESOLUTION_RECTS];
+        HBox resolutionGraphic = new HBox(3);
+        for (int i = 0; i < NUMBER_OF_RESOLUTION_RECTS; i++) {
+            Rectangle r = new Rectangle(5, 5);
+            r.setFill(Color.BLACK);
+            r.setStroke(Color.BLACK);
+            resolutionGraphic.getChildren().add(r);
+            resolutionGraphicRects[i] = r;
+        }
+        resolutionGraphic.setAlignment(Pos.CENTER);
+        VBox resolutionIndicatorBox = new VBox(resolutionTextEstimate, resolutionTextDimension, resolutionGraphic);
+        resolutionIndicatorBox.setMaxSize(0, 0);
+        //resolutionIndicator.setSpacing(5);
+        resolutionIndicatorBox.setAlignment(Pos.CENTER);
+        VBox.setMargin(resolutionGraphic, new Insets(5, 0, 0, 0));
+        resolutionIndicator = new StackPane(resolutionIndicatorBox);
+        resolutionIndicator.setMouseTransparent(true);
+        resolutionIndicator.setVisible(false);
+        resolutionIndicator.setMaxSize(0, 0);
+        StackPane.setMargin(resolutionIndicatorBox, new Insets(4, 7, 4, 7));
+        resolutionIndicator.setBackground(new Background(new BackgroundFill(new Color(1, 1, 1, 0.8), new CornerRadii(5), null)));
+
+        StackPane.setAlignment(resolutionIndicator, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(resolutionIndicator, new Insets(0, 0, 38, 0));
+        
+        progress = new ImprovisedProgressBar(350, 30, resolutionIndicator);
+        StackPane.setAlignment(progress, Pos.TOP_CENTER);
+        progress.setOnScroll(zoomPaneScrollHandler);
         
         MenuItem menuFileName = new MenuItem("here should be the file name");
         menuFileName.setStyle("-fx-font-style: italic;");
@@ -451,6 +498,7 @@ public class Gallery {
         rootPane.getChildren().add(tickLabelVBox);
         rootPane.getChildren().add(progress);
         rootPane.getChildren().add(zoomIndicator);
+        rootPane.getChildren().add(resolutionIndicator);
         rootPane.getChildren().add(exitFullscreenRect);
         rootPane.getChildren().add(exitFullscreenHint);
         rootPane.getChildren().add(hideUiHotcorner);
@@ -755,9 +803,14 @@ public class Gallery {
         zoomPane.setTranslateX(spaceX * relTransX);
         zoomPane.setTranslateY(spaceY * relTransY);
 
+        Image img = view.getImage();
         zoomIndicator.setVisible(true);
-        zoomIndicatorText.setText(Math.round(calculateBaseImageScale() * zoom * 100) + "%");
+        //String text = Math.round(calculateBaseImageScale() * zoom * 100) + "%";
+        zoomIndicatorText.setText(String.format("%.0f%%", calculateBaseImageScale() * zoom * 100));
+        //zoomIndicatorKLabel.setText(String.format("%.1fk", Math.sqrt(img.getHeight()*img.getWidth()) / 1000));
         zoomPane.setCursor(Cursor.NONE);
+        resolutionIndicator.setVisible(true);
+
         isZooming = true;
     }
     // Resets the zoom to the usual 1:1 in the app
@@ -768,6 +821,7 @@ public class Gallery {
         zoomPane.setTranslateY(0);
 
         zoomIndicator.setVisible(false);
+        resolutionIndicator.setVisible(false);
         zoomPane.setCursor(Cursor.DEFAULT);
         isZooming = false;
     }
@@ -837,8 +891,8 @@ public class Gallery {
         }
 }
 
-    private ChangeListener<? super Number> numberListener = (a, b, c) -> {updateImageStatus();};
-    private ChangeListener<? super Boolean> booleanListener = (a, b, c) -> {updateImageStatus();};
+    private ChangeListener<? super Number> numberListener = (a, b, c) -> {updateImageLoadingStatus();};
+    private ChangeListener<? super Boolean> booleanListener = (a, b, c) -> {updateImageLoadingStatus();};
     private void loadImage() {
         //Preprocessing: Checking all currently contained images for loading errors due to memory limitations, and mitigation
         if (currentImage != null) {
@@ -951,16 +1005,17 @@ public class Gallery {
         progress.setProgress(currentImageIndex, images.size(), imageInfo, filter != -1);
         wrapSearchIndicator.setText(currentImageIndex+1 + "/" + images.size()); //kind of doubled here, but I think its important that the indicator is updated as well
         updateLabels();
-        updateImageStatus();
+        updateImageLoadingStatus();
     }
-    
-    private void updateImageStatus() {
+
+    private void updateImageLoadingStatus() {
         Image img = view.getImage();
         if (img.getHeight() > 0) {
             //image already loaded
             loadingProgress.setVisible(false);
             errorLabel.setVisible(false);
             updateViewport();
+            updateResolutionIndicator(img);
         } else if (img.isError()) {
             //error while loading
             loadingProgress.setVisible(false);
@@ -982,6 +1037,9 @@ public class Gallery {
             errorLabel.setVisible(false);
             loadingProgress.setProgress(img.getProgress());
         }
+        if (isZooming) {
+            zoomIn();
+        }
     }
 
     private boolean isMemoryException(Exception e) {
@@ -998,6 +1056,25 @@ public class Gallery {
             imageBufferSize = IMAGE_BUFFER_SIZE_MIN;
         }
         System.out.println("Reduced imageBufferSize to "+imageBufferSize);
+    }
+
+    private void updateResolutionIndicator(Image img) {
+        resolutionTextEstimate.setText(Common.getBiggestContainingResolution(img.getHeight(), img.getWidth()));
+        String status;
+        if (((RotatedImage)img).isRotatedBy90Degrees()) {
+            status = Math.round(img.getHeight()) + " x " + Math.round(img.getWidth());
+        } else {
+            status = Math.round(img.getWidth()) + " x " + Math.round(img.getHeight());
+        }
+        resolutionTextDimension.setText(status);
+        double squareLength = Math.sqrt(img.getHeight() * img.getWidth());
+        //I dont want log, i want a linear scale with the 1000s basically
+        //double scaledLength = (Math.log(squareLength) - 6) * 3.5; //the scaling - its all just trial and error
+        double scaledLength = squareLength / 500;
+        double clipScale = Math.max(Math.min(scaledLength, NUMBER_OF_RESOLUTION_RECTS),0);
+        for (int i = 0; i < NUMBER_OF_RESOLUTION_RECTS; i++) {
+            resolutionGraphicRects[i].setFill(i > clipScale ? null : Color.BLACK);
+        }
     }
 
     private void updateLabels() {

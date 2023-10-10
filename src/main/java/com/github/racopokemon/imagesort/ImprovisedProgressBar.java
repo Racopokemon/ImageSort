@@ -4,8 +4,10 @@ import java.util.ArrayList;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -20,6 +22,7 @@ import javafx.scene.text.TextAlignment;
 public class ImprovisedProgressBar extends VBox {
 
     private double width, height;
+    private Node resolutionIndicator; //making use of very good OO, we also receive a random node that should also be made visible on mouse hover
     private Text percentageText;
     private VBox propertiesBox; 
     private VBox marginPropertiesBox; 
@@ -31,9 +34,10 @@ public class ImprovisedProgressBar extends VBox {
     private static final Font FONT_BOLD = Font.font(FONT.getFamily(), FontWeight.SEMI_BOLD, 16);
     private static final Color DARK_GREY = Color.gray(0.2);
 
-    public ImprovisedProgressBar(double w, double h) {
+    public ImprovisedProgressBar(double w, double h, Node resolutionIndicator) {
         width = w;
         height = h;
+        this.resolutionIndicator = resolutionIndicator;
 
         StackPane stack = new StackPane();
 
@@ -64,7 +68,7 @@ public class ImprovisedProgressBar extends VBox {
         propertiesBox.setAlignment(Pos.CENTER);
         
         marginPropertiesBox = new VBox(propertiesBox); 
-        marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.7), null, null)));
+        marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.8), new CornerRadii(5), null)));
 
         getChildren().add(stack);
         //getChildren().add(marginPropertiesBox);
@@ -74,6 +78,8 @@ public class ImprovisedProgressBar extends VBox {
 
         marginPropertiesBox.setMouseTransparent(true);
 
+        this.setSpacing(3);
+
         toBackground();
     }
 
@@ -82,14 +88,18 @@ public class ImprovisedProgressBar extends VBox {
         if (getChildren().size() == 1) {
             getChildren().add(marginPropertiesBox); //used to just use setVisible() here which is the nicer solution, ...
             //but then the mouse still leaves the pane below and the mouse-auto-hide does actually not hide in this area
+            //getChildren().add(resolutionIndicator);
         }
+        resolutionIndicator.setVisible(true);
     }
 
     private void toBackground() {
         setOpacity(0.1);
-        if (getChildren().size() == 2) {
+        if (getChildren().size() > 1) {
             getChildren().remove(marginPropertiesBox);
+            //getChildren().remove(resolutionIndicator);
         }
+        resolutionIndicator.setVisible(false);
     }
 
     //You can also make newlines in info strings, then the spacing is smaller than with separate array entries

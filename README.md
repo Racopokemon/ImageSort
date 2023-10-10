@@ -50,6 +50,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * This might already fix some micro-lags! 
   * I had the impression that the ImageView loads one image after another, so internally its working with a queue, and probably this queue depends on the creation time of each image. 
     * --> Use this to our advantage to load the upcoming images (depending on the scrolling direction) first
+* Action indicator. An icon flashing in the middle of the screen or the whole screen shortly being lighter or so. Always consider, that both black and white images must work.
+  * It flashes on slow windows commands, like open in explorer. Also on shortcuts, that don't show another feedback, maybe F5, maybe Ctrl+C, if I ever implement it. 
 * Usage window
   * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * Percentage bar
@@ -58,7 +60,9 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Context menu
   * Move to trash
   * Copy image to clipboard
+    * Also: Ctrl+C
   * Copy path to clipboard
+    * Also: Ctrl+Shift+C
   * (later rotate)
 * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
