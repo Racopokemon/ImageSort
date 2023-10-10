@@ -28,7 +28,7 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
 
     //If true, we do a thread.sleep after every file operation. Solely for debug purposes, see if multithreading and progress bar works etc.
     private static final boolean SLOW_PROGRESS_DOWN = false;
-
+    
     private boolean finished = false;
     private int stepsFinished = 0;
     private int overallSteps;
@@ -39,16 +39,22 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
 
     //In case of a big error, we return true, so that the user might fix it manually. 
     private boolean showGalleryAgain = false;
-
+    
     private int numberOfTicks, numberOfCategories;
     private File imageDirectory, targetDirectory;
 
     private ArrayList<ArrayList<String>> operations;
     private Hashtable<String, ArrayList<String>> filesToCopyAlong;
-
+    
     private AnimationTimer timer;
-
+    
     public FileOperationsWindow(ArrayList<ArrayList<String>> operations, Hashtable<String, ArrayList<String>> filesToMoveAlong, int numberOfCategories, int numberOfTicks, File imageDirectory, File targetDirectory) {
+        
+        System.out.println("Print this if you receive a critical error, once the progress has finished!");
+            //Print this if you receive a critical error, once the progress has finished! 
+            //nope("\nWhen you close this progress window, you will be back at the gallery to try again. "+
+            //"Note however, that some of the file operations may have been executed already\n");
+    
         this.operations = operations;
         this.numberOfCategories = numberOfCategories;
         this.numberOfTicks = numberOfTicks;
@@ -99,14 +105,14 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
             if (!finished) {
                 //If we are still in progress, the window can't be closed
                 e.consume();
-            }
-        });
+            }    
+        });    
         setScene(scene);
 
         overallSteps = 0;
         for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
             overallSteps += operations.get(i).size();
-        }
+        }    
         
         //start the worker thread
         new Thread(() -> {executeAllFileOperations();}).start();
@@ -121,14 +127,14 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
                         vbox.getChildren().add(3, area);
                         if (getStage().getHeight() < 300) {
                             getStage().setHeight(300);
-                        }
+                        }    
                         getStage().setMinHeight(300);
-                    }
+                    }    
                     if (showGalleryAgain) {
                         button.setText("Back to gallery");
-                    }
+                    }    
                     area.setText(errorText);
-                }
+                }    
                 if (finished) {
                     timer.stop();
                     button.setDisable(false);
@@ -136,30 +142,30 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
                     label.setText(errorText.equals("") ? "Finished!" : "Finished.");
                     if (errorText.equals("")) {
                         vbox.getChildren().add(vbox.getChildren().size() - 1, finalHintLabel);
-                    }
+                    }    
                     button.requestFocus();
                 } else {
                     progress.setProgress(((double)stepsFinished) / overallSteps);
                     label.setText(currentOperation);
-                }
-            }
-        };
+                }    
+            }    
+        };    
         timer.start();
-    }
+    }    
 
     //weird OO fix ... well well private classes and all
     private Stage getStage() {
         return this;
-    }
+    }    
 
     public void executeAllFileOperations() {
         if (!Common.isValidFolder(targetDirectory)) {
-            errorText = ">>> The target directory is not vaild: " + targetDirectory.getAbsolutePath() 
+            errorText = "The target directory is not vaild: " + targetDirectory.getAbsolutePath() 
                     + "\nNo file operations were performed. When you close this window, the gallery remains open for you to try again.\n";
-            showGalleryAgain = true;
+            showGalleryAgain = true;        
             finished = true;
             return;
-        }
+        }    
 
         try {
             //first COPY files
@@ -167,7 +173,7 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
                 ArrayList<String> allFilesInTick = operations.get(i);
                 if (allFilesInTick.isEmpty()) {
                     continue;
-                }
+                }    
                 //if folder doesnt exist: create. 
                 String tickName = Gallery.getTickName(i - numberOfCategories - 1);
                 String destPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + tickName;
@@ -178,15 +184,15 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
                 } else {
                     //error while creating..
                     stepsFinished += allFilesInTick.size();
-                }
-            }
+                }    
+            }    
 
             //then MOVE the files
             for (int i = 1; i < numberOfCategories + 1; i++) {
                 ArrayList<String> allFilesInCategory = operations.get(i);
                 if (allFilesInCategory.isEmpty()) {
                     continue;
-                }
+                }    
                 //if folder doesnt exist: create. 
                 String destPath = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + i;
                 currentOperation = "Creating folder " + i;
@@ -196,13 +202,13 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
                 } else {
                     //error while creating..
                     stepsFinished += allFilesInCategory.size();
-                }
-            }
+                }    
+            }    
         } finally {
             //stepsFinished = overallSteps; //lets have a little bit trust in this code and hope it manages this simple maths also without us helping here..
             finished = true;
-        }
-    }
+        }    
+    }    
 
     private void moveAllFiles(ArrayList<String> allFilesInCategory, String destPath) {
         for (String key : allFilesInCategory) {
@@ -210,7 +216,7 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
             filesToMove.add(key);
             if (filesToCopyAlong.containsKey(key)) {
                 filesToMove.addAll(filesToCopyAlong.get(key));
-            }
+            }    
             for (String fileToMove : filesToMove) {
                 currentOperation = "Moving " + fileToMove;
                 File origin = new File(imageDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + fileToMove);
@@ -218,15 +224,15 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
                 try {
                     origin.renameTo(dest);
                 } catch (Exception e) {
-                    errorText += ">>> Could not move " + fileToMove + " to " + destPath + ": " + formatException(e) + "\n";
+                    errorText += ">>> Could not move " + fileToMove + " to " + destPath + ": " + Common.formatException(e) + "\n";
                     System.out.println("Could not move " + fileToMove + " to " + destPath);
                     e.printStackTrace();
-                }
-            }
+                }    
+            }    
             debugSleep();
             stepsFinished++;
-        }
-    }
+        }    
+    }    
 
     private void copyAllFiles(ArrayList<String> allFilesInCategory, String destPath) {
         for (String key : allFilesInCategory) {
@@ -234,7 +240,7 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
             filesToCopy.add(key);
             if (filesToCopyAlong.containsKey(key)) {
                 filesToCopy.addAll(filesToCopyAlong.get(key));
-            }
+            }    
             for (String fileToCopy : filesToCopy) {
                 currentOperation = "Copying " + fileToCopy;
                 File origin = new File(imageDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + fileToCopy);
@@ -242,24 +248,46 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
                 try {
                     Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
                 } catch (Exception e) {
-                    errorText += ">>> Could not copy " + fileToCopy + " to " + destPath + ": " + formatException(e) + "\n";
+                    errorText += ">>> Could not copy " + fileToCopy + " to " + destPath + ": " + Common.formatException(e) + "\n";
                     System.out.println("Could not copy " + fileToCopy + " to " + destPath);
                     e.printStackTrace();
-                }
-            }
+                }    
+            }    
             debugSleep();
             stepsFinished++;
-        }
-    }
+        }    
+    }    
     
     //Debug method that causes artificial delay to test the progress bar and multi threading
     private void debugSleep() {
         if (!SLOW_PROGRESS_DOWN) {return;}
         try {Thread.sleep(400);} catch (Exception e) {}
-    }
+    }    
 
     public boolean shouldWeShowTheGalleryAgain() {
         return showGalleryAgain;
+    }
+
+    @Override
+    public void setCurrentOperation(String operationText) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setCurrentOperation'");
+    }
+
+    @Override
+    public void stepsFinished(int numberOfSteps) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'stepsFinished'");
+    }
+
+    @Override
+    public void logError(String error, boolean isCritical) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'logError'");
+    }        
+
+    public boolean tryCreateFolder(String s) {
+        throw new UnsupportedOperationException("THIS SHALL BE REMOVED, THIS WHOLE CALL!");
     }
 
 }
