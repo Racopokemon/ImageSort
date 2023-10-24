@@ -26,6 +26,7 @@ public class JobCreateDirectory extends JobContainer {
 
     @Override
     public void execute(JobReportingInterface target) { 
+        target.setCurrentOperation("Creating " + directory.getName() + "/");
         if (!directory.exists()) {
             try {
                 directory.mkdir();

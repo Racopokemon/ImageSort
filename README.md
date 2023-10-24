@@ -39,6 +39,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * **Move the destination folder option to the confirmation dialog**
   * Remove the option where to place the delete-folder, I used it 0 times
   * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
+* Typing keys will select the first element starting with this letter in the list!
   
 ## Gallery
 * General
@@ -52,6 +53,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * --> Use this to our advantage to load the upcoming images (depending on the scrolling direction) first
 * Action indicator. An icon flashing in the middle of the screen or the whole screen shortly being lighter or so. Always consider, that both black and white images must work.
   * It flashes on slow windows commands, like open in explorer. Also on shortcuts, that don't show another feedback, maybe F5, maybe Ctrl+C, if I ever implement it. 
+  * Also flash it on ctrl+Z, I just encountered that it takes a sec too much (but the reason for this is likely on the same thread, so that might not work as intended)
 * Usage window
   * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * Percentage bar

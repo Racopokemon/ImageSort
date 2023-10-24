@@ -19,8 +19,15 @@ public class JobMove extends Job {
 
     @Override
     public void execute(JobReportingInterface target) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'execute'");
+        target.setCurrentOperation("Moving " + origin.getName());
+        try {
+            origin.renameTo(dest);
+        } catch (Exception e) {
+            target.logError("Could not move " + origin.getAbsolutePath() + " to " + dest.getAbsolutePath() + ": " + Common.formatException(e), false);
+            e.printStackTrace();
+        } finally {
+            target.stepFinished();
+        }
     }
     
 }

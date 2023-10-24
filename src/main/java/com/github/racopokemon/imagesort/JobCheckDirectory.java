@@ -1,11 +1,33 @@
 package com.github.racopokemon.imagesort;
+import java.io.File;
 import java.util.ArrayList;
 
-public abstract class JobCheckDirectory extends JobContainer {
+/**
+ * Checks, whether a given directory exists, and then performs all dependent jobs (that are probably inside this folder)
+ * Is always critical, why else should we otherwise check for the directory?
+ */
+public class JobCheckDirectory extends JobContainer {
 
-    public JobCheckDirectory(ArrayList<Job> dependentJobs, boolean isCritical) {
-        super(dependentJobs, isCritical);
-        //TODO Auto-generated constructor stub
+    private File directory;
+
+    public JobCheckDirectory(File dir, ArrayList<Job> dependentJobs) {
+        super(dependentJobs, true);
+        this.directory = dir;
     }
-    //abstract only so that it compiles rn
+
+    @Override
+    public int getNumberOfSteps() {
+        return getNumberOfStepsInDependentJobs() + 1;
+    }
+
+    @Override
+    public void execute(JobReportingInterface target) {
+        target.setCurrentOperation("Checking " + directory.getName() + "/");
+        if (!Common.isValidFolder(directory)) {
+            target.logError("Folder " + directory.getAbsolutePath() + " does not exist / is not a valid folder. ", isCritical());
+            target.stepsFinished(getNumberOfStepsInDependentJobs());
+            return;
+        }
+        executeAllDependentJobs(target);
+    }
 }

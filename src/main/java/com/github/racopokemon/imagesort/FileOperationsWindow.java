@@ -277,11 +277,19 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
     @Override
     public void stepsFinished(int numberOfSteps) {
         // TODO Auto-generated method stub
+
+        debugSleep();
+
         throw new UnsupportedOperationException("Unimplemented method 'stepsFinished'");
     }
 
     @Override
     public void logError(String error, boolean isCritical) {
+        // append a ">>> " for every error, append a "\n"
+        System.out.println("Error while doing file operations: " + error); //makes sense to also print all error outputs
+
+        // if any iscritical is true, notice somehow (there is a var for it already) and write sth like
+        //  " When you close this window, the gallery remains open for you to try again."
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'logError'");
     }        

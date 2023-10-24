@@ -1,6 +1,8 @@
 package com.github.racopokemon.imagesort;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class JobCopy extends Job {
 
@@ -19,8 +21,14 @@ public class JobCopy extends Job {
 
     @Override
     public void execute(JobReportingInterface target) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'execute'");
+        target.setCurrentOperation("Copying " + origin.getName());
+        try {
+            Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
+        } catch (Exception e) {
+            target.logError("Could not copy " + origin.getAbsolutePath() + " to " + dest.getAbsolutePath() + ": " + Common.formatException(e), false);
+            e.printStackTrace();
+        } finally {
+            target.stepFinished();
+        }
     }
-    
 }
