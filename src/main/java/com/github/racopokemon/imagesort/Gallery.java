@@ -542,12 +542,37 @@ public class Gallery {
                 } else if (result.get() == ButtonType.YES) {
                     //rename (closes automatically on return, if we do not consume the event)
                     
-                    FileOperationsWindow fileOpWindow = new FileOperationsWindow(operations, filesToMoveAlong, numberOfCategories, numberOfTicks, directory, targetDirectory);
-                    System.out.println("remove the moveAllFiles + method from Gallery.java");
-                    
-                    //this makes the gallery be dependent on this window
-                    fileOpWindow.initOwner(stage);
-                    fileOpWindow.initModality(Modality.WINDOW_MODAL);
+                    //turn the user selections into a job list that can be executed by a FileOperationsWindow
+                    ArrayList<Job> jobs = new ArrayList<>();
+                    //operations, filesToMoveAlong, numberOfCategories, numberOfTicks, directory, targetDirectory
+
+                    //check if target directory is valid
+                    //first COPY files
+                    for (int i = 0; i < numberOfTicks; i++) {
+                        ArrayList<String> copyOperations = operations.get(i + numberOfCategories);
+                        if (!copyOperations.isEmpty()) {
+                            ArrayList<Job> copyJobs = new ArrayList<>();
+                            for (String name : copyOperations) {
+                                copyJobs.add(new JobCopy());
+                                ArrayList<String> copyAlongList = filesToMoveAlong.get(name);
+                                if (copyAlongList != null) {
+                                    for (String copyAlong : copyAlongList) {
+                                        copyJobs.add(new JobCopy());
+                                    }
+                                }
+                            }
+                            JobCreateDirectory createCopyDirJob = new JobCreateDirectory(TODO, copyJobs, true);
+                            jobs.add(createCopyDirJob);
+                        }
+                    }
+                    //then MOVE files
+                        //the same
+
+                    JobCheckDirectory overallCheckJob = new JobCheckDirectory(TODO, jobs);
+                    ArrayList<Job> finalJobList = new ArrayList<>();
+                    finalJobList.add(overallCheckJob);
+
+                    FileOperationsWindow fileOpWindow = new FileOperationsWindow(finalJobList, false, stage);
                     fileOpWindow.showAndWait();
 
                     if (fileOpWindow.shouldWeShowTheGalleryAgain()) {

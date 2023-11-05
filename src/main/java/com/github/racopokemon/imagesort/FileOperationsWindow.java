@@ -4,7 +4,6 @@ import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-//Performs the file operations and displays a log of the operations performed
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -22,8 +21,10 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+//Performs the file operations and displays a log of the operations performed
 public class FileOperationsWindow extends Stage implements JobReportingInterface {
 
     //If true, we do a thread.sleep after every file operation. Solely for debug purposes, see if multithreading and progress bar works etc.
@@ -45,22 +46,29 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
 
     private ArrayList<ArrayList<String>> operations;
     private Hashtable<String, ArrayList<String>> filesToCopyAlong;
+
+    private ArrayList<Job> jobs;
+    private boolean autoClose;
     
     private AnimationTimer timer;
     
-    public FileOperationsWindow(ArrayList<ArrayList<String>> operations, Hashtable<String, ArrayList<String>> filesToMoveAlong, int numberOfCategories, int numberOfTicks, File imageDirectory, File targetDirectory) {
-        
+    /**
+     * Initializes the window. 
+     */
+    public FileOperationsWindow(ArrayList<Job> jobs, boolean autoCloseOnFinish, Stage parentStage) {
+        this.jobs = jobs;
+        this.autoClose = autoCloseOnFinish;
+
+        //Make the parent stage dependent on this stage. 
+        initOwner(parentStage);
+        initModality(Modality.WINDOW_MODAL);
+
+        System.out.println(" TODO Write this to the end of the log on finish: ''");
         System.out.println("Print this if you receive a critical error, once the progress has finished!");
             //Print this if you receive a critical error, once the progress has finished! 
             //nope("\nWhen you close this progress window, you will be back at the gallery to try again. "+
             //"Note however, that some of the file operations may have been executed already\n");
-    
-        this.operations = operations;
-        this.numberOfCategories = numberOfCategories;
-        this.numberOfTicks = numberOfTicks;
-        this.imageDirectory = imageDirectory;
-        this.targetDirectory = targetDirectory;
-        this.filesToCopyAlong = filesToMoveAlong;
+
 
         setTitle("Applying file operations");
         setIconified(false);
@@ -92,7 +100,6 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
         vbox.getChildren().addAll(label, progress, buttonAtTheRight);
         VBox.setVgrow(area, Priority.ALWAYS);
 
-        System.out.println(" TODO Write this to the end of the log on finish: ''");
 
         BorderPane root = new BorderPane();
         root.setCenter(vbox);
@@ -151,7 +158,14 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
             }    
         };    
         timer.start();
-    }    
+
+    }
+
+    @Override
+    public void showAndWait() {
+        startExecutingFileOperations();
+        super.showAndWait();
+    }
 
     //weird OO fix ... well well private classes and all
     private Stage getStage() {
@@ -240,7 +254,7 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
             filesToCopy.add(key);
             if (filesToCopyAlong.containsKey(key)) {
                 filesToCopy.addAll(filesToCopyAlong.get(key));
-            }    
+            }
             for (String fileToCopy : filesToCopy) {
                 currentOperation = "Copying " + fileToCopy;
                 File origin = new File(imageDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + fileToCopy);
@@ -296,6 +310,13 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
 
     public boolean tryCreateFolder(String s) {
         throw new UnsupportedOperationException("THIS SHALL BE REMOVED, THIS WHOLE CALL!");
+    }
+
+
+    private void startExecutingFileOperations() {
+        //reset vars
+        //start thread
+        //...
     }
 
 }
