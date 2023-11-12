@@ -540,20 +540,20 @@ public class Gallery {
                     event.consume();
                     return;
                 } else if (result.get() == ButtonType.YES) {
-                    //rename (closes automatically on return, if we do not consume the event)
+                    //create jobs & send them to a file op window
+                    //and then the gallery closes automatically on return, if we do not consume the event
                     
                     //turn the user selections into a job list that can be executed by a FileOperationsWindow
                     ArrayList<Job> jobs = new ArrayList<>();
-                    //operations, filesToMoveAlong, numberOfCategories, numberOfTicks, directory, targetDirectory
 
                     //first COPY files
                     for (int i = 0; i < numberOfTicks; i++) {
-                        ArrayList<String> copyOperations = operations.get(i + numberOfCategories);
+                        ArrayList<String> copyOperations = operations.get(i + numberOfCategories + 1);
                         if (!copyOperations.isEmpty()) {
                             ArrayList<Job> copyJobs = new ArrayList<>();
                             String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
                             String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
-                                + getTickName(i - numberOfCategories) + FileSystems.getDefault().getSeparator();
+                                + getTickName(i) + FileSystems.getDefault().getSeparator();
                             for (String name : copyOperations) {
                                 copyJobs.add(new JobCopy(originPrefix + name, destPrefix + name));
                                 ArrayList<String> copyAlongList = filesToMoveAlong.get(name);
@@ -568,7 +568,7 @@ public class Gallery {
                     }
 
                     //then MOVE files
-                    for (int i = 0; i < numberOfCategories; i++) {
+                    for (int i = 1; i < numberOfCategories+1; i++) {
                         ArrayList<String> moveOperations = operations.get(i);
                         if (!moveOperations.isEmpty()) {
                             ArrayList<Job> moveJobs = new ArrayList<>();
@@ -576,11 +576,11 @@ public class Gallery {
                             String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
                                 + i + FileSystems.getDefault().getSeparator();
                             for (String name : moveOperations) {
-                                moveJobs.add(new JobCopy(originPrefix + name, destPrefix + name));
+                                moveJobs.add(new JobMove(originPrefix + name, destPrefix + name));
                                 ArrayList<String> moveAlongList = filesToMoveAlong.get(name);
                                 if (moveAlongList != null) {
                                     for (String moveAlong : moveAlongList) {
-                                        moveJobs.add(new JobCopy(originPrefix + moveAlong, destPrefix + moveAlong));
+                                        moveJobs.add(new JobMove(originPrefix + moveAlong, destPrefix + moveAlong));
                                     }
                                 }
                             }
