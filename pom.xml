@@ -61,9 +61,7 @@
 
 
 <!-- 
-THANKS I HATE IT.
-Spent hours figuring this out, time to search for a new, cool language, java has been pretty fucked with this modular concept and maven etc
-
+Finding this out took way too long: 
 jlink requires modular (=has module-info.java) modules to build anything, but the metadata extractor isnt modular. I read their discussions 
 from 2 weeks ago on github, their problem is to maintain compatibility to java 8 users and all above at the same time, possibly with the same
 jar, which is a problem, as ppl from both sides are urging the author to change or not change the modularity. Bro. 

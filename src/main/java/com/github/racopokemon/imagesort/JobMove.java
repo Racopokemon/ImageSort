@@ -6,7 +6,11 @@ public class JobMove extends Job {
 
     protected File origin, dest;
 
-    public JobMove(JobReportingInterface target, File origin, File dest) {
+    public JobMove(String origin, String dest) {
+        this(new File(origin), new File(dest));
+    }
+
+    public JobMove(File origin, File dest) {
         super();
         this.origin = origin;
         this.dest = dest;

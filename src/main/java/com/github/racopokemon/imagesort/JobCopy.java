@@ -8,7 +8,11 @@ public class JobCopy extends Job {
 
     protected File origin, dest;
 
-    public JobCopy(JobReportingInterface target, File origin, File dest) {
+    public JobCopy(String origin, String dest) {
+        this(new File(origin), new File(dest));
+    }
+
+    public JobCopy(File origin, File dest) {
         super();
         this.origin = origin;
         this.dest = dest;

@@ -10,6 +10,10 @@ public class JobCreateDirectory extends JobContainer {
 
     protected File directory;
 
+    public JobCreateDirectory(String directory, ArrayList<Job> dependentJobs, boolean isCritical) {
+        this(new File(directory), dependentJobs, isCritical);
+    }
+
     public JobCreateDirectory(File directory, ArrayList<Job> dependentJobs, boolean isCritical) {
         super(dependentJobs, isCritical);
         this.directory = directory;

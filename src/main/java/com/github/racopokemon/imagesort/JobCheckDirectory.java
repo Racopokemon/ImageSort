@@ -10,6 +10,10 @@ public class JobCheckDirectory extends JobContainer {
 
     private File directory;
 
+    public JobCheckDirectory(String dir, ArrayList<Job> dependentJobs) {
+        this(new File(dir), dependentJobs);
+    }
+
     public JobCheckDirectory(File dir, ArrayList<Job> dependentJobs) {
         super(dependentJobs, true);
         this.directory = dir;

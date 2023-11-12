@@ -546,29 +546,49 @@ public class Gallery {
                     ArrayList<Job> jobs = new ArrayList<>();
                     //operations, filesToMoveAlong, numberOfCategories, numberOfTicks, directory, targetDirectory
 
-                    //check if target directory is valid
                     //first COPY files
                     for (int i = 0; i < numberOfTicks; i++) {
                         ArrayList<String> copyOperations = operations.get(i + numberOfCategories);
                         if (!copyOperations.isEmpty()) {
                             ArrayList<Job> copyJobs = new ArrayList<>();
+                            String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
+                            String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
+                                + getTickName(i - numberOfCategories) + FileSystems.getDefault().getSeparator();
                             for (String name : copyOperations) {
-                                copyJobs.add(new JobCopy());
+                                copyJobs.add(new JobCopy(originPrefix + name, destPrefix + name));
                                 ArrayList<String> copyAlongList = filesToMoveAlong.get(name);
                                 if (copyAlongList != null) {
                                     for (String copyAlong : copyAlongList) {
-                                        copyJobs.add(new JobCopy());
+                                        copyJobs.add(new JobCopy(originPrefix + copyAlong, destPrefix + copyAlong));
                                     }
                                 }
                             }
-                            JobCreateDirectory createCopyDirJob = new JobCreateDirectory(TODO, copyJobs, true);
-                            jobs.add(createCopyDirJob);
+                            jobs.add(new JobCreateDirectory(destPrefix, copyJobs, true));
                         }
                     }
-                    //then MOVE files
-                        //the same
 
-                    JobCheckDirectory overallCheckJob = new JobCheckDirectory(TODO, jobs);
+                    //then MOVE files
+                    for (int i = 0; i < numberOfCategories; i++) {
+                        ArrayList<String> moveOperations = operations.get(i);
+                        if (!moveOperations.isEmpty()) {
+                            ArrayList<Job> moveJobs = new ArrayList<>();
+                            String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
+                            String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
+                                + i + FileSystems.getDefault().getSeparator();
+                            for (String name : moveOperations) {
+                                moveJobs.add(new JobCopy(originPrefix + name, destPrefix + name));
+                                ArrayList<String> moveAlongList = filesToMoveAlong.get(name);
+                                if (moveAlongList != null) {
+                                    for (String moveAlong : moveAlongList) {
+                                        moveJobs.add(new JobCopy(originPrefix + moveAlong, destPrefix + moveAlong));
+                                    }
+                                }
+                            }
+                            jobs.add(new JobCreateDirectory(destPrefix, moveJobs, true));
+                        }
+                    }
+
+                    JobCheckDirectory overallCheckJob = new JobCheckDirectory(targetDirectory, jobs);
                     ArrayList<Job> finalJobList = new ArrayList<>();
                     finalJobList.add(overallCheckJob);
 
