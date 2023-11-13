@@ -83,7 +83,9 @@ public class Common {
                     String suffix = split[split.length-1];
                     return (suffix.equalsIgnoreCase("jpg") || 
                             suffix.equalsIgnoreCase("jpeg") || 
-                            suffix.equalsIgnoreCase("png"));
+                            suffix.equalsIgnoreCase("png") ||
+                            suffix.equalsIgnoreCase("gif") ||
+                            suffix.equalsIgnoreCase("bmp"));
                     //I see the advantages of python and probably other high level languages ...
                     //where you would have a 'ends with' ignore case ...
                     //or could access the last element of split in one line [-1] or .last (maybe c#)
