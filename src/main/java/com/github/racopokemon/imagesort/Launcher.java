@@ -492,6 +492,7 @@ public class Launcher {
         FilenameFilter imageFilter = Common.getImageFilter();
         FilenameFilter rawFilter = Common.getRawFilter();
         FilenameFilter videoFilter = Common.getVideoFilter();
+        FilenameFilter otherFilter = Common.getOtherFilter();
         for (File file : contents) {
             if (Common.isValidFolder(file)) {
                 if (rootMode) {
@@ -506,9 +507,8 @@ public class Launcher {
                 stats.numberOfRaws++;
             } else if (videoFilter.accept(dir, file.getName())) {
                 stats.numberOfVideos++;
-            } else {
-                //probably ignore system files like desktop.ini stuff etc.
-                //wait, .DS_Store is a file? Then we ignore it here as well! 
+            } else if (otherFilter.accept(dir, file.getName())) {
+                //the otherFilter accepts all files except some system files like desktop.ini in Windows
                 stats.numberOfOther++;
             }
         }

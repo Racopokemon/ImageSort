@@ -16,6 +16,7 @@ public class Common {
     private static FilenameFilter filterImages;
     private static FilenameFilter filterRaws;
     private static FilenameFilter filterVideos;
+    private static FilenameFilter filterOther;
     private static Hashtable<String, Image> resources;
 
     private static class ResolutionEntry {
@@ -62,6 +63,23 @@ public class Common {
             return false;
         }
     }
+    //Filename filter that accepts everything except some annoying system files (windows links and windows desktop.ini for example)
+    private static class HideStuffFilenameFilter implements FilenameFilter {
+        private FilenameFilter unwantedExtensions = new ExtensionFilenameFilter("lnk"); //let's just hide links (in windows at least)
+        private String[] unwantedFilenames = {"desktop.ini", "DS_Store"};
+        @Override
+        public boolean accept(File dir, String name) {
+            if (unwantedExtensions.accept(dir, name)) {
+                return false;
+            }
+            for (String s : unwantedFilenames) {
+                if (s.equals(name)) {
+                    return false;
+                }
+            }
+            return true;
+        }        
+    }
 
     private static ArrayList<ResolutionEntry> resolutions;
     static {
@@ -81,6 +99,7 @@ public class Common {
         filterImages = new ExtensionFilenameFilter("jpg", "jpeg", "png", "gif", "bmp");
         filterRaws = new ExtensionFilenameFilter("raw", "arw", "crw", "rw2"); //no idea if any of the other extensions are actually used anywhere, just quickly googled for canon and panasonic raw formats
         filterVideos = new ExtensionFilenameFilter("mp4","m4a","m4v","m3u8"); //https://openjfx.io/javadoc/16/javafx.media/javafx/scene/media/package-summary.html this is the video extensions they mention at least
+        filterOther = new HideStuffFilenameFilter();
     }
 
     //The weak check, let's see if the base requirements are met
@@ -113,6 +132,12 @@ public class Common {
     public static FilenameFilter getVideoFilter() {
         return filterVideos;
     }
+
+    //This filename filter is a bit special. It is used to hide some (mostly Windows) sytem files, the rest is accepted. 
+    public static FilenameFilter getOtherFilter() {
+        return filterOther;
+    }
+
 
     public static String removeExtensionFromFilename(String filename) {
         int lastDotIndex = filename.lastIndexOf(".");

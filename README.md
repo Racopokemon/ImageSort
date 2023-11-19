@@ -28,7 +28,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * ~~ALSO: Ctrl V reads the clipboard again!~~
 * **Change the number of ticks and categories here!**
   * store the numbers in the preferences!
-* also show .raw formats in the launcher
+* ~~also show .raw formats in the launcher~~
 * maybe also show other images (?) here
 * context menu (please!)
   * **Open in system explorer!**
