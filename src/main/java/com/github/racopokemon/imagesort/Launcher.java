@@ -60,9 +60,14 @@ public class Launcher {
     private CheckBox checkMiscRelaunch;
     private CheckBox checkMiscShowUsage;
 
-
     private File fallbackDirectory = new File(System.getProperty("user.home"));
     private File lastValidBrowserDirectory = null;
+
+    //little bonus feature: If you start from clipboard with a certain file and end up launching the gallery for this image,
+    //we make the gallery start exactly from this image (useful for folders of maany images)
+    private String startFileName = null;
+    //if we launch from this directory, start from startFileName, please. 
+    private File startFileDirectory = null;
 
     private Preferences prefs = Common.getPreferences();
 
@@ -280,7 +285,6 @@ public class Launcher {
             }
         });
 
-
         stage.setScene(scene);
         stage.setTitle("Launcher");
         stage.getIcons().add(Common.getResource("logo"));
@@ -292,7 +296,6 @@ public class Launcher {
             buttonFolderBrowse.fireEvent(new ActionEvent());
         }
         updateLaunchButton();
-
 
         //buttonBrowserBrowse.requestFocus();
         buttonLaunch.requestFocus();
@@ -312,7 +315,9 @@ public class Launcher {
         //isDirectory also checks if the dir exists. So if we have a directory OR a file inside a valid directory, we return this, 
         //otherwise the clipboard content was not readable
         if (path != null && !path.isDirectory()) {
+            startFileName = path.getName();
             path = path.getParentFile();
+            startFileDirectory = path;
             if (path != null && !path.isDirectory()) {
                 return null;
             }
@@ -351,9 +356,16 @@ public class Launcher {
             return;
         }
 
+        String startImage = null;
+        if (directory.equals(startFileDirectory)) {
+            if (Common.getFilenameFilter().accept(directory, startFileName) && new File(directory, startFileName).exists()) {
+                startImage = startFileName;
+            }
+        }
+
         stage.close();
 
-        new Gallery().start(directory, targetDirectory, delDirectory, 
+        new Gallery().start(directory, startImage, targetDirectory, delDirectory, 
                     checkMiscRelaunch.isSelected(), checkMiscShowUsage.isSelected());
     }
 

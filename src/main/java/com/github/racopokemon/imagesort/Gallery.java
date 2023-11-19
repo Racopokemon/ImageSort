@@ -207,11 +207,12 @@ public class Gallery {
         }
     }
 
-    public void start(File directory, File targetDirectory, File deleteDirectory, boolean reopenLauncher, boolean showHints) {
+    public void start(File directory, String startFileName, File targetDirectory, File deleteDirectory, boolean reopenLauncher, boolean showHints) {
         this.directory = directory;
         this.targetDirectory = targetDirectory;
         this.deleteDirectory = deleteDirectory;
         this.reopenLauncherAfterwards = reopenLauncher;
+        lastImageManuallySelected = startFileName;
 
         System.out.println("The origin of the micro-lags is apparently loading the image metadata on the main thread. ... Just saying - this *COULD BE FIXED*");
 

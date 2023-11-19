@@ -23,8 +23,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 ## Launcher
 * ~~Clipboard addon: Maybe check if there is image files inside before navigating there?~~
   * ~~ALSO clean the clipboard afterwards. Please.~~
-* **Clipboard: If the folder was read from an image file or path and NOT changed, start the gallery from this file!** 
-  * (Comes in handy for a folder of ~10000 images)
+* ~~Clipboard: If the folder was read from an image file or path and NOT changed, start the gallery from this file!~~
+  * ~~(Comes in handy for a folder of ~10000 images)~~
 * ~~ALSO: Ctrl V reads the clipboard again!~~
 * **Change the number of ticks and categories here!**
   * store the numbers in the preferences!
@@ -61,10 +61,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Mouse drag allows searching
 * Context menu
   * Move to trash
-  * Copy image to clipboard
-    * Also: Ctrl+C
-  * Copy path to clipboard
-    * Also: Ctrl+Shift+C
+  * ~~Copy image to clipboard~~
+    * ~~Also: Ctrl+C~~
+  * ~~Copy path to clipboard~~
+    * ~~Also: Ctrl+Shift+C~~
   * (later rotate)
 * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
