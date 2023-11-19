@@ -53,8 +53,7 @@ public class Common {
 
         @Override
         public boolean accept(File dir, String name) {
-            String[] split = name.split("[.]");
-            String suffix = split[split.length-1];
+            String suffix = getExtensionFromFilename(name);
             for (String ext : extensions) {
                 if (ext.equalsIgnoreCase(suffix)) {
                     return true;
@@ -105,6 +104,11 @@ public class Common {
     //The weak check, let's see if the base requirements are met
     public static boolean isValidFolder(File f) {
         return f.exists() && f.isDirectory();
+    }
+
+    public static String getExtensionFromFilename(String name) {
+        String[] split = name.split("[.]");
+        return split[split.length-1];
     }
 
     //Stronger check if the dir is valid, if sucessfull, returns an array of containing files. 

@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.prefs.*;
 
@@ -164,7 +165,7 @@ public class Launcher {
                 boxFolderBrowserLine, checkDeleteFolderAbsolute);
 
         checkMiscRelaunch = new CheckBox("Reopen this launcher");
-        checkMiscRelaunch.setSelected(prefs.getBoolean("miscRelaunch", false));
+        checkMiscRelaunch.setSelected(prefs.getBoolean("miscRelaunch", true));
         checkMiscShowUsage = new CheckBox("Show usage hints when the gallery starts");
         checkMiscShowUsage.setSelected(prefs.getBoolean("miscShowUsage", true));
         VBox miscBox = new VBox(SMALL_GAP, checkMiscRelaunch, checkMiscShowUsage);
@@ -466,7 +467,19 @@ public class Launcher {
             items.add(new BrowserItem(content.numberOfVideos + " video " + getSingularOrPluralOfFile(content.numberOfVideos) + " (not yet supported)", BrowserElement.VIDEO));
         }
         if (content.numberOfOther != 0) {
-            items.add(new BrowserItem(content.numberOfOther + " other " + getSingularOrPluralOfFile(content.numberOfOther), BrowserElement.OTHER));
+            String otherText = content.numberOfOther + " other " + getSingularOrPluralOfFile(content.numberOfOther);
+            int extSize = content.otherExtensions.size();
+            if (extSize <= 5) {
+                otherText += " (";
+                for (String e : content.otherExtensions) {
+                    otherText += "." + e;
+                    if (--extSize > 0) {
+                        otherText += ", ";
+                    }
+                }
+                otherText += ")";
+            }
+            items.add(new BrowserItem(otherText, BrowserElement.OTHER));
         }
 
         updateLaunchButton();
@@ -482,6 +495,7 @@ public class Launcher {
         public int numberOfRaws = 0;
         public int numberOfVideos = 0;
         public int numberOfOther = 0;
+        public HashSet<String> otherExtensions = new HashSet<>();
     }
 
     private DirectoryContents getDirectoryContents(File dir) {
@@ -499,22 +513,26 @@ public class Launcher {
         FilenameFilter videoFilter = Common.getVideoFilter();
         FilenameFilter otherFilter = Common.getOtherFilter();
         for (File file : contents) {
+            String filename = file.getName();
             if (Common.isValidFolder(file)) {
                 if (rootMode) {
                     stats.folders.add(file.toString());
                 } else {
                     //probably ignore linux hidden folders at some point
-                    stats.folders.add(file.getName());
+                    stats.folders.add(filename);
                 }
-            } else if (imageFilter.accept(dir, file.getName())) {
+            } else if (imageFilter.accept(dir, filename)) {
                 stats.numberOfImages++;
-            } else if (rawFilter.accept(dir, file.getName())) {
+            } else if (rawFilter.accept(dir, filename)) {
                 stats.numberOfRaws++;
-            } else if (videoFilter.accept(dir, file.getName())) {
+            } else if (videoFilter.accept(dir, filename)) {
                 stats.numberOfVideos++;
-            } else if (otherFilter.accept(dir, file.getName())) {
+            } else if (otherFilter.accept(dir, filename)) {
                 //the otherFilter accepts all files except some system files like desktop.ini in Windows
                 stats.numberOfOther++;
+                if (filename.contains(".")) {
+                    stats.otherExtensions.add(Common.getExtensionFromFilename(filename).toLowerCase());
+                }
             }
         }
 
