@@ -391,7 +391,8 @@ public class Gallery {
         resolutionIndicator.setVisible(false);
         resolutionIndicator.setMaxSize(0, 0);
         StackPane.setMargin(resolutionIndicatorBox, new Insets(4, 7, 4, 7));
-        resolutionIndicator.setBackground(new Background(new BackgroundFill(new Color(1, 1, 1, 0.8), new CornerRadii(5), null)));
+        resolutionIndicator.setBackground(new Background(new BackgroundFill(new Color(1, 1, 1, 0.6), new CornerRadii(5), null)));
+        resolutionIndicator.setOpacity(0.7f);
 
         StackPane.setAlignment(resolutionIndicator, Pos.BOTTOM_CENTER);
         StackPane.setMargin(resolutionIndicator, new Insets(0, 0, 38, 0));

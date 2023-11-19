@@ -282,6 +282,7 @@ public class Launcher {
                 textFieldBrowser.setText(clipboardContent.getAbsolutePath());
                 updateBrowser();
                 Clipboard.getSystemClipboard().clear();
+                buttonLaunch.requestFocus();
             }
         });
 
