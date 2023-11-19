@@ -391,7 +391,7 @@ public class Launcher {
         BrowserItem selectedItem = null;
         if (!listBrowser.getSelectionModel().isEmpty()) {
             selectedItem = listBrowser.getSelectionModel().getSelectedItem();
-            if (selectedItem.isFolder) {
+            if (selectedItem.type.isDirectory()) {
                 folderSelected = true;
             }
         }
@@ -453,11 +453,21 @@ public class Launcher {
 
         Collections.sort(content.folders, String.CASE_INSENSITIVE_ORDER);
         for (String s : content.folders) {
-            items.add(new BrowserItem(s, true));
+            items.add(new BrowserItem(s, BrowserElement.DIRECTORY));
         }
         if (content.numberOfImages != 0) {
-            items.add(new BrowserItem(content.numberOfImages + " supported files", false));
+            items.add(new BrowserItem(content.numberOfImages + " supported files", BrowserElement.IMAGE));
         }
+        if (content.numberOfRaws != 0) {
+            items.add(new BrowserItem(content.numberOfRaws + " .raw files (only indirectly supported)", BrowserElement.RAW));
+        }
+        if (content.numberOfVideos != 0) {
+            items.add(new BrowserItem(content.numberOfVideos + " video files (not yet supported)", BrowserElement.VIDEO));
+        }
+        if (content.numberOfOther != 0) {
+            items.add(new BrowserItem(content.numberOfOther + " other files", BrowserElement.OTHER));
+        }
+
         updateLaunchButton();
     }
 
@@ -479,16 +489,27 @@ public class Launcher {
             return null;
         }
 
-        FilenameFilter filter = Common.getFilenameFilter();
+        FilenameFilter imageFilter = Common.getFilenameFilter();
+        FilenameFilter rawFilter = Common.getFilenameFilter();
+        FilenameFilter videoFilter = Common.getFilenameFilter();
         for (File file : contents) {
             if (Common.isValidFolder(file)) {
                 if (rootMode) {
                     stats.folders.add(file.toString());
                 } else {
+                    //probably ignore linux hidden folders at some point
                     stats.folders.add(file.getName());
                 }
-            } else if (filter.accept(dir, file.getName())) {
+            } else if (imageFilter.accept(dir, file.getName())) {
                 stats.numberOfImages++;
+            } else if (rawFilter.accept(dir, file.getName())) {
+                stats.numberOfRaws++;
+            } else if (videoFilter.accept(dir, file.getName())) {
+                stats.numberOfVideos++;
+            } else {
+                //probably ignore system files like desktop.ini stuff etc.
+                //wait, .DS_Store is a file? Then we ignore it here as well! 
+                stats.numberOfOther++;
             }
         }
 
@@ -513,7 +534,7 @@ public class Launcher {
             if (name.equals("") && Common.isWindows()) { //special case for the base folders C:\ etc
                 name = f.getAbsolutePath();
             }
-            int index = listBrowser.getItems().indexOf(new BrowserItem(name, true));
+            int index = listBrowser.getItems().indexOf(new BrowserItem(name, BrowserElement.DIRECTORY));
             if (index != -1) {
                 listBrowser.getSelectionModel().select(index);
                 listBrowser.scrollTo(index);
@@ -578,19 +599,34 @@ public class Launcher {
         listBrowser.getSelectionModel().clearSelection();
     }
 
+    private enum BrowserElement {        
+        DIRECTORY("folder"), IMAGE("image"), RAW("raw2"), VIDEO("video1"), OTHER("other1");
+        
+        private String resource;
+        private BrowserElement(String resourceName) {
+            this.resource = resourceName;
+        }
+        public boolean isDirectory() {
+            return this.equals(DIRECTORY);
+        }
+        public String getResourceName() {
+            return resource;
+        }
+    }
+
     private class BrowserItem {
         public String name;
-        public boolean isFolder;
-        public BrowserItem(String name, boolean isFolder) {
+        public BrowserElement type;
+        public BrowserItem(String name, BrowserElement type) {
             this.name = name;
-            this.isFolder = isFolder;
+            this.type = type;
         }
 
         @Override
         public boolean equals(Object o) {
             if (o instanceof BrowserItem) {
                 BrowserItem i = (BrowserItem) o;
-                return i.isFolder == isFolder && i.name.equals(name);
+                return i.type == type && i.name.equals(name);
             } else {
                 return false;
             }
@@ -604,7 +640,7 @@ public class Launcher {
                     dirUp();
                 } else if (isEmpty() || getItem() == null) {
                     return;
-                } else if (getItem().isFolder) {
+                } else if (getItem().type.isDirectory()) {
                     if (e.getButton() == MouseButton.PRIMARY) {
                         if (e.getClickCount() == 2) {
                             textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + getItem().name);
@@ -613,7 +649,7 @@ public class Launcher {
                     }
                 }
                 //I like that even if every list item now has its own listener ...
-                //double clicks between two elements still are counted
+                //double clicks between two elements *still* are counted
                 //and also two double clicks in a row are not counted, as the count goes up to 4. 
                 //I *could* fix this ... but no
                 e.consume(); //Otherwise, the onMouseClicked in the ListView is also called
@@ -639,7 +675,7 @@ public class Launcher {
                 setGraphic(null);
                 setText(null);
             } else {
-                ImageView view = new ImageView(Common.getResource(item.isFolder ? "folder" : "image"));
+                ImageView view = new ImageView(Common.getResource(item.type.getResourceName()));
                 view.setFitHeight(22);
                 view.setPreserveRatio(true);
                 setGraphic(view);
