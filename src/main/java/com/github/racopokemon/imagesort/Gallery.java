@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +34,9 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -402,6 +406,10 @@ public class Gallery {
         menuShowOpenWith.setOnAction((event) -> {showOpenWithDialog();});
         MenuItem menuShowFile = new MenuItem("Show in explorer");
         menuShowFile.setOnAction((event) -> {showInExplorer();});
+        MenuItem menuCopy = new MenuItem("Copy image");
+        menuCopy.setOnAction((event) -> {copyImageToClipboard(false);});
+        MenuItem menuCopyPath = new MenuItem("Copy image path only");
+        menuCopyPath.setOnAction((event) -> {copyImageToClipboard(true);});
         MenuItem menuUndo = new MenuItem("Undo last deletion");
         menuUndo.setOnAction((event) -> {undoDelete();});
         MenuItem menuDelete = new MenuItem("Move to '/delete'");
@@ -409,7 +417,7 @@ public class Gallery {
         
         Rectangle invisibleContextMenuSource = new Rectangle();
         invisibleContextMenuSource.setVisible(false);
-        ContextMenu contextMenu = new ContextMenu(menuFileName, menuShowOpenWith, menuShowFile, menuUndo, menuDelete);
+        ContextMenu contextMenu = new ContextMenu(menuFileName, menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuUndo, menuDelete);
         view.setOnContextMenuRequested((event) -> {
             menuFileName.setText(currentImage);
             contextMenu.show(invisibleContextMenuSource, event.getScreenX(), event.getScreenY());
@@ -664,6 +672,8 @@ public class Gallery {
                     skimTo(skim);
                 } else if (event.getCode() == KeyCode.Z && event.isShortcutDown()) {
                     undoDelete();
+                } else if (event.getCode() == KeyCode.C && event.isShortcutDown()) {
+                    copyImageToClipboard(event.isShiftDown() || event.isAltDown());
                 } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown()) || (event.getCode() == KeyCode.F && numberOfTicks < 6)) {
                     //https://stackoverflow.com/questions/51386423/remove-beep-sound-upon-maximizing-javafx-stage-with-altenter
                     //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
@@ -1675,5 +1685,23 @@ public class Gallery {
             }
         }
         return new boolean[] {moveOperation, copyOperation};
+    }
+
+    //if pathOnly is false, we copy the image itself (as file)
+    //otherwise, we only write the path to clipboard.
+    private void copyImageToClipboard(boolean pathOnly) {
+        if (currentImage == null) {
+            return;
+        }
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent cc = new ClipboardContent();
+        File imageFile = new File(directory, currentImage);
+        if (!pathOnly) {
+            ArrayList<File> files = new ArrayList<>();
+            files.add(imageFile);
+            cc.putFiles(files);
+        }
+        cc.putString(imageFile.getAbsolutePath());
+        clipboard.setContent(cc);
     }
 }

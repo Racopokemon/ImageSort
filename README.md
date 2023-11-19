@@ -21,11 +21,11 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 # Furter feature ideas
 
 ## Launcher
-* Clipboard addon: Maybe check if there is image files inside before navigating there?
-  * ALSO clean the clipboard afterwards. Please. 
+* ~~Clipboard addon: Maybe check if there is image files inside before navigating there?~~
+  * ~~ALSO clean the clipboard afterwards. Please.~~
 * **Clipboard: If the folder was read from an image file or path and NOT changed, start the gallery from this file!** 
   * (Comes in handy for a folder of ~10000 images)
-* ALSO: Ctrl V reads the clipboard again! 
+* ~~ALSO: Ctrl V reads the clipboard again!~~
 * **Change the number of ticks and categories here!**
   * store the numbers in the preferences!
 * also show .raw formats in the launcher
