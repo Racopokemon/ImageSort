@@ -13,7 +13,9 @@ import java.io.File;
 
 public class Common {
     
-    private static FilenameFilter filter;
+    private static FilenameFilter filterImages;
+    private static FilenameFilter filterRaws;
+    private static FilenameFilter filterVideos;
     private static Hashtable<String, Image> resources;
 
     private static class ResolutionEntry {
@@ -39,6 +41,28 @@ public class Common {
             }
         }
     }
+
+    //Accepts all files ending with a given set of file extensions.
+    private static class ExtensionFilenameFilter implements FilenameFilter {
+        private String[] extensions;
+
+        public ExtensionFilenameFilter(String... acceptedExtensions) {
+            extensions = acceptedExtensions;
+        }
+
+        @Override
+        public boolean accept(File dir, String name) {
+            String[] split = name.split("[.]");
+            String suffix = split[split.length-1];
+            for (String ext : extensions) {
+                if (ext.equalsIgnoreCase(suffix)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     private static ArrayList<ResolutionEntry> resolutions;
     static {
         //https://support.google.com/youtube/answer/6375112
@@ -53,6 +77,10 @@ public class Common {
         resolutions.add(new ResolutionEntry(854, 480, "480p"));
         resolutions.add(new ResolutionEntry(360, 360, "360p"));
         resolutions.add(new ResolutionEntry(426, 240, "240p"));
+
+        filterImages = new ExtensionFilenameFilter("jpg", "jpeg", "png", "gif", "bmp");
+        filterRaws = new ExtensionFilenameFilter("raw", "arw", "crw", "rw2"); //no idea if any of the other extensions are actually used anywhere, just quickly googled for canon and panasonic raw formats
+        filterVideos = new ExtensionFilenameFilter("mp4","m4a","m4v","m3u8"); //https://openjfx.io/javadoc/16/javafx.media/javafx/scene/media/package-summary.html this is the video extensions they mention at least
     }
 
     //The weak check, let's see if the base requirements are met
@@ -74,26 +102,16 @@ public class Common {
     }
 
     //Filter for the files this app can work with. Everyone gets the same class, pretending to save resources here
-    public static FilenameFilter getFilenameFilter() {
-        if (filter == null) {
-            filter = new FilenameFilter() {
-                @Override
-                public boolean accept(File f, String name) {
-                    String[] split = name.split("[.]");
-                    String suffix = split[split.length-1];
-                    return (suffix.equalsIgnoreCase("jpg") || 
-                            suffix.equalsIgnoreCase("jpeg")|| 
-                            suffix.equalsIgnoreCase("png") ||
-                            suffix.equalsIgnoreCase("gif") ||
-                            suffix.equalsIgnoreCase("bmp"));
-                    //I see the advantages of python and probably other high level languages ...
-                    //where you would have a 'ends with' ignore case ...
-                    //or could access the last element of split in one line [-1] or .last (maybe c#)
-                    //... this is too much writing for something trivial
-                }
-            };
-        }
-        return filter;
+    public static FilenameFilter getImageFilter() {
+        return filterImages;
+    }
+
+    public static FilenameFilter getRawFilter() {
+        return filterRaws;
+    }
+
+    public static FilenameFilter getVideoFilter() {
+        return filterVideos;
     }
 
     public static String removeExtensionFromFilename(String filename) {

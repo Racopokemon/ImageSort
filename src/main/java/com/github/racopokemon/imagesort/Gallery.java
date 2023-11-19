@@ -218,7 +218,7 @@ public class Gallery {
 
         stage = new Stage();
 
-        filenameFilter = Common.getFilenameFilter();
+        filenameFilter = Common.getImageFilter();
         imageOperations = new Hashtable<>();
         imageBuffer = new Hashtable<>();
 

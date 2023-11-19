@@ -358,7 +358,7 @@ public class Launcher {
 
         String startImage = null;
         if (directory.equals(startFileDirectory)) {
-            if (Common.getFilenameFilter().accept(directory, startFileName) && new File(directory, startFileName).exists()) {
+            if (Common.getImageFilter().accept(directory, startFileName) && new File(directory, startFileName).exists()) {
                 startImage = startFileName;
             }
         }
@@ -489,9 +489,9 @@ public class Launcher {
             return null;
         }
 
-        FilenameFilter imageFilter = Common.getFilenameFilter();
-        FilenameFilter rawFilter = Common.getFilenameFilter();
-        FilenameFilter videoFilter = Common.getFilenameFilter();
+        FilenameFilter imageFilter = Common.getImageFilter();
+        FilenameFilter rawFilter = Common.getRawFilter();
+        FilenameFilter videoFilter = Common.getVideoFilter();
         for (File file : contents) {
             if (Common.isValidFolder(file)) {
                 if (rootMode) {
@@ -600,7 +600,7 @@ public class Launcher {
     }
 
     private enum BrowserElement {        
-        DIRECTORY("folder"), IMAGE("image"), RAW("raw2"), VIDEO("video1"), OTHER("other1");
+        DIRECTORY("folder"), IMAGE("image"), RAW("raw2"), VIDEO("video2"), OTHER("other2");
         
         private String resource;
         private BrowserElement(String resourceName) {
