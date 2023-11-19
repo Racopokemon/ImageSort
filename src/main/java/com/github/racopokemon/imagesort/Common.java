@@ -61,9 +61,9 @@ public class Common {
     }
 
     //Stronger check if the dir is valid, if sucessfull, returns an array of containing files. 
-    //Also, weird warning: Giving a File("") in here returns the windows root dirs under windows. 
+    //Also, weird warning: Giving a File("") in here returns all root dirs (esp required for windows).
     public static File[] tryListFiles(File f) {
-        if (f.toString().equals("") && isWindows()) {
+        if (f.toString().equals("")) {
             return File.listRoots();
         }
         if (!isValidFolder(f)) {
@@ -82,7 +82,7 @@ public class Common {
                     String[] split = name.split("[.]");
                     String suffix = split[split.length-1];
                     return (suffix.equalsIgnoreCase("jpg") || 
-                            suffix.equalsIgnoreCase("jpeg") || 
+                            suffix.equalsIgnoreCase("jpeg")|| 
                             suffix.equalsIgnoreCase("png") ||
                             suffix.equalsIgnoreCase("gif") ||
                             suffix.equalsIgnoreCase("bmp"));

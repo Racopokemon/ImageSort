@@ -25,6 +25,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -38,6 +39,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 
 public class Launcher {
 
@@ -83,24 +85,19 @@ public class Launcher {
         Button buttonBrowserDirUp = new Button("^");
         textFieldBrowser = new TextField();
         //If the users clipboard contains a valid path, we want start from this location. If this is not the case, we use the path used last time, if available. 
-        File startPath = null;
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasContent(DataFormat.PLAIN_TEXT)) {
-            startPath = new File(clipboard.getString());
-        } else if (clipboard.hasContent(DataFormat.FILES)) {
-            List<File> filesList = clipboard.getFiles();
-            if (filesList.size() > 0) {
-                startPath = filesList.get(0);
-            }
-        }
-        //isDirectory also checks if the dir exists. So if we have a directory OR a file inside a valid directory, we pass this on,
-        //otherwise we set startPath to null and use a fallback option. 
-        if (startPath != null && !startPath.isDirectory()) {
-            startPath = startPath.getParentFile();
-            if (startPath != null && !startPath.isDirectory()) {
+        File startPath = readPathFromClipboard();
+        if (startPath != null) {
+            //validation part: If the directory is valid, check if it contains media files of any kind. 
+            //If yes, accepted & delete clipboard. 
+            //If no, skip this path.  
+            DirectoryContents cont = getDirectoryContents(startPath);
+            if (cont.numberOfImages + cont.numberOfRaws + cont.numberOfVideos > 1) {
+                Clipboard.getSystemClipboard().clear();
+            } else {
                 startPath = null;
             }
         }
+
         //This is not the best coding style though, if our checks here are true but later when calling updateBrowser, it is not true anymore, we dont fall back to 
         //prefs.get browserPath on initialization..
         if (startPath == null) {
@@ -248,12 +245,6 @@ public class Launcher {
         listBrowser.getSelectionModel().selectedItemProperty().addListener((e) -> {
             updateLaunchButton();
         });
-        listBrowser.setOnKeyPressed((e) -> {
-            if (e.getCode() == KeyCode.F5) {
-                textFieldBrowser.setText("-%*:#[]"); //this should be invalid enough (hacky hacky, sorry)
-                updateBrowser();
-            }
-        });
         buttonFolderBrowse.setOnAction((e) -> {
             boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);
             if (success) {
@@ -261,8 +252,6 @@ public class Launcher {
                 updateLaunchButton();
             }
         });
-        
-        updateBrowser(); //a start path is already written to the textFieldBrowser at its creation. 
 
         checkMiscRelaunch.selectedProperty().addListener((obs, oldV, newV) -> {
             prefs.putBoolean("miscRelaunch", newV);
@@ -274,16 +263,61 @@ public class Launcher {
         buttonLaunch.setOnAction((e) -> {
             launch();
         });
-        
-        updateLaunchButton();
+
+        scene.getAccelerators().put(KeyCombination.keyCombination("F5"), () -> {
+            textFieldBrowser.setText("-%*:#[]"); //this should be invalid enough (hacky hacky, sorry)
+            updateBrowser();
+        });
+
+        scene.getAccelerators().put(KeyCombination.keyCombination("Shortcut+V"), () -> {
+            File clipboardContent = readPathFromClipboard();
+            if (clipboardContent != null) {
+                //This is not the best coding style here. However, we know that readPathFromClipboard has mostly
+                //ensured that a dir exists and is valid. We can therefore consume the clipboard once we pasted it, it should be okay. 
+                textFieldBrowser.setText(clipboardContent.getAbsolutePath());
+                updateBrowser();
+                Clipboard.getSystemClipboard().clear();
+            }
+        });
+
 
         stage.setScene(scene);
         stage.setTitle("Launcher");
         stage.getIcons().add(Common.getResource("logo"));
         stage.show();
 
+        //a start path is already written to the textFieldBrowser at its creation, now validate the browser. 
+        updateBrowser(); 
+        if (textFieldBrowser.getText().equals(fallbackDirectory.getAbsolutePath())) { //if we end up in the default dir, show the folder selection dialog already. 
+            buttonFolderBrowse.fireEvent(new ActionEvent());
+        }
+        updateLaunchButton();
+
+
         //buttonBrowserBrowse.requestFocus();
         buttonLaunch.requestFocus();
+    }
+
+    private File readPathFromClipboard() {
+        File path = null;
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        if (clipboard.hasContent(DataFormat.PLAIN_TEXT)) {
+            path = new File(clipboard.getString());
+        } else if (clipboard.hasContent(DataFormat.FILES)) {
+            List<File> filesList = clipboard.getFiles();
+            if (filesList.size() > 0) {
+                path = filesList.get(0);
+            }
+        }
+        //isDirectory also checks if the dir exists. So if we have a directory OR a file inside a valid directory, we return this, 
+        //otherwise the clipboard content was not readable
+        if (path != null && !path.isDirectory()) {
+            path = path.getParentFile();
+            if (path != null && !path.isDirectory()) {
+                return null;
+            }
+        }
+        return path;
     }
 
     private void launch() {
@@ -310,7 +344,7 @@ public class Launcher {
             }
         }
 
-        if (getNumberSupportedImages(directory) == 0) {
+        if (getNumberOfSupportedImages(directory) == 0) {
             Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe could find no supported files in folder \n"+textFieldBrowser.getText(), ButtonType.OK);
             alert.setHeaderText("Could not launch");
             alert.showAndWait();
@@ -380,16 +414,15 @@ public class Launcher {
             fallbackStack.add(placementIndex, parentDir);
         }
         
-        File[] contents = null; //this crashes sometimes, even though the directory exists, can read, etc.
-
         int i = fallbackStack.size();
         File f = null;
         boolean loop = true;
+        DirectoryContents content;
         do {
             i--;
             f = fallbackStack.get(i);
-            contents = Common.tryListFiles(f);
-            loop = contents == null; 
+            content = getDirectoryContents(f);
+            loop = content == null; 
         } while (loop && i > 0);
         if (loop) { //i == 0, none of the directories worked
             System.out.println("bro as if you just deleted your home folder");
@@ -397,35 +430,57 @@ public class Launcher {
             return;
         }
         lastValidBrowserDirectory = f;
-        boolean windowsRootMode = f.toString().equals("");
-        if (windowsRootMode) {
-            textFieldBrowser.setText(""); //Hacky special case: Windows roots are shown for empty string
+        
+        //Hacky special case: Windows roots are shown for empty string
+        boolean rootMode = f.toString().equals("");
+        if (rootMode) {
+            textFieldBrowser.setText(""); 
         } else {
             textFieldBrowser.setText(f.getAbsolutePath());
         }
 
-        FilenameFilter filter = Common.getFilenameFilter();
-        int currentImageCount = 0;
-        ArrayList<String> dirs = new ArrayList<>();
-        for (File file : contents) {
-            if (Common.isValidFolder(file)) {
-                if (windowsRootMode) {
-                    dirs.add(file.toString());
-                } else {
-                    dirs.add(file.getName());
-                }
-            } else if (filter.accept(f, file.getName())) {
-                currentImageCount++;
-            }
-        }
-        Collections.sort(dirs, String.CASE_INSENSITIVE_ORDER);
-        for (String s : dirs) {
+        Collections.sort(content.folders, String.CASE_INSENSITIVE_ORDER);
+        for (String s : content.folders) {
             items.add(new BrowserItem(s, true));
         }
-        if (currentImageCount != 0) {
-            items.add(new BrowserItem(currentImageCount + " supported files", false));
+        if (content.numberOfImages != 0) {
+            items.add(new BrowserItem(content.numberOfImages + " supported files", false));
         }
         updateLaunchButton();
+    }
+
+    private class DirectoryContents {
+        public ArrayList<String> folders = new ArrayList<String>();
+        public int numberOfImages = 0;
+        public int numberOfRaws = 0;
+        public int numberOfVideos = 0;
+        public int numberOfOther = 0;
+    }
+
+    private DirectoryContents getDirectoryContents(File dir) {
+        boolean rootMode = dir.toString().equals("");
+
+        DirectoryContents stats = new DirectoryContents();
+
+        File[] contents = Common.tryListFiles(dir);
+        if (contents == null) {
+            return null;
+        }
+
+        FilenameFilter filter = Common.getFilenameFilter();
+        for (File file : contents) {
+            if (Common.isValidFolder(file)) {
+                if (rootMode) {
+                    stats.folders.add(file.toString());
+                } else {
+                    stats.folders.add(file.getName());
+                }
+            } else if (filter.accept(dir, file.getName())) {
+                stats.numberOfImages++;
+            }
+        }
+
+        return stats;
     }
 
     private void dirUp() {
@@ -456,16 +511,10 @@ public class Launcher {
         }
     }
 
-
-    private int getNumberSupportedImages(File directory) {
-        FilenameFilter filter = Common.getFilenameFilter();
-        int number = 0;
-        for (File f : Common.tryListFiles(directory)) {
-            if (!f.isDirectory() && filter.accept(directory, f.getName())) {
-                number++;
-            }
-        }
-        return number;
+    private int getNumberOfSupportedImages(File directory) {
+        DirectoryContents contents = getDirectoryContents(directory);
+        if (contents == null) return 0;
+        return contents.numberOfImages;
     }
 
     private void updateLaunchButton() {
@@ -484,7 +533,7 @@ public class Launcher {
             text += "invalid directory";
         } else {
             text += "'" + mainDir.getName() + "' ";
-            imageCount = getNumberSupportedImages(mainDir);
+            imageCount = getNumberOfSupportedImages(mainDir);
             if (imageCount == 0) {
                 text += "(no valid files found!)";
             } else {
