@@ -457,19 +457,23 @@ public class Launcher {
             items.add(new BrowserItem(s, BrowserElement.DIRECTORY));
         }
         if (content.numberOfImages != 0) {
-            items.add(new BrowserItem(content.numberOfImages + " supported files", BrowserElement.IMAGE));
+            items.add(new BrowserItem(content.numberOfImages + " supported " + getSingularOrPluralOfFile(content.numberOfImages), BrowserElement.IMAGE));
         }
         if (content.numberOfRaws != 0) {
-            items.add(new BrowserItem(content.numberOfRaws + " RAW files (only indirectly supported)", BrowserElement.RAW));
+            items.add(new BrowserItem(content.numberOfRaws + " RAW " + getSingularOrPluralOfFile(content.numberOfRaws) + " (only indirectly supported)", BrowserElement.RAW));
         }
         if (content.numberOfVideos != 0) {
-            items.add(new BrowserItem(content.numberOfVideos + " video files (not yet supported)", BrowserElement.VIDEO));
+            items.add(new BrowserItem(content.numberOfVideos + " video " + getSingularOrPluralOfFile(content.numberOfVideos) + " (not yet supported)", BrowserElement.VIDEO));
         }
         if (content.numberOfOther != 0) {
-            items.add(new BrowserItem(content.numberOfOther + " other files", BrowserElement.OTHER));
+            items.add(new BrowserItem(content.numberOfOther + " other " + getSingularOrPluralOfFile(content.numberOfOther), BrowserElement.OTHER));
         }
 
         updateLaunchButton();
+    }
+
+    private String getSingularOrPluralOfFile(int numberOfFiles) {
+        return numberOfFiles == 1 ? "file" : "files";
     }
 
     private class DirectoryContents {

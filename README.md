@@ -29,6 +29,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * **Change the number of ticks and categories here!**
   * store the numbers in the preferences!
 * ~~also show .raw formats in the launcher~~
+* For "other" files, maybe show all of them in the launcher? You always wonder what these are!
 * maybe also show other images (?) here
 * context menu (please!)
   * **Open in system explorer!**
