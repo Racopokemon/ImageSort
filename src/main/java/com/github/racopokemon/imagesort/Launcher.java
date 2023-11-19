@@ -459,7 +459,7 @@ public class Launcher {
             items.add(new BrowserItem(content.numberOfImages + " supported files", BrowserElement.IMAGE));
         }
         if (content.numberOfRaws != 0) {
-            items.add(new BrowserItem(content.numberOfRaws + " .raw files (only indirectly supported)", BrowserElement.RAW));
+            items.add(new BrowserItem(content.numberOfRaws + " RAW files (only indirectly supported)", BrowserElement.RAW));
         }
         if (content.numberOfVideos != 0) {
             items.add(new BrowserItem(content.numberOfVideos + " video files (not yet supported)", BrowserElement.VIDEO));
@@ -600,7 +600,7 @@ public class Launcher {
     }
 
     private enum BrowserElement {        
-        DIRECTORY("folder"), IMAGE("image"), RAW("raw2"), VIDEO("video2"), OTHER("other2");
+        DIRECTORY("folder"), IMAGE("image"), RAW("raw1"), VIDEO("video2"), OTHER("other2");
         
         private String resource;
         private BrowserElement(String resourceName) {
