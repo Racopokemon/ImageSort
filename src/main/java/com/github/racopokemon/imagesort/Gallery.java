@@ -701,6 +701,8 @@ public class Gallery {
             }
         });
 
+        //stage.focusedProperty().addListener((a, oldV, newV) -> {if (!newV && stage.isFullScreen()) stage.setFullScreen(false);});
+
         stage.getIcons().add(Common.getResource("logo"));
         stage.setMinHeight(400);
         stage.setMinWidth(600);
@@ -933,6 +935,7 @@ public class Gallery {
                 }
             }
         }
+        if (stage.isFullScreen()) stage.setFullScreen(false);
     }
 
     private void showOpenWithDialog() {

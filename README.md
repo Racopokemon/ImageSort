@@ -41,6 +41,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Remove the option where to place the delete-folder, I used it 0 times
   * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
 * Typing keys will select the first element starting with this letter in the list!
+* ***Bug right now: When the browser window automatically appears, the selected folder is never inserted into the text field or the prefs - what is going wrong here?***
+* ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***s
+* ***There are micro-lags when just -clicking- a folder with a lot of tiles. What is this supposed to be?***
+* ***Enter key doesnt work in the folder view, backspace doesn't either (esc ofc also not)***
   
 ## Gallery
 * General
@@ -82,6 +86,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
     * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
   * RAW support (kindof walked around this one, but still there would be options!)
 * Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)
+  * Might be covered enough already by the Launcher "other files" now. 
+* ~~Maybe: If the gallery loses focus, automatically exit fullscreen? Already for open with and open explorer and so on, might be natural. -> this turned out rather annoying~~
 
 ## File operations window
   * **Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!** 
