@@ -1,4 +1,5 @@
 # ImageSort 1.6
+_December 17th, 2023_
 *The pre-christmas release*
 
 This update features various quality of life improvements that improve the usability at least for my use cases. 
