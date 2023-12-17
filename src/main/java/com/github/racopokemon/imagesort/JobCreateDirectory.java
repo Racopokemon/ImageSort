@@ -40,8 +40,8 @@ public class JobCreateDirectory extends JobContainer {
                 target.stepsFinished(getNumberOfStepsInDependentJobs());
                 return;
             }
-            executeAllDependentJobs(target);
         }
+        executeAllDependentJobs(target);
     }
     
 }
