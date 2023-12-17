@@ -21,16 +21,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 # Furter feature ideas
 
 ## Launcher
-* ~~Clipboard addon: Maybe check if there is image files inside before navigating there?~~
-  * ~~ALSO clean the clipboard afterwards. Please.~~
-* ~~Clipboard: If the folder was read from an image file or path and NOT changed, start the gallery from this file!~~
-  * ~~(Comes in handy for a folder of ~10000 images)~~
-* ~~ALSO: Ctrl V reads the clipboard again!~~
 * **Change the number of ticks and categories here!**
   * store the numbers in the preferences!
-* ~~also show .raw formats in the launcher~~
-* ~~For "other" files, maybe show all of them in the launcher? You always wonder what these are!~~
-  * ~~They are now shown, and also their extensions, this clarifies a lots of things actually.~~
 * maybe also show other images (?) here
   * heic, tga, webp are candidates
 * maybe also show other, not supported video formats here
@@ -41,13 +33,6 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * (Move to /raw)
   * and move to system trash!
 * Quick n dirty 'history' that can be acessed with the mouse key and alt down. For every folder jumped in, overwrite. For every error (where does it even occur) update the history. 
-* ~~Enter key should also enter the selected directory~~
-* ~~Enter inside a folder without folders should launch the gallery~~
-  * ~~Enter if the pictures are selected (maybe also the raws) as well~~
-  * ~~double click as well!~~
-* ~~ctrl + enter opens in explorer~~
-* ~~make backspace work as well for up-navigation~~
-* ~~What should enter on not-images do? Show them in the explorer? Maybe.~~
 * ***Ctrl+V does not work if the text field is focused in the gallery***
   * check if clipboard is non-text. then consume, otherwise let it happen
 * **Move the destination folder option to the confirmation dialog**
@@ -79,10 +64,6 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Mouse drag allows searching
 * Context menu
   * Move to trash
-  * ~~Copy image to clipboard~~
-    * ~~Also: Ctrl+C~~
-  * ~~Copy path to clipboard~~
-    * ~~Also: Ctrl+Shift+C~~
   * (later rotate)
 * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
@@ -100,7 +81,6 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * RAW support (kindof walked around this one, but still there would be options!)
 * Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)
   * Might be covered enough already by the Launcher "other files" now. 
-* ~~Maybe: If the gallery loses focus, automatically exit fullscreen? Already for open with and open explorer and so on, might be natural. -> this turned out rather annoying~~
 
 ## File operations window
   * **Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!** 

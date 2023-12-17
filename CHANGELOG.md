@@ -1,3 +1,27 @@
+# ImageSort 1.6
+*The pre-christmas release*
+
+This update features various quality of life improvements that improve the usability at least for my use cases. 
+
+Launcher
+- Clipboard-Integration
+  - Reads your clipboard on startup and enters this directory
+  - You can always paste paths / images / folders to navigate to with Ctrl+V
+  - When pasting an image, the gallery will also start with this image
+- More detailled view of the folder contents, also showing RAWs, videos and 'other' files
+- Better browser navigation using the keyboard
+  - Enter, arrow keys, backspace etc work for in-folder navigation
+  - Shift+Enter / Shift+Double click opens the system explorer instead
+
+Gallery
+- Copy image and image path in the context menu or with shortcuts
+- Indicating image resolution while zooming or hovering percentage bar
+  - Percentage bar indicating image size, as well as a categorization into the well-known youtube resolutions (480p, 4k, etc)
+- Slighly prettier percentage bar
+
+File IO
+- Internally rewrote the entire IO code. This will come in handy in later updates, allowing for bulk file operations also from the launcher (delete / move one dir up / ...)
+
 # ImageSort 1.5
 
 _September 02, 2023_
