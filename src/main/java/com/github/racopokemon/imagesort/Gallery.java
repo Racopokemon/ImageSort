@@ -532,9 +532,13 @@ public class Gallery {
                 for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
                     if (!operations.get(i).isEmpty()) {
                         if (i < numberOfCategories + 1) {
-                            closeMessage += "   move " + operations.get(i).size() + " files to " + targetDirectory.getName() + "/" + i + "\n";
+                            closeMessage += "   move " + operations.get(i).size();
+                            closeMessage += operations.get(i).size() == 1 ? " file to " : " files to ";
+                            closeMessage +=  targetDirectory.getName() + "/" + i + "\n";
                         } else {
-                            closeMessage += "   copy " + operations.get(i).size() + " files to " + targetDirectory.getName() + "/" + getTickName(i - numberOfCategories - 1) + "\n";
+                            closeMessage += "   copy " + operations.get(i).size();
+                            closeMessage += operations.get(i).size() == 1 ? " file to " : " files to ";
+                            closeMessage += targetDirectory.getName() + "/" + getTickName(i - numberOfCategories - 1) + "\n";
                         }
                     }
                 }

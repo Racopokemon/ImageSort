@@ -36,7 +36,9 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * **move 1 folder up**
   * (Move to /raw)
   * and move to system trash!
-* Enter key should also enter the selected directory
+* **Enter key should also enter the selected directory**
+* **Enter inside a folder without folders should launch the gallery**
+  * **Enter if the pictures are selected (maybe also the raws) as well** 
 * **Move the destination folder option to the confirmation dialog**
   * Remove the option where to place the delete-folder, I used it 0 times
   * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
