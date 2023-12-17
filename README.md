@@ -41,6 +41,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Remove the option where to place the delete-folder, I used it 0 times
   * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
 * Typing keys will select the first element starting with this letter in the list!
+* **ctrl + enter opens in explorer**
 * ***Bug right now: When the browser window automatically appears, the selected folder is never inserted into the text field or the prefs - what is going wrong here?***
 * ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***
 * ***There are micro-lags when just -clicking- a folder with a lot of tiles. What is this supposed to be?***
@@ -48,6 +49,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * ***Ctrl+V does not work if the text field is focused in the gallery***
   
 ## Gallery
+* **Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated**
 * General
   * **indicate that a modified image is moved once the currently previewed image changes**
   * **Ctrl delete for 'instant delete' which instantly moves it to system trash?**
