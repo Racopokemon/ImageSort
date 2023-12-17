@@ -36,7 +36,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -58,10 +57,8 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import java.awt.Desktop;
 
 /*
  * TODO: Watch out for ToDos!
@@ -923,22 +920,7 @@ public class Gallery {
 
     private void showInExplorer() {
         if (currentImage == null) return;
-        
-        //Desktop.getDesktop().browseFileDirectory(<file>) would be better, cross platform, but requires java 9 and im too lazy to install now
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
-            //On windows 11, this for example already *doesnt* work ...
-            Desktop.getDesktop().browseFileDirectory(new File(getFullPathForFileInThisFolder(currentImage)));
-        } else {
-            //... so we keep our little fallback code here
-            if (Common.isWindows()) {
-                try {
-                    Runtime.getRuntime().exec("explorer.exe /select," + getFullPathForFileInThisFolder(currentImage));
-                } catch (IOException e) {
-                    System.out.println("Could not show file " + currentImage + " in explorer:");
-                    e.printStackTrace();
-                }
-            }
-        }
+        Common.showFileInExplorer(getFullPathForFileInThisFolder(currentImage));
         if (stage.isFullScreen()) stage.setFullScreen(false);
     }
 

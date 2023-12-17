@@ -1,9 +1,11 @@
 package com.github.racopokemon.imagesort;
 
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.prefs.Preferences;
+import java.awt.Desktop;
 
 import javafx.scene.image.Image;
 
@@ -212,5 +214,41 @@ public class Common {
         return numberOfFiles == 1 ? "file" : "files";
     }
 
+    public static void showFileInExplorer(String path) {
+        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
+            //On windows 11, this for example already *doesnt* work ...
+            Desktop.getDesktop().browseFileDirectory(new File(path));
+        } else {
+            //... so we keep our little fallback code here
+            if (Common.isWindows()) {
+                try {
+                    Runtime.getRuntime().exec("explorer.exe /select," + path);
+                } catch (IOException e) {
+                    System.out.println("Could not show file " + path + " in explorer:");
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void showDirInExplorer(String path) {
+        if (Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+            try {
+                Desktop.getDesktop().open(new File(path));
+            } catch (IOException e) {
+                System.out.println("Could not open dir " + path);
+                e.printStackTrace();
+            }
+        } else {
+            if (Common.isWindows()) {
+                try {
+                    Runtime.getRuntime().exec("explorer.exe " + path);
+                } catch (IOException e) {
+                    System.out.println("Could not open dir " + path);
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 }

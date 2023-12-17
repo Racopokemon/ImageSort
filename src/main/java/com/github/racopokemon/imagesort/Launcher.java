@@ -255,8 +255,18 @@ public class Launcher {
         listBrowser.setOnKeyPressed((e) -> {
             BrowserItem item = listBrowser.getSelectionModel().getSelectedItem();
             if (e.getCode() == KeyCode.ENTER) {
-                if (item != null) {
-                    item.onAction();
+                if (item == null) {
+                    if (e.isShortcutDown() || e.isShiftDown()) {
+                        Common.showDirInExplorer(textFieldBrowser.getText());
+                    } else {
+                        launch(); //If we can't launch here (button disabled), the launch call simply ignores this request.
+                    }
+                } else {
+                    if (e.isShortcutDown() || e.isShiftDown()) {
+                        item.onAlternativeAction();
+                    } else {
+                        item.onAction();
+                    }
                 }
             } else if (e.getCode() == KeyCode.BACK_SPACE || (e.getCode() == KeyCode.UP && e.isAltDown())) {
                 dirUp();
@@ -349,6 +359,12 @@ public class Launcher {
     }
 
     private void launch() {
+        if (buttonLaunch.isDisabled()) {
+            //this call either comes from the launch button itself or from browser items that were double clicked etc. 
+            //simply drop the request if the button is not enabled
+            return;
+        }
+
         String deleteSuffix = FileSystems.getDefault().getSeparator() + "delete";
         File directory = getCurrentlySelectedDirectory();
         File delDirectory = new File(textFieldBrowser.getText() + deleteSuffix);
@@ -683,8 +699,21 @@ public class Launcher {
             if (isDirectory()) {
                 textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + name);
                 updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
+            } else if (type == BrowserElement.IMAGE) {
+                launch(); //if we can't launch here, the method simply ignores the request
             } else {
+                //delegate to show in explorer
+                onAlternativeAction();
+            }
+        }
 
+        //modified (shift, shortcut) double click or enter. (Basically show in explorer)
+        public void onAlternativeAction() {
+            //we never select an actual file, always just open the browser
+            if (isDirectory()) {
+                Common.showDirInExplorer(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + name);
+            } else {
+                Common.showDirInExplorer(textFieldBrowser.getText());
             }
         }
     }
@@ -697,7 +726,11 @@ public class Launcher {
                 } else if (isEmpty() || getItem() == null) {
                     return;
                 } else if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
-                    getItem().onAction();
+                    if (e.isShortcutDown() || e.isShiftDown()) {
+                        getItem().onAlternativeAction();
+                    } else {
+                        getItem().onAction();
+                    }
                 }
                 //I like that even if every list item now has its own listener ...
                 //double clicks between two elements *still* are counted
