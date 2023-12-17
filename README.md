@@ -42,12 +42,12 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * and move to system trash!
 * Quick n dirty 'history' that can be acessed with the mouse key and alt down. For every folder jumped in, overwrite. For every error (where does it even occur) update the history. 
 * ~~Enter key should also enter the selected directory~~
-* **Enter inside a folder without folders should launch the gallery**
-  * **Enter if the pictures are selected (maybe also the raws) as well** 
-  * **double click as well!**
-* **ctrl + enter opens in explorer**
+* ~~Enter inside a folder without folders should launch the gallery~~
+  * ~~Enter if the pictures are selected (maybe also the raws) as well~~
+  * ~~double click as well!~~
+* ~~ctrl + enter opens in explorer~~
 * ~~make backspace work as well for up-navigation~~
-* What should enter on not-images do? Show them in the explorer? Maybe. 
+* ~~What should enter on not-images do? Show them in the explorer? Maybe.~~
 * ***Ctrl+V does not work if the text field is focused in the gallery***
   * check if clipboard is non-text. then consume, otherwise let it happen
 * **Move the destination folder option to the confirmation dialog**
