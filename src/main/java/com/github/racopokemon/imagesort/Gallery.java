@@ -532,12 +532,12 @@ public class Gallery {
                 for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
                     if (!operations.get(i).isEmpty()) {
                         if (i < numberOfCategories + 1) {
-                            closeMessage += "   move " + operations.get(i).size();
-                            closeMessage += operations.get(i).size() == 1 ? " file to " : " files to ";
+                            closeMessage += "   move " + operations.get(i).size() + " ";
+                            closeMessage += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
                             closeMessage +=  targetDirectory.getName() + "/" + i + "\n";
                         } else {
-                            closeMessage += "   copy " + operations.get(i).size();
-                            closeMessage += operations.get(i).size() == 1 ? " file to " : " files to ";
+                            closeMessage += "   copy " + operations.get(i).size() + " ";
+                            closeMessage += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
                             closeMessage += targetDirectory.getName() + "/" + getTickName(i - numberOfCategories - 1) + "\n";
                         }
                     }

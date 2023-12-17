@@ -22,6 +22,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
@@ -251,6 +252,26 @@ public class Launcher {
         listBrowser.getSelectionModel().selectedItemProperty().addListener((e) -> {
             updateLaunchButton();
         });
+        listBrowser.setOnKeyPressed((e) -> {
+            BrowserItem item = listBrowser.getSelectionModel().getSelectedItem();
+            if (e.getCode() == KeyCode.ENTER) {
+                if (item != null) {
+                    item.onAction();
+                }
+            } else if (e.getCode() == KeyCode.BACK_SPACE || (e.getCode() == KeyCode.UP && e.isAltDown())) {
+                dirUp();
+            } else if (e.getCode() == KeyCode.UP && item == null) {
+                listBrowser.getSelectionModel().selectLast();
+            } else if (e.getCode() == KeyCode.DOWN && item == null) {
+                listBrowser.getSelectionModel().selectFirst();
+            } else if (e.getCode() == KeyCode.ESCAPE) {
+                if (item == null) {
+                    dirUp();
+                } else {
+                    listBrowser.getSelectionModel().clearSelection();
+                }
+            }
+        });
         buttonFolderBrowse.setOnAction((e) -> {
             boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);
             if (success) {
@@ -393,7 +414,7 @@ public class Launcher {
         BrowserItem selectedItem = null;
         if (!listBrowser.getSelectionModel().isEmpty()) {
             selectedItem = listBrowser.getSelectionModel().getSelectedItem();
-            if (selectedItem.type.isDirectory()) {
+            if (selectedItem.isDirectory()) {
                 folderSelected = true;
             }
         }
@@ -458,16 +479,16 @@ public class Launcher {
             items.add(new BrowserItem(s, BrowserElement.DIRECTORY));
         }
         if (content.numberOfImages != 0) {
-            items.add(new BrowserItem(content.numberOfImages + " supported " + getSingularOrPluralOfFile(content.numberOfImages), BrowserElement.IMAGE));
+            items.add(new BrowserItem(content.numberOfImages + " supported " + Common.getSingularOrPluralOfFile(content.numberOfImages), BrowserElement.IMAGE));
         }
         if (content.numberOfRaws != 0) {
-            items.add(new BrowserItem(content.numberOfRaws + " RAW " + getSingularOrPluralOfFile(content.numberOfRaws) + " (only indirectly supported)", BrowserElement.RAW));
+            items.add(new BrowserItem(content.numberOfRaws + " RAW " + Common.getSingularOrPluralOfFile(content.numberOfRaws) + " (only indirectly supported)", BrowserElement.RAW));
         }
         if (content.numberOfVideos != 0) {
-            items.add(new BrowserItem(content.numberOfVideos + " video " + getSingularOrPluralOfFile(content.numberOfVideos) + " (not yet supported)", BrowserElement.VIDEO));
+            items.add(new BrowserItem(content.numberOfVideos + " video " + Common.getSingularOrPluralOfFile(content.numberOfVideos) + " (not yet supported)", BrowserElement.VIDEO));
         }
         if (content.numberOfOther != 0) {
-            String otherText = content.numberOfOther + " other " + getSingularOrPluralOfFile(content.numberOfOther);
+            String otherText = content.numberOfOther + " other " + Common.getSingularOrPluralOfFile(content.numberOfOther);
             int extSize = content.otherExtensions.size();
             if (extSize <= 5) {
                 otherText += " (";
@@ -483,10 +504,6 @@ public class Launcher {
         }
 
         updateLaunchButton();
-    }
-
-    private String getSingularOrPluralOfFile(int numberOfFiles) {
-        return numberOfFiles == 1 ? "file" : "files";
     }
 
     private class DirectoryContents {
@@ -629,9 +646,6 @@ public class Launcher {
         private BrowserElement(String resourceName) {
             this.resource = resourceName;
         }
-        public boolean isDirectory() {
-            return this.equals(DIRECTORY);
-        }
         public String getResourceName() {
             return resource;
         }
@@ -654,6 +668,25 @@ public class Launcher {
                 return false;
             }
         }
+
+        public boolean isDirectory() {
+            return type.equals(BrowserElement.DIRECTORY);
+        }
+
+        public Image getImage() {
+            return Common.getResource(type.getResourceName());
+        }
+
+        //Called when enter is pressed on a browserCell of this item, or if it is double clicked
+        public void onAction() {
+            //were slowly getting to the point, where we could use inheritance instead of cases for BrowserItems
+            if (isDirectory()) {
+                textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + name);
+                updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
+            } else {
+
+            }
+        }
     }
 
     private class BrowserCell extends ListCell<BrowserItem> {
@@ -663,13 +696,8 @@ public class Launcher {
                     dirUp();
                 } else if (isEmpty() || getItem() == null) {
                     return;
-                } else if (getItem().type.isDirectory()) {
-                    if (e.getButton() == MouseButton.PRIMARY) {
-                        if (e.getClickCount() == 2) {
-                            textFieldBrowser.setText(textFieldBrowser.getText() + FileSystems.getDefault().getSeparator() + getItem().name);
-                            updateBrowser(); //cheap and simple. We literally just write the new path into the text field, updateBrowser then does the validation. 
-                        }
-                    }
+                } else if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
+                    getItem().onAction();
                 }
                 //I like that even if every list item now has its own listener ...
                 //double clicks between two elements *still* are counted
@@ -682,12 +710,13 @@ public class Launcher {
                 if (isEmpty() || getItem() == null) {
                     browserEmptyClicked();
                 }
-                if (e.getButton() == MouseButton.PRIMARY && !isEmpty()) {
-                    if (e.getClickCount() == 1 && isSelected()) {
-                        //the plan was to unselect elements again, but it doesnt work: 
-                        //listBrowser.getSelectionModel().clearSelection(); //The element is selected before when this is called and then just gets instantly unselected. 
-                    }
-                }
+                //if (e.getButton() == MouseButton.PRIMARY && !isEmpty()) {
+                //    if (e.getClickCount() == 1 && isSelected()) {
+                //        //the plan was to unselect elements again, but it doesnt work: 
+                //        //listBrowser.getSelectionModel().clearSelection(); 
+                //        //The element is selected before when this is called and then just gets instantly unselected. 
+                //    }
+                //}
             });
         }
         
@@ -698,7 +727,7 @@ public class Launcher {
                 setGraphic(null);
                 setText(null);
             } else {
-                ImageView view = new ImageView(Common.getResource(item.type.getResourceName()));
+                ImageView view = new ImageView(item.getImage());
                 view.setFitHeight(22);
                 view.setPreserveRatio(true);
                 setGraphic(view);

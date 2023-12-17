@@ -206,4 +206,11 @@ public class Common {
         return "<" + resolutions.get(resolutions.size()-1).getName();
     }
 
+    //Simply returns "file" if numberOfFiles is 1, and "files" otherwise. 
+    //Needed in more places than I thought
+    public static String getSingularOrPluralOfFile(int numberOfFiles) {
+        return numberOfFiles == 1 ? "file" : "files";
+    }
+
+
 }
