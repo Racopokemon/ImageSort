@@ -314,7 +314,7 @@ public class Launcher {
                 textFieldBrowser.setText(clipboardContent.getAbsolutePath());
                 updateBrowser();
                 Clipboard.getSystemClipboard().clear();
-                buttonLaunch.requestFocus();
+                listBrowser.requestFocus(); //used to be buttonLaunch, but now pressing enter in the browser launches as well. 
             }
         });
 
@@ -331,7 +331,7 @@ public class Launcher {
         updateLaunchButton();
 
         //buttonBrowserBrowse.requestFocus();
-        buttonLaunch.requestFocus();
+        listBrowser.requestFocus();
     }
 
     private File readPathFromClipboard() {
