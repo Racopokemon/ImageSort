@@ -42,9 +42,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
 * Typing keys will select the first element starting with this letter in the list!
 * ***Bug right now: When the browser window automatically appears, the selected folder is never inserted into the text field or the prefs - what is going wrong here?***
-* ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***s
+* ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***
 * ***There are micro-lags when just -clicking- a folder with a lot of tiles. What is this supposed to be?***
 * ***Enter key doesnt work in the folder view, backspace doesn't either (esc ofc also not)***
+* ***Ctrl+V does not work if the text field is focused in the gallery***
   
 ## Gallery
 * General
@@ -91,6 +92,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 
 ## File operations window
   * **Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!** 
+  * **Option to automatically rename images that have the same name. Why was this never a feature request before?**
 
 ## Other
 * Progress Window
