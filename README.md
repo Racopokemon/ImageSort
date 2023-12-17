@@ -29,8 +29,12 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * **Change the number of ticks and categories here!**
   * store the numbers in the preferences!
 * ~~also show .raw formats in the launcher~~
-* For "other" files, maybe show all of them in the launcher? You always wonder what these are!
+* ~~For "other" files, maybe show all of them in the launcher? You always wonder what these are!~~
+  * They are shown, and also their extensions, this clarifies a lots of things actually. 
 * maybe also show other images (?) here
+  * heic, tga, webp are candidates
+* maybe also show other, not supported video formats here
+  * mov, (avi), some occured already
 * context menu (please!)
   * **Open in system explorer!**
   * **move 1 folder up**
@@ -39,16 +43,19 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * **Enter key should also enter the selected directory**
 * **Enter inside a folder without folders should launch the gallery**
   * **Enter if the pictures are selected (maybe also the raws) as well** 
+  * **double click as well!**
+* **ctrl + enter opens in explorer**
+* **make backspace work as well for up-navigation**
+* What should enter on not-images do? Show them in the explorer? Maybe. 
+* ***Ctrl+V does not work if the text field is focused in the gallery***
+  * check if clipboard is non-text. then consume, otherwise let it happen
 * **Move the destination folder option to the confirmation dialog**
   * Remove the option where to place the delete-folder, I used it 0 times
   * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
 * Typing keys will select the first element starting with this letter in the list!
-* **ctrl + enter opens in explorer**
 * ***Bug right now: When the browser window automatically appears, the selected folder is never inserted into the text field or the prefs - what is going wrong here?***
 * ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***
 * ***There are micro-lags when just -clicking- a folder with a lot of tiles. What is this supposed to be?***
-* ***Enter key doesnt work in the folder view, backspace doesn't either (esc ofc also not)***
-* ***Ctrl+V does not work if the text field is focused in the gallery***
   
 ## Gallery
 * **Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated**
