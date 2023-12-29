@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Optional;
@@ -45,9 +44,11 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
@@ -150,6 +151,9 @@ public class Gallery {
 
     private Text wrapSearchIndicator;
     private Timeline wrapSearchIndicatorTimeline;
+    private Pane actionIndicatorPane;
+    private Circle actionIndicatorC1, actionIndicatorC2;
+    private Timeline actinoIndicateTimeline;
     //https://stackoverflow.com/questions/33066754/javafx-set-mouse-hidden-when-idle Thanks for the great answer, was halfway through Workers, Tasks and Services
     private PauseTransition hideMouseOnIdle;
 
@@ -456,6 +460,18 @@ public class Gallery {
         exitFullscreenHintBackground.setOpacity(0.65);
         exitFullscreenHintBackground.setArcHeight(20);
         exitFullscreenHintBackground.setArcWidth(20);
+
+        //this is neat, but on the long run I might replace this with a little console log that quickly disappears, then you can also add some text to it
+        actionIndicatorC1 = new Circle(50, 50, 30, Color.WHITE);
+        actionIndicatorC2 = new Circle(50, 50, 20, Color.LIGHTGRAY);
+        actionIndicatorPane = new Pane();
+        actionIndicatorPane.getChildren().addAll(actionIndicatorC1, actionIndicatorC2);
+        actionIndicatorPane.setMaxSize(100, 100);
+        actionIndicatorPane.setMinSize(100, 100);
+        actionIndicatorPane.setMouseTransparent(true);
+        actionIndicatorPane.setVisible(false);
+        StackPane.setAlignment(actionIndicatorPane, Pos.TOP_RIGHT);
+        StackPane.setMargin(actionIndicatorPane, new Insets(20));
         
         StackPane exitFullscreenHint = new StackPane(exitFullscreenHintBackground, exitFullscreenText); 
         exitFullscreenHint.setMouseTransparent(true);
@@ -509,6 +525,7 @@ public class Gallery {
         rootPane.getChildren().add(exitFullscreenRect);
         rootPane.getChildren().add(exitFullscreenHint);
         rootPane.getChildren().add(hideUiHotcorner);
+        rootPane.getChildren().add(actionIndicatorPane);
 
         Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
@@ -668,6 +685,7 @@ public class Gallery {
                 //    view.setCache(false);
                 } else if (event.getCode() == KeyCode.F5) {
                     updateFilesList();
+                    showActionIndicator();
                 } else if (event.getCode().isDigitKey()) {
                     String keyName = event.getCode().getName();
                     int skim = Integer.valueOf(keyName.substring(keyName.length() - 1, keyName.length())); 
@@ -675,6 +693,7 @@ public class Gallery {
                     skimTo(skim);
                 } else if (event.getCode() == KeyCode.Z && event.isShortcutDown()) {
                     undoDelete();
+                    showActionIndicator();
                 } else if (event.getCode() == KeyCode.C && event.isShortcutDown()) {
                     copyImageToClipboard(event.isShiftDown() || event.isAltDown());
                 } else if (event.getCode() == KeyCode.F11 || (event.getCode() == KeyCode.ENTER && event.isAltDown()) || (event.getCode() == KeyCode.F && numberOfTicks < 6)) {
@@ -922,6 +941,7 @@ public class Gallery {
         if (currentImage == null) return;
         Common.showFileInExplorer(getFullPathForFileInThisFolder(currentImage));
         if (stage.isFullScreen()) stage.setFullScreen(false);
+        showActionIndicator();
     }
 
     private void showOpenWithDialog() {
@@ -931,6 +951,7 @@ public class Gallery {
         //runs the cmd command Rundll32 Shell32.dll,OpenAs_RunDLL any-file-name.ext to show the windows 'open with' dialog currentImage:
         try {
             Runtime.getRuntime().exec("Rundll32 Shell32.dll,OpenAs_RunDLL " + getFullPathForFileInThisFolder(currentImage));
+            showActionIndicator();
         } catch (IOException e) {
             System.out.println("Could not show 'open with' dialog for file " + currentImage + ":");
             e.printStackTrace();
@@ -1694,5 +1715,26 @@ public class Gallery {
         }
         cc.putString(imageFile.getAbsolutePath());
         clipboard.setContent(cc);
+        showActionIndicator();
+    }
+
+    private void showActionIndicator() {
+        double initialOpacity = 0.5;
+        double innerCircleStart = 23.5, outerCircleStart = 30;
+        Duration duration = Duration.seconds(0.6);
+        if (actinoIndicateTimeline == null) {
+            actinoIndicateTimeline = new Timeline();
+            actinoIndicateTimeline.getKeyFrames().add(new KeyFrame(duration, new KeyValue(actionIndicatorPane.opacityProperty(), 0.0)));
+            actinoIndicateTimeline.getKeyFrames().add(new KeyFrame(duration, new KeyValue(actionIndicatorC2.radiusProperty(), 21.5)));
+            actinoIndicateTimeline.getKeyFrames().add(new KeyFrame(duration, new KeyValue(actionIndicatorC1.radiusProperty(), 35)));
+            actinoIndicateTimeline.setOnFinished((e) -> {actionIndicatorPane.setVisible(false);});
+        }
+        actionIndicatorPane.setOpacity(initialOpacity);
+        actionIndicatorC2.setRadius(innerCircleStart);
+        actionIndicatorC1.setRadius(outerCircleStart);
+        actionIndicatorPane.setVisible(true);
+        actinoIndicateTimeline.playFromStart();
+
+        //bro start animation m8
     }
 }
