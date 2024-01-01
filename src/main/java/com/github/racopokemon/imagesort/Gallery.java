@@ -684,6 +684,7 @@ public class Gallery {
                 //    view.setSmooth(!view.isSmooth());
                 //    view.setCache(false);
                 } else if (event.getCode() == KeyCode.F5) {
+                    imageBuffer.clear(); // it is getting refilled with the updateFilesList() call, which ultimatively calls loadImage()
                     updateFilesList();
                     showActionIndicator();
                 } else if (event.getCode().isDigitKey()) {
