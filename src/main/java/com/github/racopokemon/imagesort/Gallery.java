@@ -1095,7 +1095,7 @@ public class Gallery {
                 handleMemoryError();
                 loadImage();
             } else {
-                errorLabel.setText("We could not load " + currentImage + ": \n" + img.getException().getLocalizedMessage());
+                errorLabel.setText("We could not load " + currentImage + ": \n" + img.getException().toString());
                 System.out.println("Error occured when loading image " + currentImage);
                 img.getException().printStackTrace();
             }
@@ -1111,7 +1111,12 @@ public class Gallery {
     }
 
     private boolean isMemoryException(Exception e) {
-        return e.getMessage().startsWith("java.lang.OutOfMemoryError");
+        String message = e.getMessage();
+        if (message == null) { //Had a weird case crashing this line of code, where some NIO exception (or so) did actually return null as message. Didn't know this was a thing for exceptions. 
+            return false;
+        } else {
+            return message.startsWith("java.lang.OutOfMemoryError");
+        }
     }
 
     //On machines with small amounts of RAM (?) and with big photos, 
