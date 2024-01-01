@@ -42,11 +42,13 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * ***Bug right now: When the browser window automatically appears, the selected folder is never inserted into the text field or the prefs - what is going wrong here?***
 * ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***
 * ***There are micro-lags when just -clicking- a folder with a lot of tiles. What is this supposed to be?***
+* ***Bug right now: on my desktop there is a folder where a set of broken images at some point disable the arrow key input etc***
 * Option to also cycle all subfolders! 
   
 ## Gallery
-* **Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated**
+* ~~Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated~~
   * Maybe even register FS listeners to reload an image once it changed on disk
+    * Register a listener on the dir. If files change, add these changes to a datastructure that is threadsafe. Poll it in the main jfx thread / platform.runLater or so. If the file name is contained in the imageBuffer, add it again. If it is the current image, ... well, load it again I'd say. 
 * General
   * **indicate that a modified image is moved once the currently previewed image changes**
   * **Ctrl delete for 'instant delete' which instantly moves it to system trash?**
