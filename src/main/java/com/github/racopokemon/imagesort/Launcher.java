@@ -114,6 +114,12 @@ public class Launcher {
             textFieldBrowser.setText(startPath.getAbsolutePath());
         }
         HBox.setHgrow(textFieldBrowser, Priority.ALWAYS);
+        textFieldBrowser.setOnKeyPressed((e) -> {
+            if (e.getCode() == KeyCode.DOWN && !e.isAltDown() && !e.isShortcutDown() && !e.isShiftDown()) {
+                listBrowser.requestFocus();
+                listBrowser.getSelectionModel().selectFirst();
+            }
+        });
         Button buttonBrowserBrowse = new Button("Browse");
         HBox boxBrowserLine = new HBox(buttonBrowserDirUp, textFieldBrowser, buttonBrowserBrowse);
 
@@ -128,7 +134,6 @@ public class Launcher {
                 }
             }
         );
-
         VBox boxBrowser = new VBox(SMALL_GAP, labelBrowserIntro, boxBrowserLine, listBrowser);
         VBox.setVgrow(boxBrowser, Priority.ALWAYS);
 
@@ -280,7 +285,15 @@ public class Launcher {
                 } else {
                     listBrowser.getSelectionModel().clearSelection();
                 }
-            }
+            } 
+            //this is sadly called once the up key press was already used to skip one item up, therefore entering the text field already from the 2nd element. 
+            //I don't see an easy / valid workaround for this. 
+            //else if (listBrowser.getSelectionModel().isSelected(0) && 
+            //        e.getCode() == KeyCode.UP && !e.isAltDown() && !e.isShortcutDown() && !e.isShiftDown()) {
+            //    listBrowser.getSelectionModel().clearSelection();
+            //    textFieldBrowser.requestFocus();
+            //    textFieldBrowser.selectEnd();
+            //}
         });
         buttonFolderBrowse.setOnAction((e) -> {
             boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);
