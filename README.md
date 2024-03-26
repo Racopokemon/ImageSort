@@ -42,6 +42,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * ***Bug right now: When the browser window automatically appears, the selected folder is never inserted into the text field or the prefs - what is going wrong here?***
 * ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***
 * ***There are micro-lags when just -clicking- a folder with a lot of tiles. What is this supposed to be?***
+* ***The one dir up button does not work if it starts in E:/, but in the meantime E is ejected***
 * ~~Bug right now: on my desktop there is a folder where a set of broken images at some point disable the arrow key input etc~~ (didnt null check exception message, fixed now)
 * Option to also cycle all subfolders! 
   
