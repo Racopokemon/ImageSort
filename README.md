@@ -92,6 +92,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 ## File operations window
   * **Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!** 
   * **Option to automatically rename images that have the same name. Why was this never a feature request before?**
+  * Show summary of what was done? Same as what was shown before?
 
 ## Other
 * Progress Window
