@@ -98,6 +98,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 ## Other
 * Progress Window
   * **once finished, add a 'put out the trash' button to move the deleted folder to system trash!**
+  * **also id really like a button with 'go to created folder abc / show in folder abc' if exactly one folder was created**
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
