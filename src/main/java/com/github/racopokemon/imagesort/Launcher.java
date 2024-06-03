@@ -332,7 +332,7 @@ public class Launcher {
         });
 
         stage.setScene(scene);
-        stage.setTitle("Launcher");
+        stage.setTitle("Image Sort");
         stage.getIcons().add(Common.getResource("logo"));
         stage.show();
 

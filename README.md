@@ -68,7 +68,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * ~~In the percentage bar in main view, show in brackets how many images were deleted (-6)~~
 * Usage window
   * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
-* Feature request: Show the current folder name in the window title (with a - ImageSort as suffix)
+* ~~Feature request: Show the current folder name in the window title (with a - ImageSort as suffix)~~
 * Percentage bar
   * *Write a (+1) or +.RAW or whatever on the percentage bar to indicate this copy along (if it is activated)*
   * Mouse drag allows searching

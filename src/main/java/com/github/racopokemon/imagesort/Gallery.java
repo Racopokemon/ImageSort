@@ -223,7 +223,7 @@ public class Gallery {
         imageOperations = new Hashtable<>();
         imageBuffer = new Hashtable<>();
 
-        stage.setTitle("Image Sort");
+        stage.setTitle(directory.getName() + " - Image Sort");
 
         zoomPane = new StackPane();
         view = new ImageView();
