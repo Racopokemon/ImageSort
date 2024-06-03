@@ -23,8 +23,6 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 # Furter feature ideas
 
 ## Launcher
-* **Change the number of ticks and categories here!**
-  * store the numbers in the preferences!
 * better show other (not supported) file formats: 
   * heic, tga, webp are candidates (not shown to be pictures yet)
   * mov, (avi)
@@ -36,19 +34,18 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * (Move to /raw)
   * and move to system trash!
 * **Its annoying, but please make something like typing inside the listView already sorting / filtering the folders!**
+  * Typing keys will select the first element starting with this letter in the list!
 * Quick n dirty 'history' that can be acessed with the mouse key and alt down. For every folder jumped in, overwrite. For every error (where does it even occur) update the history. 
 * ***Ctrl+V does not work if the text field is focused in the gallery***
   * check if clipboard is non-text. then consume, otherwise let it happen
-* **Move the destination folder option to the confirmation dialog**
+* ***Move the destination folder option to the confirmation dialog***
   * Remove the option where to place the delete-folder, I used it 0 times
-  * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
-* Typing keys will select the first element starting with this letter in the list!
 * ***Bug right now: When the browser window automatically appears, the selected folder is never inserted into the text field or the prefs - what is going wrong here?***
 * ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***
 * ***There are micro-lags when just -clicking- a folder with a lot of tiles. What is this supposed to be?***
 * ***The one dir up button does not work if it starts in E:/, but in the meantime E is ejected***
 * ~~Bug right now: on my desktop there is a folder where a set of broken images at some point disable the arrow key input etc~~ (didnt null check exception message, fixed now)
-* Option to also cycle all subfolders! 
+* Option to also cycle all subfolders!
   
 ## Gallery
 * ~~Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated~~
@@ -77,10 +74,10 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Context menu
   * Move to trash
   * (later rotate)
-* Filter label menu
+* **Filter label menu**
   * **Show how many images are there in each category**
   * Show here a big exit button on hover
-  * Two buttons +1 category, +1 copies
+  * Two buttons: +1 category, +1 copies. You cant reduce them again, but who cares even? Nobody wants to set this inside the prep window! 
 * ~~Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)~~
   * ~~Might be covered enough already by the Launcher "other files" now.~~
 
@@ -94,9 +91,10 @@ New file formats?
 * RAW support (kindof walked around this one, but still there would be options!)
 
 ## File operations window
+  * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
   * **Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!** 
   * **Option to automatically rename images that have the same name. Why was this never a feature request before?**
-  * Show summary of what was done? Same as what was shown before?
+  * Show summary of what was done? Same as what was shown before? ("moved 5 files" kind?)
 
 ## Other
 * Progress Window
