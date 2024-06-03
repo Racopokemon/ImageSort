@@ -29,6 +29,7 @@ public class ImprovisedProgressBar extends VBox {
     private VBox propertiesBox; 
     private VBox marginPropertiesBox; 
     private int currentIndex, outOf, numberDeleted;
+    private boolean isForeground;
     private Rectangle leftBox, rightBox, deletedBox;
 
     private static final double SPACING = 3;
@@ -105,6 +106,9 @@ public class ImprovisedProgressBar extends VBox {
         }
         resolutionIndicator.setVisible(true);
         deletedTextNode.setVisible(true);
+
+        isForeground = true;
+        drawProgress();
     }
     
     private void toBackground() {
@@ -115,21 +119,27 @@ public class ImprovisedProgressBar extends VBox {
         }
         resolutionIndicator.setVisible(false);
         deletedTextNode.setVisible(false);
+
+        isForeground = false;
+        drawProgress();
     }
 
     //You can also make newlines in info strings, then the spacing is smaller than with separate array entries
-    public void setProgress(int value, int outOf, int deleted, boolean filtered, ArrayList<String> infos) {
-        String percentageText = (value+1) + " / " + outOf;
+    public void setProgress(int currentIndex, int outOf, int numberDeleted, boolean filtered, ArrayList<String> infos) {
+        String percentageText = (currentIndex+1) + " / " + outOf;
         deletedTextNode.setText("");
         if (filtered) {
             percentageText += " (filtered)";
         } else {
-            if (deleted > 0) {
-                deletedTextNode.setText("("+deleted + " deleted)  ");
+            if (numberDeleted > 0) {
+                deletedTextNode.setText("("+numberDeleted + " deleted)  ");
             }
         }
         percentageTextNode.setText(percentageText);
-        drawProgress(value, outOf, deleted);
+        this.currentIndex = currentIndex;
+        this.outOf = outOf;
+        this.numberDeleted = numberDeleted;
+        drawProgress();
     
         propertiesBox.getChildren().clear();
         int index = 0;
@@ -146,17 +156,18 @@ public class ImprovisedProgressBar extends VBox {
         }
     }
 
-    private void drawProgress(int value, int outOf, int deleted) {
-        double globalOutOf = (outOf + deleted - 1);
+    private void drawProgress() {
+        int deletedForThisView = isForeground ? numberDeleted : 0;
+        double globalOutOf = (outOf + deletedForThisView - 1);
         double percentL, percentR, percentD;
         if (globalOutOf == 1) {
             percentL = 1;
             percentR = 0;
             percentD = 0;
         } else {
-            percentL = value / globalOutOf;
-            percentR = (outOf - value - 1) / globalOutOf;
-            percentD = deleted / globalOutOf;
+            percentL = currentIndex / globalOutOf;
+            percentR = (outOf - currentIndex - 1) / globalOutOf;
+            percentD = deletedForThisView / globalOutOf;
         }
         leftBox.setWidth(width * percentL);
         rightBox.setWidth(width * percentR);
