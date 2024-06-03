@@ -1059,7 +1059,22 @@ public class Gallery {
         }
 
         ArrayList<String> imageInfo = new ArrayList<String>();
-        imageInfo.add(currentImage);
+        String imageNameWithAlongMovers = currentImage;
+        if (filesToMoveAlong.containsKey(currentImage)) {
+            ArrayList<String> alongMovers = filesToMoveAlong.get(currentImage);
+            if (alongMovers.size() > 0)
+                imageNameWithAlongMovers += " [also ." + Common.getExtensionFromFilename(alongMovers.get(0));
+            if (alongMovers.size() > 1)
+                imageNameWithAlongMovers += ", ." + Common.getExtensionFromFilename(alongMovers.get(1));
+            if (alongMovers.size() > 3) {
+                imageNameWithAlongMovers += " and " + (alongMovers.size()-2) + " more";
+            } else if (alongMovers.size() > 2) {
+                imageNameWithAlongMovers += ", " + Common.getExtensionFromFilename(alongMovers.get(2));
+            }
+            if (alongMovers.size() > 0)
+                imageNameWithAlongMovers += "]";
+        }
+        imageInfo.add(imageNameWithAlongMovers);
         imageInfo.addAll(img.getSomeImageProperties());
         progress.setProgress(currentImageIndex, images.size(), deleteHistory.size(), filter != -1, imageInfo);
         wrapSearchIndicator.setText(currentImageIndex+1 + "/" + images.size()); //kind of doubled here, but I think its important that the indicator is updated as well
