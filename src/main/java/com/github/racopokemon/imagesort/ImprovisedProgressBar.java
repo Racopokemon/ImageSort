@@ -24,6 +24,8 @@ public class ImprovisedProgressBar extends VBox {
 
     private double width, height;
     private Node resolutionIndicator; //making use of very good OO, we also receive a random node that should also be made visible on mouse hover
+    private Node zoomIndicator;
+    private StackPane percentageBarPane;
     private Text percentageTextNode;
     private Text deletedTextNode;
     private VBox propertiesBox; 
@@ -38,12 +40,13 @@ public class ImprovisedProgressBar extends VBox {
     private static final Font FONT_BOLD = Font.font(FONT.getFamily(), FontWeight.SEMI_BOLD, 16);
     private static final Color DARK_GREY = Color.gray(0.2);
 
-    public ImprovisedProgressBar(double w, double h, Node resolutionIndicator) {
+    public ImprovisedProgressBar(double w, double h, Node resolutionIndicator, Node zoomIndicator) {
         width = w;
         height = h;
         this.resolutionIndicator = resolutionIndicator;
+        this.zoomIndicator = zoomIndicator;
 
-        StackPane stack = new StackPane();
+        percentageBarPane = new StackPane();
 
         percentageTextNode = new Text("11/10");
         //label.setStrokeWidth(0.5);
@@ -57,8 +60,8 @@ public class ImprovisedProgressBar extends VBox {
         deletedTextNode.setFont(new Font(15));
         deletedTextNode.setTextAlignment(TextAlignment.RIGHT);
 
-        stack.setOnMouseEntered((event) -> {toForeground();});
-        stack.setOnMouseExited((event) -> {toBackground();});
+        percentageBarPane.setOnMouseEntered((event) -> {toForeground();});
+        percentageBarPane.setOnMouseExited((event) -> {toBackground();});
 
         HBox progressItself = new HBox();
         progressItself.setSnapToPixel(false);
@@ -70,11 +73,11 @@ public class ImprovisedProgressBar extends VBox {
         progressItself.getChildren().add(rightBox);
         progressItself.getChildren().add(deletedBox);
         
-        stack.getChildren().add(progressItself);
-        stack.getChildren().add(percentageTextNode);
-        stack.getChildren().add(deletedTextNode);
-        stack.setAlignment(deletedTextNode, Pos.CENTER_RIGHT);
-        stack.setMaxSize(w, h);
+        percentageBarPane.getChildren().add(progressItself);
+        percentageBarPane.getChildren().add(percentageTextNode);
+        percentageBarPane.getChildren().add(deletedTextNode);
+        StackPane.setAlignment(deletedTextNode, Pos.CENTER_RIGHT);
+        percentageBarPane.setMaxSize(w, h);
 
         propertiesBox = new VBox();
         VBox.setMargin(propertiesBox, new Insets(SPACING));
@@ -84,10 +87,10 @@ public class ImprovisedProgressBar extends VBox {
         marginPropertiesBox = new VBox(propertiesBox); 
         marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.8), new CornerRadii(5), null)));
 
-        getChildren().add(stack);
-        //getChildren().add(marginPropertiesBox);
+        getChildren().add(percentageBarPane);
+        getChildren().add(zoomIndicator);
+        VBox.setMargin(zoomIndicator, new Insets(10,0,0,0));        
         setMaxSize(0, 0); //this seems to be the better solution if we want the vbox to use the minimum space possible
-        //setSpacing(SPACING); //between bar & properties
         setAlignment(Pos.CENTER); //This gets important when the filename or any of the properties is longer than the percentage bar
 
         marginPropertiesBox.setMouseTransparent(true);
@@ -98,27 +101,29 @@ public class ImprovisedProgressBar extends VBox {
     }
 
     private void toForeground() {
-        setOpacity(1.0);
-        if (getChildren().size() == 1) {
-            getChildren().add(marginPropertiesBox); //used to just use setVisible() here which is the nicer solution, ...
+        percentageBarPane.setOpacity(1.0);
+        if (getChildren().size() == 2) {
+            getChildren().add(1, marginPropertiesBox); //used to just use setVisible() here which is the nicer solution, ...
             //but then the mouse still leaves the pane below and the mouse-auto-hide does actually not hide in this area
             //getChildren().add(resolutionIndicator);
         }
         resolutionIndicator.setVisible(true);
         deletedTextNode.setVisible(true);
+        zoomIndicator.setVisible(true);
 
         isForeground = true;
         drawProgress();
     }
     
     private void toBackground() {
-        setOpacity(0.1);
-        if (getChildren().size() > 1) {
+        percentageBarPane.setOpacity(0.1);
+        if (getChildren().size() > 2) {
             getChildren().remove(marginPropertiesBox);
             //getChildren().remove(resolutionIndicator);
         }
         resolutionIndicator.setVisible(false);
         deletedTextNode.setVisible(false);
+        zoomIndicator.setVisible(false);
 
         isForeground = false;
         drawProgress();

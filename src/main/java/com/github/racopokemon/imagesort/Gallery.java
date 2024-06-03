@@ -353,19 +353,10 @@ public class Gallery {
         zoomIndicatorText.setFont(Font.font(zoomIndicatorText.getFont().getFamily(), FontWeight.NORMAL, FontPosture.REGULAR, 15));
         zoomIndicatorText.setFill(Color.WHITE);
         zoomIndicatorText.setTextAlignment(TextAlignment.CENTER);
-        //zoomIndicatorKLabel = new Text("x.xk");
-        //zoomIndicatorKLabel.setFont(new Font(11));
-        //zoomIndicatorKLabel.setFill(Color.GRAY);
-        //zoomIndicatorKLabel.setOpacity(0.8);
-        //zoomIndicatorKLabel.setTextAlignment(TextAlignment.CENTER);
         zoomIndicator = new StackPane(zoomIndicatorBack, zoomIndicatorText);
-        //StackPane.setMargin(zoomIndicatorKLabel, new Insets(26, 0, 0, 0));
-        //StackPane.setMargin(zoomIndicatorText, new Insets(0, 0, 4, 0));
         zoomIndicator.setMaxSize(0, 0);
         zoomIndicator.setMouseTransparent(true);
         zoomIndicator.setVisible(false);
-        StackPane.setAlignment(zoomIndicator, Pos.TOP_CENTER);
-        StackPane.setMargin(zoomIndicator, new Insets(50, 0, 0, 0));
         
         resolutionTextEstimate = new Text("xK filler");
         resolutionTextEstimate.setFont(Font.font(resolutionTextEstimate.getFont().getFamily(), FontWeight.BOLD, FontPosture.REGULAR, 14));
@@ -398,7 +389,7 @@ public class Gallery {
         StackPane.setAlignment(resolutionIndicator, Pos.BOTTOM_CENTER);
         StackPane.setMargin(resolutionIndicator, new Insets(0, 0, 38, 0));
         
-        progress = new ImprovisedProgressBar(350, 30, resolutionIndicator);
+        progress = new ImprovisedProgressBar(350, 30, resolutionIndicator, zoomIndicator);
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
         
@@ -520,7 +511,6 @@ public class Gallery {
         rootPane.getChildren().add(filterLabel);
         rootPane.getChildren().add(tickLabelVBox);
         rootPane.getChildren().add(progress);
-        rootPane.getChildren().add(zoomIndicator);
         rootPane.getChildren().add(resolutionIndicator);
         rootPane.getChildren().add(exitFullscreenRect);
         rootPane.getChildren().add(exitFullscreenHint);
@@ -883,15 +873,14 @@ public class Gallery {
         zoomPane.setTranslateX(spaceX * relTransX);
         zoomPane.setTranslateY(spaceY * relTransY);
 
-        Image img = view.getImage();
         zoomIndicator.setVisible(true);
-        //String text = Math.round(calculateBaseImageScale() * zoom * 100) + "%";
-        zoomIndicatorText.setText(String.format("%.0f%%", calculateBaseImageScale() * zoom * 100));
-        //zoomIndicatorKLabel.setText(String.format("%.1fk", Math.sqrt(img.getHeight()*img.getWidth()) / 1000));
+
         zoomPane.setCursor(Cursor.NONE);
         resolutionIndicator.setVisible(true);
-
+        
         isZooming = true;
+
+        updateZoomIndicatorText();
     }
     // Resets the zoom to the usual 1:1 in the app
     private void zoomOut() {
@@ -904,6 +893,8 @@ public class Gallery {
         resolutionIndicator.setVisible(false);
         zoomPane.setCursor(Cursor.DEFAULT);
         isZooming = false;
+
+        updateZoomIndicatorText();
     }
     private void increaseZoom(double scale) {
         if (currentImage == null) return;
@@ -1084,6 +1075,7 @@ public class Gallery {
             errorLabel.setVisible(false);
             updateViewport();
             updateResolutionIndicator(img);
+            updateZoomIndicatorText();
         } else if (img.isError()) {
             //error while loading
             loadingProgress.setVisible(false);
@@ -1740,7 +1732,9 @@ public class Gallery {
         actionIndicatorC1.setRadius(outerCircleStart);
         actionIndicatorPane.setVisible(true);
         actinoIndicateTimeline.playFromStart();
+    }
 
-        //bro start animation m8
+    private void updateZoomIndicatorText() {
+        zoomIndicatorText.setText(String.format("%.0f%%", calculateBaseImageScale() * (isZooming ? zoom : 1) * 100));
     }
 }
