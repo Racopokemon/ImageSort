@@ -14,6 +14,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 # Supported formats / extensions
 * .jpg/.jpeg
 * .png
+* .gif
+* .bmp
 
 # Known issues
 * See the `issues` category in the github page
@@ -70,15 +72,11 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * ~~Feature request: Show the current folder name in the window title (with a - ImageSort as suffix)~~
 * Percentage bar
-  * *Write a (+1) or +.RAW or whatever on the percentage bar to indicate this copy along (if it is activated)*
+  * ~~Write a (+1) or +.RAW or whatever on the percentage bar to indicate this copy along (if it is activated)~~
   * Mouse drag allows searching
 * Context menu
   * Move to trash
   * (later rotate)
-* Advanced undo? 
-    * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
-    * Also allow redo steps
-    * low prio
 * Filter label menu
   * **Show how many images are there in each category**
   * Show here a big exit button on hover
@@ -110,6 +108,10 @@ New file formats?
 * Add some nice images or even a video to this readme! 
 
 ## Legacy / low prio ideas
+* Advanced undo in the gallery? 
+    * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
+    * Also allow redo steps
+    * low prio
 * Add a shortcut to quit *and move to the next folder*?! I need that right now
 * Improvements
   * Constantly find the first images of the other categories and buffer them, so that cycling through the categories is a bit better than *this* right now
