@@ -28,7 +28,8 @@ public class ImprovisedProgressBar extends VBox {
     private Text deletedTextNode;
     private VBox propertiesBox; 
     private VBox marginPropertiesBox; 
-    private Rectangle left, right;
+    private int currentIndex, outOf, numberDeleted;
+    private Rectangle leftBox, rightBox, deletedBox;
 
     private static final double SPACING = 3;
     private static final Font FONT = new Font(14);
@@ -61,10 +62,12 @@ public class ImprovisedProgressBar extends VBox {
         HBox progressItself = new HBox();
         progressItself.setSnapToPixel(false);
 
-        left = new Rectangle(w / 2, h, Color.GREY);
-        right = new Rectangle(w / 2, h, Color.gray(0.85));
-        progressItself.getChildren().add(left);
-        progressItself.getChildren().add(right);
+        leftBox = new Rectangle(w / 3, h, Color.GREY);
+        rightBox = new Rectangle(w / 3, h, Color.gray(0.85));
+        deletedBox = new Rectangle(w / 3, h, Color.gray(0.7));
+        progressItself.getChildren().add(leftBox);
+        progressItself.getChildren().add(rightBox);
+        progressItself.getChildren().add(deletedBox);
         
         stack.getChildren().add(progressItself);
         stack.getChildren().add(percentageTextNode);
@@ -115,7 +118,7 @@ public class ImprovisedProgressBar extends VBox {
     }
 
     //You can also make newlines in info strings, then the spacing is smaller than with separate array entries
-    public void setProgress(int value, int outOf, ArrayList<String> infos, boolean filtered, int deleted) {
+    public void setProgress(int value, int outOf, int deleted, boolean filtered, ArrayList<String> infos) {
         String percentageText = (value+1) + " / " + outOf;
         deletedTextNode.setText("");
         if (filtered) {
@@ -126,9 +129,7 @@ public class ImprovisedProgressBar extends VBox {
             }
         }
         percentageTextNode.setText(percentageText);
-        double percentage = outOf == 1 ? 1 : (double) value / (outOf - 1);
-        left.setWidth(width * percentage);
-        right.setWidth(width * (1-percentage));
+        drawProgress(value, outOf, deleted);
     
         propertiesBox.getChildren().clear();
         int index = 0;
@@ -143,5 +144,22 @@ public class ImprovisedProgressBar extends VBox {
             }
             propertiesBox.getChildren().add(info);
         }
+    }
+
+    private void drawProgress(int value, int outOf, int deleted) {
+        double globalOutOf = (outOf + deleted - 1);
+        double percentL, percentR, percentD;
+        if (globalOutOf == 1) {
+            percentL = 1;
+            percentR = 0;
+            percentD = 0;
+        } else {
+            percentL = value / globalOutOf;
+            percentR = (outOf - value - 1) / globalOutOf;
+            percentD = deleted / globalOutOf;
+        }
+        leftBox.setWidth(width * percentL);
+        rightBox.setWidth(width * percentR);
+        deletedBox.setWidth(width * percentD);
     }
 }
