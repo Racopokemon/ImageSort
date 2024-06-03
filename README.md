@@ -9,7 +9,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 
 # Installation
 * Requires windows, use the `.msi` installer or the portable `.zip`, available at the *releases* section to the right! 
-  * If you don't have windows ... contact me, porting the app to linux or mac should not be a big thing. 
+  * If you don't have Windows ... contact me, porting the app to linux or mac should not be a big thing. 
 
 # Supported formats / extensions
 * .jpg/.jpeg
@@ -23,15 +23,17 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 ## Launcher
 * **Change the number of ticks and categories here!**
   * store the numbers in the preferences!
-* maybe also show other images (?) here
-  * heic, tga, webp are candidates
-* maybe also show other, not supported video formats here
-  * mov, (avi), some occured already
+* better show other (not supported) file formats: 
+  * heic, tga, webp are candidates (not shown to be pictures yet)
+  * mov, (avi)
+  * The only thing happening right now are .mp4 files as movies
+  * the rest is shown simply as extension. 
 * context menu (please!)
   * **Open in system explorer!**
   * **move 1 folder up**
   * (Move to /raw)
   * and move to system trash!
+* **Its annoying, but please make something like typing inside the listView already sorting / filtering the folders!**
 * Quick n dirty 'history' that can be acessed with the mouse key and alt down. For every folder jumped in, overwrite. For every error (where does it even occur) update the history. 
 * ***Ctrl+V does not work if the text field is focused in the gallery***
   * check if clipboard is non-text. then consume, otherwise let it happen
@@ -76,19 +78,22 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Advanced undo? 
     * Keep a history not only of deletion steps, but also for every image changing its category! (Also store, which filter was applied?)
     * Also allow redo steps
-* Filter label
+    * low prio
+* Filter label menu
   * **Show how many images are there in each category**
   * Show here a big exit button on hover
-* New file formats?
-  * Video support
-    * Hopefully not too hard since javafx should be a media library
-    * probably no exif rotation?!
-  * HEIC file support
-    * Never heard of this before, container format that iPhones produce. 
-    * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
-  * RAW support (kindof walked around this one, but still there would be options!)
-* Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)
-  * Might be covered enough already by the Launcher "other files" now. 
+  * Two buttons +1 category, +1 copies
+* ~~Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)~~
+  * ~~Might be covered enough already by the Launcher "other files" now.~~
+
+New file formats?
+* Video support
+  * Hopefully not too hard since javafx should be a media library
+  * probably no exif rotation?!
+* HEIC file support
+  * Never heard of this before, container format that iPhones produce. 
+  * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
+* RAW support (kindof walked around this one, but still there would be options!)
 
 ## File operations window
   * **Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!** 

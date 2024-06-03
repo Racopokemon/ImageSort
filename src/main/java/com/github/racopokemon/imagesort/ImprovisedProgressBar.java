@@ -23,7 +23,10 @@ public class ImprovisedProgressBar extends VBox {
 
     private double width, height;
     private Node resolutionIndicator; //making use of very good OO, we also receive a random node that should also be made visible on mouse hover
-    private Text percentageText;
+    private Text percentageTextNode;
+    private boolean isInForeground = false;
+    private int numberDeletedImages;
+    private String percentageText;
     private VBox propertiesBox; 
     private VBox marginPropertiesBox; 
     private Rectangle left, right;
@@ -41,12 +44,12 @@ public class ImprovisedProgressBar extends VBox {
 
         StackPane stack = new StackPane();
 
-        percentageText = new Text("11/10");
+        percentageTextNode = new Text("11/10");
         //label.setStrokeWidth(0.5);
         //label.setStroke(Color.BLACK);
-        percentageText.setFill(Color.BLACK);
-        percentageText.setFont(new Font(22));
-        percentageText.setTextAlignment(TextAlignment.CENTER);
+        percentageTextNode.setFill(Color.BLACK);
+        percentageTextNode.setFont(new Font(22));
+        percentageTextNode.setTextAlignment(TextAlignment.CENTER);
 
         stack.setOnMouseEntered((event) -> {toForeground();});
         stack.setOnMouseExited((event) -> {toBackground();});
@@ -59,7 +62,7 @@ public class ImprovisedProgressBar extends VBox {
         progressItself.getChildren().add(right);
         
         stack.getChildren().add(progressItself);
-        stack.getChildren().add(percentageText);
+        stack.getChildren().add(percentageTextNode);
         stack.setMaxSize(w, h);
 
         propertiesBox = new VBox();
@@ -91,8 +94,10 @@ public class ImprovisedProgressBar extends VBox {
             //getChildren().add(resolutionIndicator);
         }
         resolutionIndicator.setVisible(true);
+        isInForeground = true;
+        updatePercentageText();
     }
-
+    
     private void toBackground() {
         setOpacity(0.1);
         if (getChildren().size() > 1) {
@@ -100,14 +105,20 @@ public class ImprovisedProgressBar extends VBox {
             //getChildren().remove(resolutionIndicator);
         }
         resolutionIndicator.setVisible(false);
+        isInForeground = false;
+        updatePercentageText();
     }
 
     //You can also make newlines in info strings, then the spacing is smaller than with separate array entries
-    public void setProgress(int value, int outOf, ArrayList<String> infos, boolean filtered) {
-        percentageText.setText((value+1) + " / " + outOf);
+    public void setProgress(int value, int outOf, ArrayList<String> infos, boolean filtered, int deleted) {
+        percentageText = (value+1) + " / " + outOf;
         if (filtered) {
-            percentageText.setText(percentageText.getText() + " (filtered)");
+            percentageText += " (filtered)";
+            numberDeletedImages = 0;
+        } else {
+            numberDeletedImages = deleted;
         }
+        updatePercentageText();
         double percentage = outOf == 1 ? 1 : (double) value / (outOf - 1);
         left.setWidth(width * percentage);
         right.setWidth(width * (1-percentage));
@@ -124,6 +135,14 @@ public class ImprovisedProgressBar extends VBox {
                 info.setFill(DARK_GREY);
             }
             propertiesBox.getChildren().add(info);
+        }
+    }
+
+    private void updatePercentageText() {
+        if (isInForeground && numberDeletedImages > 0) {
+            percentageTextNode.setText(percentageText + " ("+numberDeletedImages+" del'd)");
+        } else {
+            percentageTextNode.setText(percentageText);
         }
     }
 }

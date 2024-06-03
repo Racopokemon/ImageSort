@@ -1070,7 +1070,7 @@ public class Gallery {
         ArrayList<String> imageInfo = new ArrayList<String>();
         imageInfo.add(currentImage);
         imageInfo.addAll(img.getSomeImageProperties());
-        progress.setProgress(currentImageIndex, images.size(), imageInfo, filter != -1);
+        progress.setProgress(currentImageIndex, images.size(), imageInfo, filter != -1, deleteHistory.size());
         wrapSearchIndicator.setText(currentImageIndex+1 + "/" + images.size()); //kind of doubled here, but I think its important that the indicator is updated as well
         updateLabels();
         updateImageLoadingStatus();
