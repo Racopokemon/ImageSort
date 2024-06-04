@@ -71,6 +71,11 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * Percentage bar
   * ~~Write a (+1) or +.RAW or whatever on the percentage bar to indicate this copy along (if it is activated)~~
   * Mouse drag allows searching
+* Rotate images with R button or context menu. 
+  * My metadata lib supports such a wide range of formats, however its only read access. JPEG should suffice for rotations right now. 
+  * Maybe do not rotate the images when previewing and instead mark them for rotation (and hash their rotation states)
+  * always apply the rotation when closing the window
+  * show a small rotation arrow left or right next to the percentage bar for images marked for rotation? 
 * Context menu
   * Move to trash
   * (later rotate)
