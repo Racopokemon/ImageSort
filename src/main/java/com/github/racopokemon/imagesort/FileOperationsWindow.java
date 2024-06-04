@@ -1,11 +1,5 @@
 package com.github.racopokemon.imagesort;
-
-import java.io.File;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Insets;

@@ -3,7 +3,6 @@ package com.github.racopokemon.imagesort;
 import java.util.ArrayList;
 
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.Background;

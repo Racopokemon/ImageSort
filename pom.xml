@@ -40,9 +40,17 @@
             <version>17.0.1</version>
         </dependency>
         <dependency>
+        <!-- metadata reading library (I chose this first without minding the requirement for also writing metadata, this is why there are two different libs) -->
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
             <version>2.18.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-imaging -->
+        <!-- exif writing library -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-imaging</artifactId>
+            <version>1.0.0-alpha5</version>
         </dependency>
     </dependencies>
 

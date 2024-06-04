@@ -23,6 +23,8 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 # Furter feature ideas
 
 ## Launcher
+* On start, the launcher has the first folder selected instead of the images (if some are there), and pressing enter opens the folder instead
+  * Fix this only for the startup, afterwards this focus is ok. Either request the focus to the start button or truly unselect everything in the listview
 * better show other (not supported) file formats: 
   * heic, tga, webp are candidates (not shown to be pictures yet)
   * mov, (avi)

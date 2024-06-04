@@ -692,16 +692,24 @@ public class Gallery {
                     //I have no idea why windows plays the beep on alt+enter (and not on ANY other combination), accelerators also don't work. 
                     //TODO accelerators might actually be the better solution for all shortcuts. Except maybe the + and -?
                     stage.setFullScreen(!stage.isFullScreen());
-                } else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
-                    int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
-                    if (pos >= 0 && pos < numberOfTicks) {
-                        toggleCurrentImageTick(pos);
-                    }
                 } else if (event.getCode() == KeyCode.ENTER) {
                     if (event.isShortcutDown() || event.isShiftDown()) {
                         showInExplorer();
                     } else {
                         showOpenWithDialog();
+                    }
+                } else if (event.getCode() == KeyCode.R) {
+                    try {
+                        System.out.println("Starting to rewrite!");
+                        ((RotatedImage)view.getImage()).writeNewRotationToFile(0);
+                    } catch (Exception e) {
+                        System.out.println(Common.formatException(e));
+                        e.printStackTrace();
+                    }        
+                } else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
+                    int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
+                    if (pos >= 0 && pos < numberOfTicks) {
+                        toggleCurrentImageTick(pos);
                     }
                 }
                 //else if (event.getCode() == KeyCode.ESCAPE) {

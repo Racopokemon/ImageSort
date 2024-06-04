@@ -2,11 +2,32 @@ package com.github.racopokemon.imagesort;
 
 import javafx.scene.image.Image;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.common.ImageMetadata.ImageMetadataItem;
+import org.apache.commons.imaging.common.RationalNumber;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.JpegUtils;
+import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
+import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
+import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.constants.TiffDirectoryType;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -20,12 +41,16 @@ import com.drew.metadata.file.FileSystemDirectory;
 
 public class RotatedImage extends Image {
 
+    private File image;
+
     private int orientation = 1; //number indicating image orientation, read from image metadata
     private Metadata metadata;
 
     public RotatedImage(File file) {
         // loading itself is simple (its all done in the Image class already, also that its loading in background and showing an empty pic until then)
         super(file.toURI().toString(), true);
+        image = file;
+
         // but for weird reasons javafx does not support the exif orientation flag, which my cam already uses by 2014. 
         // (and which is also automatically used by windows in all previews and viewers)
         // ... so we have an external lib for it, and adapt the behavior of the image view to it
@@ -233,5 +258,51 @@ public class RotatedImage extends Image {
             //}
             return output;
         }
+    }
+
+    /**
+     * Writes the new rotation to disk. 
+     * Throws various IO exceptions if things don't work on the way.
+     * The thread is blocked until the file operations are finished or an error occurs. 
+     */
+    public void writeNewRotationToFile(int orientation) throws Exception {
+        orientation = 3;
+
+        File tempFile = File.createTempFile(Common.removeExtensionFromFilename(image.getName()) + "_old", "." + Common.getExtensionFromFilename(image.getName()), image.getParentFile());
+        Files.move(image.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        //copied, even with comments, from WriteExifMetadataExample in the commons-imaging examples. Because, it actually helps. 
+        //(https://github.com/apache/commons-imaging)
+        
+        //image is not a file anymore, as we just renamed (moved) it
+        FileOutputStream fos = new FileOutputStream(image);
+        OutputStream os = new BufferedOutputStream(fos);
+
+        TiffOutputSet newMetadata = null;
+
+        // note that metadata might be null
+        final ImageMetadata originalMetadata = Imaging.getMetadata(tempFile);
+        
+        JpegImageMetadata jpegMetadata = (JpegImageMetadata) originalMetadata;
+        if (jpegMetadata != null) {
+            // note that exif might be null as well
+            TiffImageMetadata exif = jpegMetadata.getExif();
+
+            if (exif != null) {
+                // The TiffImageMetadata class is read-only.
+                // getOutputSet returns a writeable copy of the metadata. 
+                newMetadata = exif.getOutputSet();
+            }
+        }
+
+        if (newMetadata == null) {
+            newMetadata = new TiffOutputSet();
+        }
+
+        // We are told to first remove the field, if it exists. If not, nothing happens.
+        newMetadata.getOrCreateRootDirectory().removeField(TiffTagConstants.TIFF_TAG_ORIENTATION);
+        newMetadata.getRootDirectory().add(TiffTagConstants.TIFF_TAG_ORIENTATION, (short)orientation);
+
+        new ExifRewriter().updateExifMetadataLossless(tempFile, os, newMetadata);
     }
 }
