@@ -7,26 +7,18 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.ImageMetadata;
-import org.apache.commons.imaging.common.ImageMetadata.ImageMetadataItem;
-import org.apache.commons.imaging.common.RationalNumber;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
-import org.apache.commons.imaging.formats.jpeg.JpegUtils;
 import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
 import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
-import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
-import org.apache.commons.imaging.formats.tiff.constants.TiffDirectoryType;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
-import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -44,6 +36,7 @@ public class RotatedImage extends Image {
     private File image;
 
     private int orientation = 1; //number indicating image orientation, read from image metadata
+    private int fileOrientation;
     private Metadata metadata;
 
     public RotatedImage(File file) {
@@ -77,6 +70,7 @@ public class RotatedImage extends Image {
         if (orientation < 1 || orientation > 8) {
             orientation = 1; //1 is just the default orientation, 9 means undefined, and the rest should not occur anyway
         }
+        fileOrientation = orientation;
     }
     public int getOrientation() {
         return orientation;
@@ -106,6 +100,20 @@ public class RotatedImage extends Image {
         }
     }
 
+    //Changes the orientation flag inside this RotatedImage, but does nothing further: 
+    //No files are written, and the Gallery is not notified about that. 
+    //It is rather intended that the Gallery calls such a rotation (that the user requested) and then updates its views depending on that. 
+    public void rotateBy90Degrees() {
+        if (orientation == 1) {orientation = 8; return;}
+        if (orientation == 8) {orientation = 3; return;}
+        if (orientation == 3) {orientation = 6; return;}
+        if (orientation == 6) {orientation = 1; return;}
+
+        if (orientation == 2) {orientation = 7; return;}
+        if (orientation == 7) {orientation = 4; return;}
+        if (orientation == 4) {orientation = 5; return;}
+        if (orientation == 5) {orientation = 2; return;}
+    }
 
     //A debug method that prints all metadata available in this image into the console. Might come in handy again. 
     public void printImageMetadata() {
@@ -261,13 +269,11 @@ public class RotatedImage extends Image {
     }
 
     /**
-     * Writes the new rotation to disk. 
+     * Writes the currently stored orientation to disk (updates the exif-flag inside the file). 
      * Throws various IO exceptions if things don't work on the way.
      * The thread is blocked until the file operations are finished or an error occurs. 
      */
-    public void writeNewRotationToFile(int orientation) throws Exception {
-        orientation = 3;
-
+    public void writeCurrentOrientationToFile() throws Exception {
         File tempFile = File.createTempFile(Common.removeExtensionFromFilename(image.getName()) + "_old", "." + Common.getExtensionFromFilename(image.getName()), image.getParentFile());
         Files.move(image.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
@@ -304,5 +310,8 @@ public class RotatedImage extends Image {
         newMetadata.getRootDirectory().add(TiffTagConstants.TIFF_TAG_ORIENTATION, (short)orientation);
 
         new ExifRewriter().updateExifMetadataLossless(tempFile, os, newMetadata);
+        fileOrientation = orientation;
+
+        Files.delete(tempFile.toPath());
     }
 }
