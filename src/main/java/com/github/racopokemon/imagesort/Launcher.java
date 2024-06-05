@@ -345,6 +345,7 @@ public class Launcher {
 
         //buttonBrowserBrowse.requestFocus();
         listBrowser.requestFocus();
+        listBrowser.getSelectionModel().clearSelection();
     }
 
     private File readPathFromClipboard() {
