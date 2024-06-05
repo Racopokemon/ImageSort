@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -121,8 +125,6 @@ public class RotatedImage extends Image {
     public void printImageMetadata() {
         if (metadata == null) {
             System.out.println("no metadata found");
-        } else {
-        
         }
         //sample code taken from the library example code at 
         //https://github.com/drewnoakes/metadata-extractor/blob/master/Samples/com/drew/metadata/SampleUsage.java#L123
@@ -285,7 +287,9 @@ public class RotatedImage extends Image {
      * If null is returned, everything worked, otherwise an error description is returned. 
      */
     public String writeCurrentOrientationToFile() {
-        System.out.println("TODO: Copy metadata as well!");
+        if (doPreviewAndFileOrientationMatch()) {
+            return null;
+        }
 
         File tempFile = null;
         try {
@@ -326,7 +330,13 @@ public class RotatedImage extends Image {
             new ExifRewriter().updateExifMetadataLossless(image, os, newMetadata);
             fileOrientation = orientation;
             
+            BasicFileAttributes oldAttributes = Files.getFileAttributeView(image.toPath(), BasicFileAttributeView.class).readAttributes();
+            FileTime t1 = oldAttributes.lastModifiedTime(), t2 = oldAttributes.lastAccessTime(), t3 = oldAttributes.creationTime();
+            
             Files.move(tempFile.toPath(), image.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            
+            //also applying properties like the windows hidden flag could be done here ... yeah but this is probably hardly required. 
+            Files.getFileAttributeView(image.toPath(), BasicFileAttributeView.class).setTimes(t1, t2, t3);
         } catch (Exception e) {
             try {
                 if (tempFile != null) Files.deleteIfExists(tempFile.toPath());
@@ -342,5 +352,11 @@ public class RotatedImage extends Image {
 
     public boolean isStillLoading() {
         return getHeight() == 0;
+    }
+
+    //essentially, if the image has been rotated (b the gallery) while being viewed. 
+    //internally, we store both the orientation from the file and our shown orientation, and we check if these match
+    public boolean doPreviewAndFileOrientationMatch() {
+        return orientation == fileOrientation;
     }
 }

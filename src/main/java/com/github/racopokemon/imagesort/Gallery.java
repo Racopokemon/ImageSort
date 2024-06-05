@@ -63,13 +63,18 @@ import javafx.util.Duration;
 
 /*
  * TODO: Watch out for ToDos!
+ * TODO: Afterwards, remove this ToDo
  */
+
+ /*
+  * TODO: Do not spam not necessary todos all over the code..
+  */
 
 public class Gallery {
 
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
     private static final boolean HIDE_MOUSE_ON_IDLE = true; //Stronger variant basically, automatically hide mouse if not moved for ~1 sec. (Fullscreen only)
-    private static final boolean DEBUG_PRINT_IMAGE_METADATA = true; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
+    private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
     private static final boolean MOVE_ALONG = true; //Feature that silently also moves/copies/deletes not supported files during file operations, if they have the same file name (but different extension). For .raws
 
     private File directory;
@@ -156,6 +161,8 @@ public class Gallery {
     private Timeline actinoIndicateTimeline;
     //https://stackoverflow.com/questions/33066754/javafx-set-mouse-hidden-when-idle Thanks for the great answer, was halfway through Workers, Tasks and Services
     private PauseTransition hideMouseOnIdle;
+
+    private StackPane rotationIndicator;
 
     private class ImageFileOperations {
         private int moveTo = 0; //0: Dont move. 1 - numberOfCategories: Move to this category
@@ -393,9 +400,26 @@ public class Gallery {
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
         
+        rotationIndicator = new StackPane();
+        Text rotationIndicatorText = new Text("(rotating image)");
+        rotationIndicatorText.setFont(new Font(28));
+        rotationIndicatorText.setFill(Color.WHITE);
+        rotationIndicatorText.setStroke(Color.BLACK);
+        rotationIndicatorText.setStrokeWidth(0.5);
+        rotationIndicatorText.setTextAlignment(TextAlignment.CENTER);
+        rotationIndicator.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 0, 0.5), new CornerRadii(10), null)));
+        StackPane.setMargin(rotationIndicatorText, new Insets(20, 40, 20, 40));
+
+        rotationIndicator.setMaxSize(0, 0);
+        rotationIndicator.getChildren().add(rotationIndicatorText);
+        rotationIndicator.setMouseTransparent(true);
+        rotationIndicator.setVisible(false);
+
         MenuItem menuFileName = new MenuItem("here should be the file name");
         menuFileName.setStyle("-fx-font-style: italic;");
         menuFileName.setDisable(true);
+        MenuItem menuRotate = new MenuItem("Rotate JPG by 90°");
+        menuRotate.setOnAction((event) -> {rotateBy90Degrees();});
         MenuItem menuShowOpenWith = new MenuItem("Open with ...");
         menuShowOpenWith.setOnAction((event) -> {showOpenWithDialog();});
         MenuItem menuShowFile = new MenuItem("Show in explorer");
@@ -408,12 +432,13 @@ public class Gallery {
         menuUndo.setOnAction((event) -> {undoDelete();});
         MenuItem menuDelete = new MenuItem("Move to '/delete'");
         menuDelete.setOnAction((event) -> {deleteImage();});
-        
+
         Rectangle invisibleContextMenuSource = new Rectangle();
         invisibleContextMenuSource.setVisible(false);
-        ContextMenu contextMenu = new ContextMenu(menuFileName, menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuUndo, menuDelete);
+        ContextMenu contextMenu = new ContextMenu(menuFileName, menuRotate, menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuUndo, menuDelete);
         view.setOnContextMenuRequested((event) -> {
             menuFileName.setText(currentImage);
+            menuRotate.setVisible(isRotateFeatureAvailable());
             contextMenu.show(invisibleContextMenuSource, event.getScreenX(), event.getScreenY());
             //note that we set invisibleContextMenuSource as anchor and not the view. This is because the context menu hides when
             //the ancor loses focus, and while zooming and scrolling on the view it doesnt so the context menu stays
@@ -515,6 +540,7 @@ public class Gallery {
         rootPane.getChildren().add(exitFullscreenRect);
         rootPane.getChildren().add(exitFullscreenHint);
         rootPane.getChildren().add(hideUiHotcorner);
+        rootPane.getChildren().add(rotationIndicator);
         rootPane.getChildren().add(actionIndicatorPane);
 
         Scene scene = new Scene(rootPane, 800, 600);
@@ -1009,7 +1035,7 @@ public class Gallery {
                 newImageBuffer.put(imageNameAtCursor, new RotatedImage(new File (getFullPathForFileInThisFolder(imageNameAtCursor))));
             }
         }
-        //initially we were cool and didnt have loop, but this really helps when scrolling rapidly through the pics.
+        //initially we were cool and didnt have this loop, but this really helps when scrolling rapidly through the pics.
         for (Map.Entry<String, RotatedImage> e : imageBuffer.entrySet()) {
             if (!newImageBuffer.containsKey(e.getKey())) {
                 //will be garbage collected. Lets stop the thread manually.
@@ -1025,7 +1051,7 @@ public class Gallery {
         //Step 2: the imageBuffer also contains the current image. If it was just added, or already
         //preloaded before, or still loading, who cares. We just show it! (If its still loading, it will show once its ready)
         RotatedImage img = imageBuffer.get(currentImage);
-        Image oldImage = view.getImage();
+        RotatedImage oldImage = (RotatedImage)view.getImage();
         //unregister old image listeners (what if theyre still called?.. okay change the img once i guess and its fixed)
         if (oldImage != null) {
             oldImage.progressProperty().removeListener(numberListener);
@@ -1039,6 +1065,16 @@ public class Gallery {
             img.heightProperty().addListener(numberListener);
             img.errorProperty().addListener(booleanListener);
         }
+
+        if (oldImage != null && oldImage != img) {
+            if (!oldImage.doPreviewAndFileOrientationMatch()) {
+                rotationIndicator.setVisible(true); //The longer I think about it, the more I think that this will ofc never be seen by anyone
+                String rotationResult = oldImage.writeCurrentOrientationToFile();
+                rotationIndicator.setVisible(false);
+                //TODO: MsgBox
+            }
+        }
+
         view.setImage(img);
         if (oldImage != img) {
             updateImageRotation();
