@@ -270,48 +270,60 @@ public class RotatedImage extends Image {
 
     /**
      * Writes the currently stored orientation to disk (updates the exif-flag inside the file). 
-     * Throws various IO exceptions if things don't work on the way.
      * The thread is blocked until the file operations are finished or an error occurs. 
+     * If null is returned, everything worked, otherwise an error description is returned. 
      */
-    public void writeCurrentOrientationToFile() throws Exception {
-        File tempFile = File.createTempFile(Common.removeExtensionFromFilename(image.getName()) + "_old", "." + Common.getExtensionFromFilename(image.getName()), image.getParentFile());
-        Files.move(image.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        //copied, even with comments, from WriteExifMetadataExample in the commons-imaging examples. Because, it actually helps. 
-        //(https://github.com/apache/commons-imaging)
-        
-        //image is not a file anymore, as we just renamed (moved) it
-        FileOutputStream fos = new FileOutputStream(image);
-        OutputStream os = new BufferedOutputStream(fos);
-
-        TiffOutputSet newMetadata = null;
-
-        // note that metadata might be null
-        final ImageMetadata originalMetadata = Imaging.getMetadata(tempFile);
-        
-        JpegImageMetadata jpegMetadata = (JpegImageMetadata) originalMetadata;
-        if (jpegMetadata != null) {
-            // note that exif might be null as well
-            TiffImageMetadata exif = jpegMetadata.getExif();
-
-            if (exif != null) {
-                // The TiffImageMetadata class is read-only.
-                // getOutputSet returns a writeable copy of the metadata. 
-                newMetadata = exif.getOutputSet();
+    public String writeCurrentOrientationToFile() {
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile(Common.removeExtensionFromFilename(image.getName()) + "_rotate", ".", image.getParentFile());
+            
+            //copied, even with comments, from WriteExifMetadataExample in the commons-imaging examples. Because, it actually helps. 
+            //(https://github.com/apache/commons-imaging)
+            
+            //image is not a file anymore, as we just renamed (moved) it
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            OutputStream os = new BufferedOutputStream(fos);
+            
+            TiffOutputSet newMetadata = null;
+            
+            // note that metadata might be null
+            final ImageMetadata originalMetadata = Imaging.getMetadata(image);
+            
+            JpegImageMetadata jpegMetadata = (JpegImageMetadata) originalMetadata;
+            if (jpegMetadata != null) {
+                // note that exif might be null as well
+                TiffImageMetadata exif = jpegMetadata.getExif();
+                
+                if (exif != null) {
+                    // The TiffImageMetadata class is read-only.
+                    // getOutputSet returns a writeable copy of the metadata. 
+                    newMetadata = exif.getOutputSet();
+                }
             }
+            
+            if (newMetadata == null) {
+                newMetadata = new TiffOutputSet();
+            }
+
+            // We are told to first remove the field, if it exists. If not, nothing happens.
+            newMetadata.getOrCreateRootDirectory().removeField(TiffTagConstants.TIFF_TAG_ORIENTATION);
+            newMetadata.getRootDirectory().add(TiffTagConstants.TIFF_TAG_ORIENTATION, (short)orientation);
+            
+            new ExifRewriter().updateExifMetadataLossless(image, os, newMetadata);
+            fileOrientation = orientation;
+            
+            Files.move(tempFile.toPath(), image.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            try {
+                if (tempFile != null) Files.deleteIfExists(tempFile.toPath());
+            } catch (Exception e1) {
+                System.out.println("Error while trying to delete temp file after orientation change failed.");
+                System.out.println(Common.formatException(e1));
+                e1.printStackTrace();
+            }
+            return Common.formatException(e);
         }
-
-        if (newMetadata == null) {
-            newMetadata = new TiffOutputSet();
-        }
-
-        // We are told to first remove the field, if it exists. If not, nothing happens.
-        newMetadata.getOrCreateRootDirectory().removeField(TiffTagConstants.TIFF_TAG_ORIENTATION);
-        newMetadata.getRootDirectory().add(TiffTagConstants.TIFF_TAG_ORIENTATION, (short)orientation);
-
-        new ExifRewriter().updateExifMetadataLossless(tempFile, os, newMetadata);
-        fileOrientation = orientation;
-
-        Files.delete(tempFile.toPath());
+        return null;
     }
 }
