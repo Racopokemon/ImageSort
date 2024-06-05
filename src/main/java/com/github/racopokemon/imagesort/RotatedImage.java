@@ -21,6 +21,7 @@ import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 
+import com.drew.imaging.FileType;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
@@ -30,6 +31,7 @@ import com.drew.metadata.Tag;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.file.FileSystemDirectory;
+import com.drew.metadata.file.FileTypeDirectory;
 
 public class RotatedImage extends Image {
 
@@ -268,6 +270,15 @@ public class RotatedImage extends Image {
         }
     }
 
+    //The internal image format, no matter the file extension. 
+    public boolean isJPG() {
+        FileTypeDirectory dir = metadata.getFirstDirectoryOfType(FileTypeDirectory.class);
+        if (dir != null && dir.containsTag(FileTypeDirectory.TAG_DETECTED_FILE_MIME_TYPE)) {
+            return dir.getString(FileTypeDirectory.TAG_DETECTED_FILE_MIME_TYPE).equals(FileType.Jpeg.getMimeType());
+        }
+        return false;
+    }
+
     /**
      * Writes the currently stored orientation to disk (updates the exif-flag inside the file). 
      * The thread is blocked until the file operations are finished or an error occurs. 
@@ -325,5 +336,9 @@ public class RotatedImage extends Image {
             return Common.formatException(e);
         }
         return null;
+    }
+
+    public boolean isStillLoading() {
+        return getHeight() == 0;
     }
 }

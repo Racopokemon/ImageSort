@@ -69,7 +69,7 @@ public class Gallery {
 
     private static final boolean HIDE_MOUSE_ON_IMAGE_SWITCH = true; //If true, the mouse pointer is hidden instantly as soon as you switch to another image (and shown instantly on mouse move). No hiding if set to false. 
     private static final boolean HIDE_MOUSE_ON_IDLE = true; //Stronger variant basically, automatically hide mouse if not moved for ~1 sec. (Fullscreen only)
-    private static final boolean DEBUG_PRINT_IMAGE_METADATA = false; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
+    private static final boolean DEBUG_PRINT_IMAGE_METADATA = true; //if true, the current images metadata is written to comand line everytime the image changes. (For debugging)
     private static final boolean MOVE_ALONG = true; //Feature that silently also moves/copies/deletes not supported files during file operations, if they have the same file name (but different extension). For .raws
 
     private File directory;
@@ -699,13 +699,7 @@ public class Gallery {
                         showOpenWithDialog();
                     }
                 } else if (event.getCode() == KeyCode.R) {
-                    try {
-                        System.out.println("Starting to rewrite!");
-                        ((RotatedImage)view.getImage()).writeNewRotationToFile(0);
-                    } catch (Exception e) {
-                        System.out.println(Common.formatException(e));
-                        e.printStackTrace();
-                    }        
+                    rotateBy90Degrees();
                 } else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
                     int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
                     if (pos >= 0 && pos < numberOfTicks) {
@@ -718,6 +712,7 @@ public class Gallery {
                 //    }
                 //}
             }
+
         });
 
         //stage.focusedProperty().addListener((a, oldV, newV) -> {if (!newV && stage.isFullScreen()) stage.setFullScreen(false);});
@@ -1038,7 +1033,7 @@ public class Gallery {
             oldImage.errorProperty().removeListener(booleanListener);
         }
 
-        if (!img.isError() && img.getHeight() == 0) {
+        if (!img.isError() && img.isStillLoading()) {
             //means: still loading, need to register listeners because the view might change
             img.progressProperty().addListener(numberListener);
             img.heightProperty().addListener(numberListener);
@@ -1760,4 +1755,32 @@ public class Gallery {
     private void updateZoomIndicatorText() {
         zoomIndicatorText.setText(String.format("%.0f%%", calculateBaseImageScale() * (isZooming ? zoom : 1) * 100));
     }
+    
+    private void rotateBy90Degrees() {
+        if (currentImage == null) {
+            return;
+        }
+        if (isRotateFeatureAvailable()) {
+            ((RotatedImage)view.getImage()).rotateBy90Degrees();
+        }
+    }
+
+    private boolean isRotateFeatureAvailable() {
+        if (currentImage == null) {
+            return false; 
+        }
+        RotatedImage r = (RotatedImage) view.getImage();
+        return !r.isStillLoading() && r.isJPG();
+    }
+
+    //TODO do this EVERY TIME another image is loaded! <- loadImage? other buttons? numbers, arrows, load, F5 etc? 
+    /*
+    try {
+        System.out.println("Starting to rewrite!");
+        ((RotatedImage)view.getImage()).writeCurrentOrientationToFile();;
+    } catch (Exception e) {
+        System.out.println(Common.formatException(e));
+        e.printStackTrace();
+    } */       
+
 }
