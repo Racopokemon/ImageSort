@@ -12,7 +12,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.FileTime;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -328,16 +327,23 @@ public class RotatedImage extends Image {
             newMetadata.getRootDirectory().add(TiffTagConstants.TIFF_TAG_ORIENTATION, (short)orientation);
             
             new ExifRewriter().updateExifMetadataLossless(image, os, newMetadata);
-            fileOrientation = orientation;
             
-            BasicFileAttributes oldAttributes = Files.getFileAttributeView(image.toPath(), BasicFileAttributeView.class).readAttributes();
-            FileTime t1 = oldAttributes.lastModifiedTime(), t2 = oldAttributes.lastAccessTime(), t3 = oldAttributes.creationTime();
+            try {
+                BasicFileAttributes oldAttributes = Files.getFileAttributeView(image.toPath(), BasicFileAttributeView.class).readAttributes();
+                BasicFileAttributeView newAttributes = Files.getFileAttributeView(tempFile.toPath(), BasicFileAttributeView.class);
+                newAttributes.setTimes(oldAttributes.lastModifiedTime(), oldAttributes.lastAccessTime(), oldAttributes.creationTime());
+                //also applying properties like the windows 'hidden' flag could be done here ... yeah but this is probably hardly required. 
+            } catch (Exception e) {
+                System.out.println("Minor problem when rotating image: Could not copy attributes:");
+                e.printStackTrace();
+            }
             
             Files.move(tempFile.toPath(), image.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            
-            //also applying properties like the windows hidden flag could be done here ... yeah but this is probably hardly required. 
-            Files.getFileAttributeView(image.toPath(), BasicFileAttributeView.class).setTimes(t1, t2, t3);
+
+            fileOrientation = orientation;
         } catch (Exception e) {
+            System.out.println("Error while rotating an image: ");
+            e.printStackTrace();
             try {
                 if (tempFile != null) Files.deleteIfExists(tempFile.toPath());
             } catch (Exception e1) {
@@ -345,6 +351,7 @@ public class RotatedImage extends Image {
                 System.out.println(Common.formatException(e1));
                 e1.printStackTrace();
             }
+            orientation = fileOrientation;
             return Common.formatException(e);
         }
         return null;

@@ -1066,13 +1066,8 @@ public class Gallery {
             img.errorProperty().addListener(booleanListener);
         }
 
-        if (oldImage != null && oldImage != img) {
-            if (!oldImage.doPreviewAndFileOrientationMatch()) {
-                rotationIndicator.setVisible(true); //The longer I think about it, the more I think that this will ofc never be seen by anyone
-                String rotationResult = oldImage.writeCurrentOrientationToFile();
-                rotationIndicator.setVisible(false);
-                //TODO: MsgBox
-            }
+        if (oldImage != img) {
+            handleImageRotationIfNecessary();
         }
 
         view.setImage(img);
@@ -1108,6 +1103,23 @@ public class Gallery {
         wrapSearchIndicator.setText(currentImageIndex+1 + "/" + images.size()); //kind of doubled here, but I think its important that the indicator is updated as well
         updateLabels();
         updateImageLoadingStatus();
+    }
+
+    private void handleImageRotationIfNecessary() {
+        RotatedImage img = (RotatedImage) view.getImage();
+        if (img == null) {
+            return;
+        }
+        if (!img.doPreviewAndFileOrientationMatch()) {
+            rotationIndicator.setVisible(true); //The longer I think about it, the more I think that this will ofc never be seen by anyone
+            String rotationResult = img.writeCurrentOrientationToFile();
+            if (rotationResult != null) {
+                Alert errorMessage = new Alert(AlertType.NONE, "Sadly, while writing the new image rotation to file, we encountered the following error: \n\n"+rotationResult, ButtonType.OK);
+                errorMessage.setTitle("Rotation Error");
+                errorMessage.showAndWait();
+            }
+            rotationIndicator.setVisible(false);
+        }
     }
 
     private void updateImageLoadingStatus() {
