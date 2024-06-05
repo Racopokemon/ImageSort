@@ -547,6 +547,9 @@ public class Gallery {
         stage.setScene(scene);
         stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
         stage.setOnCloseRequest((event) -> {
+            handleImageRotationIfNecessary();
+            updateImageRotation(); //special case: imagine we rotate an image and close, and the rotated image cant be written. Then the rotatedImage internally resets its orientation, but this is not yet shown in the gallery (if we choose to return instead of closing the window). Therefore, we update the rotation here. 
+
             boolean unsavedChanges = false;
             ArrayList<ArrayList<String>> operations = listAllFileOperations();
             //we start at 1, because 0 does not move the files
