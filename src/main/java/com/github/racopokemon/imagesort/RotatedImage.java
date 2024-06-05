@@ -106,15 +106,15 @@ public class RotatedImage extends Image {
     //No files are written, and the Gallery is not notified about that. 
     //It is rather intended that the Gallery calls such a rotation (that the user requested) and then updates its views depending on that. 
     public void rotateBy90Degrees() {
-        if (orientation == 1) {orientation = 8; return;}
-        if (orientation == 8) {orientation = 3; return;}
-        if (orientation == 3) {orientation = 6; return;}
-        if (orientation == 6) {orientation = 1; return;}
+        if (orientation == 8) {orientation = 1; return;}
+        if (orientation == 3) {orientation = 8; return;}
+        if (orientation == 6) {orientation = 3; return;}
+        if (orientation == 1) {orientation = 6; return;}
 
-        if (orientation == 2) {orientation = 7; return;}
-        if (orientation == 7) {orientation = 4; return;}
-        if (orientation == 4) {orientation = 5; return;}
-        if (orientation == 5) {orientation = 2; return;}
+        if (orientation == 7) {orientation = 2; return;}
+        if (orientation == 4) {orientation = 7; return;}
+        if (orientation == 5) {orientation = 4; return;}
+        if (orientation == 2) {orientation = 5; return;}
     }
 
     //A debug method that prints all metadata available in this image into the console. Might come in handy again. 
@@ -285,6 +285,8 @@ public class RotatedImage extends Image {
      * If null is returned, everything worked, otherwise an error description is returned. 
      */
     public String writeCurrentOrientationToFile() {
+        System.out.println("TODO: Copy metadata as well!");
+
         File tempFile = null;
         try {
             tempFile = File.createTempFile(Common.removeExtensionFromFilename(image.getName()) + "_rotate", ".", image.getParentFile());

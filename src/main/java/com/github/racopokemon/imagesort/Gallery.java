@@ -1041,7 +1041,7 @@ public class Gallery {
         }
         view.setImage(img);
         if (oldImage != img) {
-            updateViewport();
+            updateImageRotation();
             if (DEBUG_PRINT_IMAGE_METADATA) {
                 System.out.println("\n-------------------------------------------------");
                 System.out.println(currentImage);
@@ -1050,17 +1050,6 @@ public class Gallery {
             }
         }
         
-        view.setRotate(img.getRotation());
-        view.fitHeightProperty().unbind();
-        view.fitWidthProperty().unbind();
-        if (img.isRotatedBy90Degrees()) {
-            view.fitWidthProperty().bind(rootPane.heightProperty());
-            view.fitHeightProperty().bind(rootPane.widthProperty());
-        } else {
-            view.fitWidthProperty().bind(rootPane.widthProperty());
-            view.fitHeightProperty().bind(rootPane.heightProperty());
-        }
-
         ArrayList<String> imageInfo = new ArrayList<String>();
         String imageNameWithAlongMovers = currentImage;
         if (filesToMoveAlong.containsKey(currentImage)) {
@@ -1762,6 +1751,7 @@ public class Gallery {
         }
         if (isRotateFeatureAvailable()) {
             ((RotatedImage)view.getImage()).rotateBy90Degrees();
+            updateImageRotation();
         }
     }
 
@@ -1771,6 +1761,21 @@ public class Gallery {
         }
         RotatedImage r = (RotatedImage) view.getImage();
         return !r.isStillLoading() && r.isJPG();
+    }
+
+    private void updateImageRotation() {
+        RotatedImage img = (RotatedImage) view.getImage();
+        view.setRotate(img.getRotation());
+        view.fitHeightProperty().unbind();
+        view.fitWidthProperty().unbind();
+        if (img.isRotatedBy90Degrees()) {
+            view.fitWidthProperty().bind(rootPane.heightProperty());
+            view.fitHeightProperty().bind(rootPane.widthProperty());
+        } else {
+            view.fitWidthProperty().bind(rootPane.widthProperty());
+            view.fitHeightProperty().bind(rootPane.heightProperty());
+        }
+        updateViewport();
     }
 
     //TODO do this EVERY TIME another image is loaded! <- loadImage? other buttons? numbers, arrows, load, F5 etc? 
