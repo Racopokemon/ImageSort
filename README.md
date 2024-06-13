@@ -88,6 +88,11 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
   * Two buttons: +1 category, +1 copies. You cant reduce them again, but who cares even? Nobody wants to set this inside the prep window! 
 * ~~Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)~~
   * ~~Might be covered enough already by the Launcher "other files" now.~~
+Further workflow change ideas:
+- Always show again
+- On top show in green "successful +// take out trash"
+- usage hint tick is gone. automatically if 2 months not used. Option to show again. In menu, show usage hints
+
 
 New file formats?
 * Video support
