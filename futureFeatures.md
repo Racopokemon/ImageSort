@@ -67,6 +67,7 @@
   * **Show how many images are there in each category**
   * Show here a big exit button on hover
   * Two buttons: +1 category, +1 copies. You cant reduce them again, but who cares even? Nobody wants to set this inside the prep window! 
+  * Show shortcuts at the right to all menu entries
 * ~~Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)~~
   * ~~Might be covered enough already by the Launcher "other files" now.~~
 Further workflow change ideas:
