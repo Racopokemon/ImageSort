@@ -48,6 +48,7 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * ***The one dir up button does not work if it starts in E:/, but in the meantime E is ejected***
 * ~~Bug right now: on my desktop there is a folder where a set of broken images at some point disable the arrow key input etc~~ (didnt null check exception message, fixed now)
 * Option to also cycle all subfolders!
+* Implement the option for "open with" in windows. If this is chosen, don't show the launcher (?) and dont show it once you finish? 
   
 ## Gallery
 * ~~Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated~~
@@ -72,13 +73,16 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 * ~~Feature request: Show the current folder name in the window title (with a - ImageSort as suffix)~~
 * Percentage bar
   * ~~Write a (+1) or +.RAW or whatever on the percentage bar to indicate this copy along (if it is activated)~~
-  * Mouse drag allows searching
+  * also show +0.3EV or what this is called, if it was applied only
+  * **Mouse drag allows searching**
+    * Once this is finished, the seek keys 0-9 are prob. not needed anymore - therefore we can use them as shortcuts for copies (swapping letters & numbers) and reimplement wasd etc. 
 * **Bug: The context menu does not disappear when arrow keys are pressed and another image is selected...**
 * Rotate images with R button or context menu. 
   * My metadata lib supports such a wide range of formats, however its only read access. JPEG should suffice for rotations right now. 
   * Maybe do not rotate the images when previewing and instead mark them for rotation (and hash their rotation states)
   * always apply the rotation when closing the window
   * show a small rotation arrow left or right next to the percentage bar for images marked for rotation? 
+  * Internal cleanness: Maybe entirely switch to this library? 
 * Context menu
   * Move to trash
   * (later rotate)
