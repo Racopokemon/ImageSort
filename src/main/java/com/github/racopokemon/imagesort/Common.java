@@ -173,6 +173,10 @@ public class Common {
         return resources.get(name);
     }
 
+    public static String getResourcePath(String resource) {
+        return Common.class.getResource(resource).toExternalForm();
+    }
+
     //Right now only for upper case chars, no error checks
     public static int getPositionInAlphabet(char c) {
         return (int)c - (int)'A';

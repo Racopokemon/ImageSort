@@ -30,16 +30,20 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.KeyCombination.Modifier;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -392,7 +396,6 @@ public class Gallery {
         StackPane.setMargin(resolutionIndicatorBox, new Insets(4, 7, 4, 7));
         resolutionIndicator.setBackground(new Background(new BackgroundFill(new Color(1, 1, 1, 0.6), new CornerRadii(5), null)));
         resolutionIndicator.setOpacity(0.7f);
-
         StackPane.setAlignment(resolutionIndicator, Pos.BOTTOM_CENTER);
         StackPane.setMargin(resolutionIndicator, new Insets(0, 0, 38, 0));
         
@@ -419,23 +422,31 @@ public class Gallery {
         menuFileName.setStyle("-fx-font-style: italic;");
         menuFileName.setDisable(true);
         MenuItem menuRotate = new MenuItem("Rotate JPG by 90°");
+        menuRotate.setAccelerator(new KeyCodeCombination(KeyCode.R)); //somehow (but I'm glad about that) the accelerators do not actually do an onAction call. Whereever this stems from. Maybe I consume the keystroke events myself before or so. 
         menuRotate.setOnAction((event) -> {rotateBy90Degrees();});
         MenuItem menuShowOpenWith = new MenuItem("Open with ...");
         menuShowOpenWith.setOnAction((event) -> {showOpenWithDialog();});
+        menuShowOpenWith.setAccelerator(new KeyCodeCombination(KeyCode.ENTER));
         MenuItem menuShowFile = new MenuItem("Show in explorer");
+        menuShowFile.setAccelerator(new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN));
         menuShowFile.setOnAction((event) -> {showInExplorer();});
         MenuItem menuCopy = new MenuItem("Copy image");
+        menuCopy.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
         menuCopy.setOnAction((event) -> {copyImageToClipboard(false);});
-        MenuItem menuCopyPath = new MenuItem("Copy image path only");
+        MenuItem menuCopyPath = new MenuItem("Copy image path");
+        menuCopyPath.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
         menuCopyPath.setOnAction((event) -> {copyImageToClipboard(true);});
         MenuItem menuUndo = new MenuItem("Undo last deletion");
+        menuUndo.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN));
         menuUndo.setOnAction((event) -> {undoDelete();});
         MenuItem menuDelete = new MenuItem("Move to '/delete'");
+        menuDelete.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
         menuDelete.setOnAction((event) -> {deleteImage();});
-
+        //accelerator styling is done in the scene style sheets further below
+        
         Rectangle invisibleContextMenuSource = new Rectangle();
         invisibleContextMenuSource.setVisible(false);
-        ContextMenu contextMenu = new ContextMenu(menuFileName, menuRotate, menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuUndo, menuDelete);
+        ContextMenu contextMenu = new ContextMenu(menuFileName, new SeparatorMenuItem(), menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuRotate, menuDelete, menuUndo);
         view.setOnContextMenuRequested((event) -> {
             menuFileName.setText(currentImage);
             menuRotate.setVisible(isRotateFeatureAvailable());
@@ -545,6 +556,7 @@ public class Gallery {
 
         Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
+        scene.getStylesheets().add(Common.getResourcePath("style.css"));
         stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
         stage.setOnCloseRequest((event) -> {
             handleImageRotationIfNecessary();
