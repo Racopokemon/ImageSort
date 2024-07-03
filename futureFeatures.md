@@ -52,7 +52,12 @@
   * ~~Write a (+1) or +.RAW or whatever on the percentage bar to indicate this copy along (if it is activated)~~
   * also show +0.3EV or what this is called, if it was applied only
   * **Mouse drag allows searching**
+    * snap at the current image & mark it in a big search bar that appears for this purpose
+    * also show image number and filename
+    * on the long run, also show the recording date of an image - however this is realized, also with updates etc. the simplest solution is just to cache this for every image that is being loaded, so the info is shown once the image was already seen
+      * With this feature ahead, mark date changes (or better: 5am=new day) in the search bar as well, only discrete however and if it is not too much, as this might not always how the image dates are
     * Once this is finished, the seek keys 0-9 are prob. not needed anymore - therefore we can use them as shortcuts for copies (swapping letters & numbers) and reimplement wasd etc. 
+  * Bookmarking: Pressing B or M places markers in the percentage bar (that are also visible when seeking, maybe even snapping)
 * **Bug: The context menu does not disappear when arrow keys are pressed and another image is selected...**
 * Rotate images with R button or context menu. 
   * My metadata lib supports such a wide range of formats, however its only read access. JPEG should suffice for rotations right now. 
