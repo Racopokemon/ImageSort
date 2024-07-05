@@ -108,16 +108,28 @@ public class RotatedImage extends Image {
     //Changes the orientation flag inside this RotatedImage, but does nothing further: 
     //No files are written, and the Gallery is not notified about that. 
     //It is rather intended that the Gallery calls such a rotation (that the user requested) and then updates its views depending on that. 
-    public void rotateBy90Degrees() {
-        if (orientation == 8) {orientation = 1; return;}
-        if (orientation == 3) {orientation = 8; return;}
-        if (orientation == 6) {orientation = 3; return;}
-        if (orientation == 1) {orientation = 6; return;}
-
-        if (orientation == 7) {orientation = 2; return;}
-        if (orientation == 4) {orientation = 7; return;}
-        if (orientation == 5) {orientation = 4; return;}
-        if (orientation == 2) {orientation = 5; return;}
+    public void rotateBy90Degrees(boolean clockwise) {
+        if (clockwise) {
+            if (orientation == 8) {orientation = 1; return;}
+            if (orientation == 3) {orientation = 8; return;}
+            if (orientation == 6) {orientation = 3; return;}
+            if (orientation == 1) {orientation = 6; return;}
+    
+            if (orientation == 7) {orientation = 2; return;}
+            if (orientation == 4) {orientation = 7; return;}
+            if (orientation == 5) {orientation = 4; return;}
+            if (orientation == 2) {orientation = 5; return;}
+        } else {
+            if (orientation == 8) {orientation = 3; return;}
+            if (orientation == 3) {orientation = 6; return;}
+            if (orientation == 6) {orientation = 1; return;}
+            if (orientation == 1) {orientation = 8; return;}
+    
+            if (orientation == 7) {orientation = 4; return;}
+            if (orientation == 4) {orientation = 5; return;}
+            if (orientation == 5) {orientation = 2; return;}
+            if (orientation == 2) {orientation = 7; return;}
+        }
     }
 
     //A debug method that prints all metadata available in this image into the console. Might come in handy again. 

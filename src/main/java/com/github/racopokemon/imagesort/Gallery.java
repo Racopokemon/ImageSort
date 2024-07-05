@@ -423,7 +423,7 @@ public class Gallery {
         menuFileName.setDisable(true);
         MenuItem menuRotate = new MenuItem("Rotate JPG by 90°");
         menuRotate.setAccelerator(new KeyCodeCombination(KeyCode.R)); //somehow (but I'm glad about that) the accelerators do not actually do an onAction call. Whereever this stems from. Maybe I consume the keystroke events myself before or so. 
-        menuRotate.setOnAction((event) -> {rotateBy90Degrees();});
+        menuRotate.setOnAction((event) -> {rotateBy90Degrees(true);});
         MenuItem menuShowOpenWith = new MenuItem("Open with ...");
         menuShowOpenWith.setOnAction((event) -> {showOpenWithDialog();});
         menuShowOpenWith.setAccelerator(new KeyCodeCombination(KeyCode.ENTER));
@@ -676,6 +676,8 @@ public class Gallery {
                         selectImageAtIndex(images.size()-1); //last image
                     } else if (event.isShiftDown() && event.getCode() == KeyCode.RIGHT) {
                         nImagesForth(25);
+                    } else if (event.isAltDown() && event.getCode() == KeyCode.RIGHT) {
+                        rotateBy90Degrees(true);
                     } else {
                         nextImage();
                     }
@@ -684,6 +686,8 @@ public class Gallery {
                         selectImageAtIndex(0); //first image
                     } else if (event.isShiftDown() && event.getCode() == KeyCode.LEFT) {
                         nImagesBack(25);
+                    } else if (event.isAltDown() && event.getCode() == KeyCode.LEFT) {
+                        rotateBy90Degrees(false);
                     } else {
                         prevImage();
                     }
@@ -740,7 +744,11 @@ public class Gallery {
                         showOpenWithDialog();
                     }
                 } else if (event.getCode() == KeyCode.R) {
-                    rotateBy90Degrees();
+                    rotateBy90Degrees(!event.isShortcutDown() && !event.isShiftDown());
+                } else if (event.getCode() == KeyCode.Q) {
+                    rotateBy90Degrees(false);
+                } else if (event.getCode() == KeyCode.E) {
+                    rotateBy90Degrees(true);
                 } else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
                     int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
                     if (pos >= 0 && pos < numberOfTicks) {
@@ -1808,12 +1816,12 @@ public class Gallery {
         zoomIndicatorText.setText(String.format("%.0f%%", calculateBaseImageScale() * (isZooming ? zoom : 1) * 100));
     }
     
-    private void rotateBy90Degrees() {
+    private void rotateBy90Degrees(boolean clockwise) {
         if (currentImage == null) {
             return;
         }
         if (isRotateFeatureAvailable()) {
-            ((RotatedImage)view.getImage()).rotateBy90Degrees();
+            ((RotatedImage)view.getImage()).rotateBy90Degrees(clockwise);
             updateImageRotation();
         }
     }
