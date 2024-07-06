@@ -707,7 +707,7 @@ public class Gallery {
                     } else {
                         decrementCurrentImageCategory();
                     }
-                } else if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
+                } else if (event.getCode() == KeyCode.DELETE) { //event.getCode() == KeyCode.BACK_SPACE removed for now (re-add for macs)
                     deleteImage();
                 } else if (event.getCode() == KeyCode.PLUS) {
                     increaseZoom(40);
@@ -784,7 +784,7 @@ public class Gallery {
             useInfo.setContentText(
                 "Arrow keys to look through images and mark them to be moved to a folder (keep in current or move to \\1, \\2 or \\3). \n"+
                 "Keys A, B, C, D to mark the images to be copied to the corresponding folder \\a, \\b, ... "+
-                "Del or Backspace to instantly move to a 'delete' folder. Ctrl + Z to undo.\n"+
+                "Del to instantly move to a 'delete' folder. Ctrl + Z to undo.\n"+
                 "Click to zoom. Scroll, + and - to change the zoom strength. Generally, the whole interface is scrollable! \n"+
                 "Context menu to show file in explorer or open with. Youtube-like skimming with number keys.\n"+
                 "Close the window to perform the file operations (don't worry, you will be asked for confirmation).\n"+

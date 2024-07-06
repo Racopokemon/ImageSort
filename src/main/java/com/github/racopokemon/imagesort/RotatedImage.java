@@ -256,18 +256,19 @@ public class RotatedImage extends Image {
                     //fractions that for example those certain google pixel phones fabricate..
                     if (isExposureTimeUgly) {
                         double expTime = exposureTime.doubleValue();
+                        int digitPrecision;
                         if (expTime >= 1) {
                             if (expTime >= 5) {
-                                camBits.add(String.format("%.0f sec", expTime));
+                                digitPrecision = 0;
                             } else {
-                                camBits.add(String.format("%.1f sec", expTime));
+                                digitPrecision = 1;
                             }
                         } else {
-                            int digitPrecision = 2-(int)(Math.log10(expTime)+0.0001);
-                            camBits.add(String.format(Locale.US,"%."+digitPrecision+"f sec", expTime));
+                            digitPrecision = 2-(int)(Math.log10(expTime)+0.0001);
                         }
+                        camBits.add(Common.formatDoubleUpToDecimalPlaces(expTime, digitPrecision) + " sec");
                     } else {
-                        camBits.add(exposureTime.toSimpleString(isBackgroundLoading()) + " sec");
+                        camBits.add(exposureTime.toSimpleString(true) + " sec");
                     }
                 }
             }

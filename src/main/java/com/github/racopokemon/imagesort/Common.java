@@ -2,6 +2,8 @@ package com.github.racopokemon.imagesort;
 
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.prefs.Preferences;
@@ -253,6 +255,17 @@ public class Common {
                 }
             }
         }
+    }
+
+    /**
+     * Did I miss anything substantial or did I google wrong? String.format can bring numbers like 0.2 down to a specific
+     * number of digits, but it just cannot cut trailing 0 in the end, so format %.2f, 0.2 becomes 0.20. 
+     * ... And there is no elegant solution, but I finally got along this:
+     */
+    public static String formatDoubleUpToDecimalPlaces(double value, int placesAtMost) {
+        BigDecimal bd = new BigDecimal(value).setScale(placesAtMost, RoundingMode.HALF_UP);
+        bd = bd.stripTrailingZeros();
+        return bd.toPlainString();
     }
 
 }
