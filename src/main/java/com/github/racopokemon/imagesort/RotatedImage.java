@@ -15,6 +15,7 @@ import java.nio.file.attribute.FileAttributeView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.ImageMetadata;
@@ -27,6 +28,7 @@ import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 import com.drew.imaging.FileType;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.lang.Rational;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
@@ -246,8 +248,34 @@ public class RotatedImage extends Image {
             if (dir2.containsTag(ExifSubIFDDirectory.TAG_FNUMBER)) {
                 camBits.add("f/" + dir2.getString(ExifSubIFDDirectory.TAG_FNUMBER));
             }
-            if (dir2.containsTag(ExifSubIFDDirectory.TAG_FNUMBER)) {
-                camBits.add(dir2.getString(ExifSubIFDDirectory.TAG_EXPOSURE_TIME) + " sec");
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_EXPOSURE_TIME)) {
+                Rational exposureTime = dir2.getRational(ExifSubIFDDirectory.TAG_EXPOSURE_TIME);
+                if (exposureTime != null) {
+                    boolean isExposureTimeUgly = exposureTime.getNumerator() != 1;
+                    //Likely more criteria is added here in the future. This is to tackle the extremely ugly
+                    //fractions that for example those certain google pixel phones fabricate..
+                    if (isExposureTimeUgly) {
+                        double expTime = exposureTime.doubleValue();
+                        if (expTime >= 1) {
+                            if (expTime >= 5) {
+                                camBits.add(String.format("%.0f sec", expTime));
+                            } else {
+                                camBits.add(String.format("%.1f sec", expTime));
+                            }
+                        } else {
+                            int digitPrecision = 2-(int)(Math.log10(expTime)+0.0001);
+                            camBits.add(String.format(Locale.US,"%."+digitPrecision+"f sec", expTime));
+                        }
+                    } else {
+                        camBits.add(exposureTime.toSimpleString(isBackgroundLoading()) + " sec");
+                    }
+                }
+            }
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_EXPOSURE_BIAS)) {
+                Rational bias = dir2.getRational(ExifSubIFDDirectory.TAG_EXPOSURE_BIAS);
+                if (bias != null && !bias.isZero()) {
+                    camBits.add(String.format(Locale.US, "%.1f EV", bias.doubleValue()));
+                }
             }
             if (!camBits.isEmpty()) {
                 String allBitsMerged = "";
