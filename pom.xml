@@ -17,27 +17,27 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
-            <version>17.0.1</version>
+            <version>21.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
-            <version>17.0.1</version>
+            <version>21.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
-            <version>17.0.1</version>
+            <version>21.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>17.0.1</version>
+            <version>21.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>17.0.1</version>
+            <version>21.0.1</version>
         </dependency>
         <dependency>
         <!-- metadata reading library (I chose this first without minding the requirement for also writing metadata, this is why there are two different libs) -->
@@ -161,6 +161,7 @@ it was already done, and the compiler error of maven writes you, what is declare
                     <release>11</release>
                     <jlinkImageName>imagesort</jlinkImageName>
                     <launcher>start_imagesort</launcher>
+                    <jlinkVerbose>true</jlinkVerbose>
                     <mainClass>imagesort/com.github.racopokemon.imagesort.Main</mainClass>
                 </configuration>
             </plugin>
