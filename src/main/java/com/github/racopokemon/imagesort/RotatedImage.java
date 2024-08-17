@@ -252,8 +252,8 @@ public class RotatedImage extends Image {
                 Rational exposureTime = dir2.getRational(ExifSubIFDDirectory.TAG_EXPOSURE_TIME);
                 if (exposureTime != null) {
                     boolean isExposureTimeUgly = exposureTime.getNumerator() != 1;
-                    //Likely more criteria is added here in the future. This is to tackle the extremely ugly
-                    //fractions that for example those certain google pixel phones fabricate..
+                    //This is to tackle those oddly specifiy fractions (100016/5000000) that for example 
+                    //certain google pixel phones fabricate..
                     if (isExposureTimeUgly) {
                         double expTime = exposureTime.doubleValue();
                         int digitPrecision;
