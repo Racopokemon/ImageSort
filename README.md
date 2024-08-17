@@ -19,3 +19,20 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 
 # Known issues
 * See the `issues` category in the github page
+
+# Future features
+* A big list of further feature ideas and requests can be found [here](futureFeatures.md).
+
+# The dev stuff: Building, running, etc.
+## Toolchain
+- Use openjdk 17
+- Use and install maven (I know..)
+- In your IDE, `imagesort->Plugins->javafx->run` should do the trick
+## Compiling for your OS
+- With maven, do `imagesort->Plugins->javafx->jlink`
+- This crashes the first time, because there are compatibility issues with a non-modular package we want to use anyways
+  - Ugly workaround: The promted `.jars` to be non-modular are rewritten (moditect-plugin in the pom) to be modular. Copy both from `target/modules` to the promted path and replace
+- Hopefully, jlink works now. 
+- jlink writes to `target/imagesort`, but this bunch of files is not bundled yet into an executable
+- Run `create_msi.bat` (for Windows, the steps inside the `.bat` can be easily modified to other OS), which calls `jpackage` (included in newer jdks and creates packages for the OS you are currently on)
+  - On Windows, you need some ominos 'wix'-tools to generate a `.msi` file, but the `.bat` will tell you more when you run it
