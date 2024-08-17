@@ -36,3 +36,5 @@ Simple javafx app that lets you cycle through the .jpg files in a folder, and or
 - jlink writes to `target/imagesort`, but this bunch of files is not bundled yet into an executable
 - Run `create_msi.bat` (for Windows, the steps inside the `.bat` can be easily modified to other OS), which calls `jpackage` (included in newer jdks and creates packages for the OS you are currently on)
   - On Windows, you need some ominos 'wix'-tools to generate a `.msi` file, but the `.bat` will tell you more when you run it
+  - Still, get the legacy download [from here](https://github.com/wixtoolset/wix3/releases), v5 does not work anymore with jpackage... 
+  - And you will want to add `C:\Program Files (x86)\WiX Toolset v3.14\bin` to your `PATH`. 
