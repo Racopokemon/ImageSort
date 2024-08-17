@@ -7,6 +7,12 @@ if exist ImageSort.msi (
     echo ImageSort.msi was deleted
 )
 
+:: Lösche die Datei ImageSort_Portable.zip, falls sie existiert
+if exist ImageSort_Portable.zip (
+    del ImageSort_Portable.zip
+    echo ImageSort_Portable.zip was deleted
+)
+
 :: Lösche den Ordner ImageSort_Portable, falls er existiert
 if exist ImageSort_Portable (
     rmdir /s /q ImageSort_Portable
