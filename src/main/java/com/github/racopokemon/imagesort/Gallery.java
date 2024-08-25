@@ -990,17 +990,10 @@ public class Gallery {
 
     private void showOpenWithDialog() {
         if (currentImage == null) return;
-        if (!Common.isWindows()) return;
-
-        //runs the cmd command Rundll32 Shell32.dll,OpenAs_RunDLL any-file-name.ext to show the windows 'open with' dialog currentImage:
-        try {
-            Runtime.getRuntime().exec("Rundll32 Shell32.dll,OpenAs_RunDLL " + getFullPathForFileInThisFolder(currentImage));
+        if (Common.showOpenWithDialog(getFullPathForFileInThisFolder(currentImage))) {
             showActionIndicator();
-        } catch (IOException e) {
-            System.out.println("Could not show 'open with' dialog for file " + currentImage + ":");
-            e.printStackTrace();
         }
-}
+    }
 
     private ChangeListener<? super Number> numberListener = (a, b, c) -> {updateImageLoadingStatus();};
     private ChangeListener<? super Boolean> booleanListener = (a, b, c) -> {updateImageLoadingStatus();};

@@ -228,13 +228,25 @@ public class Common {
             //... so we keep our little fallback code here
             if (Common.isWindows()) {
                 try {
-                    Runtime.getRuntime().exec("explorer.exe /select," + path);
+                    nonDeprecatedExec("explorer.exe /select,\"" + path + "\"");
                 } catch (IOException e) {
                     System.out.println("Could not show file " + path + " in explorer:");
                     e.printStackTrace();
                 }
             }
         }
+    }
+
+    //https://stackoverflow.com/questions/6686592/runtime-exec-on-argument-containing-multiple-spaces
+    //The suppresion here is the way better solution to this sad mess. 
+    @SuppressWarnings("deprecation")
+    private static void nonDeprecatedExec(String command) throws IOException {
+        //Runtime.getRuntime().exec(command.split(" ")); <- will not work if the path contains multiple spaces in a row
+
+        //all the hassle only because simple exec is now depricated in java 18, but exec with a string array is buggy as well.
+        //the more i google the more i feel like i am working with a dying language, even though the issue above is from 2011, the deprecation caused all the trouble in the first place
+
+        Runtime.getRuntime().exec(command); //well stay with this..
     }
 
     public static void showDirInExplorer(String path) {
@@ -248,12 +260,30 @@ public class Common {
         } else {
             if (Common.isWindows()) {
                 try {
-                    Runtime.getRuntime().exec("explorer.exe " + path);
+                    nonDeprecatedExec("explorer.exe " + path);
                 } catch (IOException e) {
                     System.out.println("Could not open dir " + path);
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    /*
+     * Returns true if the command was executed sucessfully
+     * and false if it didnt work (not supported OS, exception)
+     */
+    public static boolean showOpenWithDialog(String path) {
+        if (!Common.isWindows()) return false;
+
+        //runs the cmd command Rundll32 Shell32.dll,OpenAs_RunDLL any-file-name.ext to show the windows 'open with' dialog currentImage:
+        try {
+            nonDeprecatedExec("Rundll32 Shell32.dll,OpenAs_RunDLL "+path);
+            return true;
+        } catch (IOException e) {
+            System.out.println("Could not show 'open with' dialog for file " + path + ":");
+            e.printStackTrace();
+            return false;
         }
     }
 
