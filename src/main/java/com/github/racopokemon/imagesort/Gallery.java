@@ -442,11 +442,14 @@ public class Gallery {
         MenuItem menuDelete = new MenuItem("Move to '/delete'");
         menuDelete.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
         menuDelete.setOnAction((event) -> {deleteImage();});
+        MenuItem menuSystemTrash = new MenuItem("Move to system trash");
+        menuSystemTrash.setOnAction((event) -> {moveToSystemTrash();});
+        menuSystemTrash.setAccelerator(new KeyCodeCombination(KeyCode.DELETE, KeyCombination.SHIFT_DOWN));
         //accelerator styling is done in the scene style sheets further below
         
         Rectangle invisibleContextMenuSource = new Rectangle();
         invisibleContextMenuSource.setVisible(false);
-        ContextMenu contextMenu = new ContextMenu(menuFileName, new SeparatorMenuItem(), menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuRotate, menuDelete, menuUndo);
+        ContextMenu contextMenu = new ContextMenu(menuFileName, new SeparatorMenuItem(), menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuRotate, menuDelete, menuSystemTrash, menuUndo);
         view.setOnContextMenuRequested((event) -> {
             menuFileName.setText(currentImage);
             menuRotate.setVisible(isRotateFeatureAvailable());
@@ -708,7 +711,11 @@ public class Gallery {
                         decrementCurrentImageCategory();
                     }
                 } else if (event.getCode() == KeyCode.DELETE) { //event.getCode() == KeyCode.BACK_SPACE removed for now (re-add for macs)
-                    deleteImage();
+                    if (event.isAltDown() || event.isShiftDown() || event.isShortcutDown()) {
+                        moveToSystemTrash();
+                    } else {
+                        deleteImage();
+                    }
                 } else if (event.getCode() == KeyCode.PLUS) {
                     increaseZoom(40);
                 } else if (event.getCode() == KeyCode.MINUS) {
@@ -1581,6 +1588,26 @@ public class Gallery {
             e.printStackTrace();
         }
 
+        if (images.size() > 1) {
+            nextImage();
+        }
+        updateFilesList();
+    }
+
+    private void moveToSystemTrash() {
+        if (currentImage == null) {
+            return;
+        }
+
+        ArrayList<String> paths = new ArrayList<>();
+        paths.add(getFullPathForFileInThisFolder(currentImage));
+
+        if (filesToMoveAlong.containsKey(currentImage)) {
+            for (String moveAlong : filesToMoveAlong.get(currentImage)) {
+                paths.add(getFullPathForFileInThisFolder(moveAlong));
+            }
+        }
+        Common.moveToSystemTrash(paths);
         if (images.size() > 1) {
             nextImage();
         }
