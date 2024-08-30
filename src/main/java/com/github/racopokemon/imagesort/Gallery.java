@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javafx.animation.Animation;
+import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
@@ -763,6 +765,17 @@ public class Gallery {
         });
 
         //stage.focusedProperty().addListener((a, oldV, newV) -> {if (!newV && stage.isFullScreen()) stage.setFullScreen(false);});
+
+        //debugging smooth touchpad scrolling
+        //Circle c = new Circle(5, Color.RED);
+        //c.setMouseTransparent(true);
+        //rootPane.getChildren().add(c);
+        //AnimationTimer at = new AnimationTimer() {
+        //    public void handle(long nanoTime) {
+        //        c.setTranslateX(ScrollEventHandler.getPosition()* 5);
+        //    }
+        //};
+        //at.start();
 
         stage.getIcons().add(Common.getResource("logo"));
         stage.setMinHeight(400);
