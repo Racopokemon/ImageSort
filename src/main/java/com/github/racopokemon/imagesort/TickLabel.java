@@ -34,7 +34,7 @@ public class TickLabel extends InteractiveLabel {
             }
             Point2D p = r.getMousePosition().add(new Point2D(0, skipSize));
             r.mouseMove(p);
-            //this has been brought to you by github copilot, "the best AI ever" (that also came as suggestion lol)
+            //this 2nd part for scroll down has been brought to you by github copilot, "the best AI ever" (that also came as suggestion lol)
         };
     }    
 }

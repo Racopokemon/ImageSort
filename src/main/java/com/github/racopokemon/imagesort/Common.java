@@ -287,7 +287,7 @@ public class Common {
             }
             return true;
         } else {
-            System.out.println("Moving files to trash is not supported on this os.");
+            System.out.println("Moving files to trash is not supported on this OS.");
             return false;
         }
     }

@@ -42,13 +42,10 @@ public class InteractiveLabel extends StackPane {
         this.mid = midAction;
         
         scrollAbsorber = new Rectangle(width, height, Color.TRANSPARENT);
-        scrollAbsorber.setOnScroll((event) -> {
-            if (event.getDeltaY() >= 4) {
-                this.scrollUp.call();
-            } else if (event.getDeltaY() <= -4) {
-                this.scrollDown.call();
-            }
-        });
+        scrollAbsorber.setOnScroll(new ScrollEventHandler() {
+            //must be this complicated incove bc inheriting classes (TickLabel) can change the action after this constructor
+            public void up() {InteractiveLabel.this.scrollUp.call();} 
+            public void down() {InteractiveLabel.this.scrollDown.call();}});
         scrollAbsorber.setOnMouseEntered((event) -> {
             hovered = true;
             updateOpacity();

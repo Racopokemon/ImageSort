@@ -42,8 +42,6 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.input.KeyCombination.Modifier;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -259,23 +257,16 @@ public class Gallery {
                 }
             }
         });
-        EventHandler<ScrollEvent> zoomPaneScrollHandler = new EventHandler<ScrollEvent>() {
+        ScrollEventHandler zoomPaneScrollHandler = new ScrollEventHandler() {
             @Override
-            public void handle(ScrollEvent event) {
-                if (isZooming) {
-                    if (event.getDeltaY() > 0) {
-                        increaseZoom(event.getDeltaY());
-                    } else if (event.getDeltaY() < 0) {
-                        decreaseZoom(-event.getDeltaY());
-                    }
-                } else {
-                    if (event.getDeltaY() >= 4) {
-                        prevImage();
-                    } else if (event.getDeltaY() <= -4) {
-                        nextImage();
-                    }
-                }
-                event.consume();
+            public void up() {if (!isZooming) nextImage();}
+
+            @Override
+            public void down() {if (!isZooming) prevImage();}
+
+            @Override
+            public void raw(double amount) {
+                if (isZooming && amount != 0) changeZoomBy(amount);
             }
         };
         zoomPane.setOnScroll(zoomPaneScrollHandler);
@@ -717,9 +708,9 @@ public class Gallery {
                         deleteImage();
                     }
                 } else if (event.getCode() == KeyCode.PLUS) {
-                    increaseZoom(40);
+                    changeZoomBy(40);
                 } else if (event.getCode() == KeyCode.MINUS) {
-                    decreaseZoom(40);
+                    changeZoomBy(-40);
                 } else if (event.getCode() == KeyCode.SPACE) {
                     if (isZooming) zoomTo100Percent();
                 //} else if (event.getCode() == KeyCode.ENTER) {
@@ -955,33 +946,31 @@ public class Gallery {
 
         updateZoomIndicatorText();
     }
-    private void increaseZoom(double scale) {
+
+    /*
+     * Positive values zoom in, negative ones zoom out.
+     */
+    private void changeZoomBy(double scale) {
         if (currentImage == null) return;
 
         zoom *= Math.pow(1.01, scale);
+
         if (zoom > MAX_ZOOM) {
             zoom = MAX_ZOOM;
-        }
-        if (isZooming) {
-            zoomIn();
-        }
-    }
-    private void decreaseZoom(double scale) {
-        if (currentImage == null) return;
-
-        zoom /= Math.pow(1.01, scale);
-        if (zoom < MIN_ZOOM) {
+        } else if (zoom < MIN_ZOOM) {
             zoom = MIN_ZOOM;
         }
+
         if (isZooming) {
             zoomIn();
         }
     }
+    
     //Sets the mouse position from the given MouseEvent. 
     //We store it externally and dont simply pass it over when zooming in,
     //because when the zoom (scale) changes, we don't get new information on
     //the mouse, but need to update the zoom based on the mouse position
-    private  void setMousePosition(MouseEvent event) {
+    private void setMousePosition(MouseEvent event) {
         mouseRelativeX = event.getSceneX() / rootPane.getWidth();
         mouseRelativeY = event.getSceneY() / rootPane.getHeight();
         mouseRelativeX = Math.max(Math.min(mouseRelativeX, 1), 0);
