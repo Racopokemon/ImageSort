@@ -53,7 +53,7 @@
 * ~~Feature request: Show the current folder name in the window title (with a - ImageSort as suffix)~~
 * Percentage bar
   * ~~Write a (+1) or +.RAW or whatever on the percentage bar to indicate this copy along (if it is activated)~~
-  * also show +0.3EV or what this is called, if it was applied only
+  * ~~also show +0.3EV or what this is called, if it was applied only~~
   * **Mouse drag allows searching**
     * snap at the current image & mark it in a big search bar that appears for this purpose
     * also show image number and filename

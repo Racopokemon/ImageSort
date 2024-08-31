@@ -396,6 +396,16 @@ public class Gallery {
         progress = new ImprovisedProgressBar(350, 30, resolutionIndicator, zoomIndicator);
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
+
+        progress.setOnMousePressed((event) -> {
+            if (event.getButton() == MouseButton.PRIMARY) startSeeking();
+        });
+        progress.setOnMouseReleased((event) -> {
+            if (event.getButton() == MouseButton.PRIMARY) stopSeeking();
+        });
+        progress.setOnMouseDragged((event) -> {
+            if (event.getButton() == MouseButton.PRIMARY) updateSeeking();
+        });
         
         rotationIndicator = new StackPane();
         Text rotationIndicatorText = new Text("(rotating image)");
@@ -1881,14 +1891,27 @@ public class Gallery {
         updateViewport();
     }
 
-    //TODO do this EVERY TIME another image is loaded! <- loadImage? other buttons? numbers, arrows, load, F5 etc? 
-    /*
-    try {
-        System.out.println("Starting to rewrite!");
-        ((RotatedImage)view.getImage()).writeCurrentOrientationToFile();;
-    } catch (Exception e) {
-        System.out.println(Common.formatException(e));
-        e.printStackTrace();
-    } */       
+    private void startSeeking() {
+        progress.setCursor(Cursor.NONE);
+        view.setVisible(false);
+        progress.setVisible(false);
+        label.setVisible(false);
+        tickLabelVBox.setVisible(false);
+    }
 
+    private void stopSeeking() {
+        progress.setCursor(Cursor.DEFAULT);
+        view.setVisible(true);
+        progress.setVisible(true);
+        label.setVisible(true);
+        tickLabelVBox.setVisible(true);
+
+        rootPane.requestFocus();
+    }
+    
+    private void updateSeeking() {
+        //work with robots here!^
+
+        //known issue: Even though everything is hidden, you can still press all keys and scroll and everything...
+    }
 }
