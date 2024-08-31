@@ -79,7 +79,4 @@ public abstract class ScrollEventHandler implements EventHandler<ScrollEvent> {
     public static double getPosition() {
         return scrolledDistance;
     }
-
-    // ideas: lr once (listen for start/stop events)
-    // limit scroll speed
 }

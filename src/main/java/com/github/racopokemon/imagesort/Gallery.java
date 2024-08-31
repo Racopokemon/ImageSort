@@ -1,5 +1,6 @@
 package com.github.racopokemon.imagesort;
 
+import java.awt.ScrollPane;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -429,7 +430,7 @@ public class Gallery {
         MenuItem menuCopyPath = new MenuItem("Copy image path");
         menuCopyPath.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
         menuCopyPath.setOnAction((event) -> {copyImageToClipboard(true);});
-        MenuItem menuUndo = new MenuItem("Undo last deletion");
+        MenuItem menuUndo = new MenuItem("Undo last '/delete' move");
         menuUndo.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN));
         menuUndo.setOnAction((event) -> {undoDelete();});
         MenuItem menuDelete = new MenuItem("Move to '/delete'");
@@ -442,13 +443,15 @@ public class Gallery {
         
         Rectangle invisibleContextMenuSource = new Rectangle();
         invisibleContextMenuSource.setVisible(false);
-        ContextMenu contextMenu = new ContextMenu(menuFileName, new SeparatorMenuItem(), menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuRotate, menuDelete, menuSystemTrash, menuUndo);
+        ContextMenu contextMenu = new ContextMenu(menuFileName, new SeparatorMenuItem(), menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuRotate, menuSystemTrash, menuDelete, menuUndo);
+        contextMenu.setAutoHide(true);
         view.setOnContextMenuRequested((event) -> {
             menuFileName.setText(currentImage);
             menuRotate.setVisible(isRotateFeatureAvailable());
+            menuUndo.setDisable(deleteHistory.isEmpty());
             contextMenu.show(invisibleContextMenuSource, event.getScreenX(), event.getScreenY());
             //note that we set invisibleContextMenuSource as anchor and not the view. This is because the context menu hides when
-            //the ancor loses focus, and while zooming and scrolling on the view it doesnt so the context menu stays
+            //the ancor loses focus (we want that), and while zooming and scrolling on the view it doesnt so the context menu stays
             //so this is a slight hack, just use anything else thats probably not even visible that will instantly lose focus
         });
 
@@ -667,6 +670,7 @@ public class Gallery {
             @Override
             public void handle(KeyEvent event) {
                 //Fuck switch cases. 
+                boolean hideContextMenu = true;
                 if (event.getCode() == KeyCode.RIGHT) {// || event.getCode() == KeyCode.D) {
                     if (event.isShortcutDown() && event.getCode() == KeyCode.RIGHT) {
                         selectImageAtIndex(images.size()-1); //last image
@@ -754,6 +758,12 @@ public class Gallery {
                     if (pos >= 0 && pos < numberOfTicks) {
                         toggleCurrentImageTick(pos);
                     }
+                } else {
+                    hideContextMenu = false;
+                }
+                if (hideContextMenu) {
+                    //Since the context menu is not added to a supporting pane (only scrollPanes, splitPanes and tabPanes allow it, why is that exactly?), its auto-hide capabilities are limited, therefore we have to do things for ourself: 
+                    contextMenu.hide();
                 }
                 //else if (event.getCode() == KeyCode.ESCAPE) {
                 //    if (!stage.isFullScreen()) {

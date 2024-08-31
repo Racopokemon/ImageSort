@@ -36,7 +36,7 @@
   * ~~Ctrl delete for 'instant delete' which instantly moves it to system trash?~~
   * make a very short timeout for the next delete operation to be triggered - esp with del and backspace on top of another it quickly happens that 2 images in a row are deleted!
   * About scrolling: Maybe try quickly flashing the l/r button when you scroll forth / back?
-  * Better scrolling on touchpads! 
+  * ~~Better scrolling on touchpads!~~
   * GENERALLY for good style, RotatedImage should also read its metadata in a separate thread and then maybe update its data
     * This might already fix some micro-lags! 
   * I had the impression that the ImageView loads one image after another, so internally its working with a queue, and probably this queue depends on the creation time of each image. 
@@ -64,15 +64,12 @@
     * Once this is finished, the seek keys 0-9 are prob. not needed anymore - therefore we can use them as shortcuts for copies (swapping letters & numbers) and reimplement wasd etc. 
   * Bookmarking: Pressing B or M places markers in the percentage bar (that are also visible when seeking, maybe even snapping)
 * **Bug: The context menu does not disappear when arrow keys are pressed and another image is selected...**
-* Rotate images with R button or context menu. 
-  * My metadata lib supports such a wide range of formats, however its only read access. JPEG should suffice for rotations right now. 
-  * Maybe do not rotate the images when previewing and instead mark them for rotation (and hash their rotation states)
-  * always apply the rotation when closing the window
-  * show a small rotation arrow left or right next to the percentage bar for images marked for rotation? 
+* ~~Rotate images with R button or context menu.~~
+  * ~~My metadata lib supports such a wide range of formats, however its only read access. JPEG should suffice for rotations right now.~~
   * Internal cleanness: Maybe entirely switch to this library? 
-* Context menu
-  * Move to trash
-  * (later rotate)
+* ~~Context menu~~
+  * ~~Move to trash~~
+  * ~~(later rotate)~~
 * **Filter label menu**
   * **Show how many images are there in each category**
   * Show here a big exit button on hover
