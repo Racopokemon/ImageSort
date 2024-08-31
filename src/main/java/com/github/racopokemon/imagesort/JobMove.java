@@ -1,6 +1,7 @@
 package com.github.racopokemon.imagesort;
 
 import java.io.File;
+import java.nio.file.Files;
 
 public class JobMove extends Job {
 
@@ -25,7 +26,7 @@ public class JobMove extends Job {
     public void execute(JobReportingInterface target) {
         target.setCurrentOperation("Moving " + origin.getName());
         try {
-            origin.renameTo(dest);
+            Files.move(origin.toPath(), dest.toPath());
         } catch (Exception e) {
             target.logError("Could not move " + origin.getAbsolutePath() + " to " + dest.getAbsolutePath() + ": " + Common.formatException(e), false);
             e.printStackTrace();
