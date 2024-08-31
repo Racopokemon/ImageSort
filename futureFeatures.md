@@ -63,7 +63,7 @@
       * also, we could indicate when the lense (and cameras) changed
     * Once this is finished, the seek keys 0-9 are prob. not needed anymore - therefore we can use them as shortcuts for copies (swapping letters & numbers) and reimplement wasd etc. 
   * Bookmarking: Pressing B or M places markers in the percentage bar (that are also visible when seeking, maybe even snapping)
-* **Bug: The context menu does not disappear when arrow keys are pressed and another image is selected...**
+* ~~Bug: The context menu does not disappear when arrow keys are pressed and another image is selected...~~
 * ~~Rotate images with R button or context menu.~~
   * ~~My metadata lib supports such a wide range of formats, however its only read access. JPEG should suffice for rotations right now.~~
   * Internal cleanness: Maybe entirely switch to this library? 
