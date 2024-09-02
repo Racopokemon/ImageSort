@@ -110,6 +110,9 @@ public class Gallery {
     private int filter = -1; //-1: No filter. 0: Keep only. 1-numberOfCategories: Only this category (move). From that on: Only this category (copy / ticks)
     private boolean updateFilterOnNextImage = false; //slight acceleration, only reload the whole filter when this actually occured
 
+    private boolean currentlySeekingBlockInput = false; //turned on while seeking in the progress bar, so that nobody can switch filters, rotate / delete images etc. Blocks keystrokes & filter operations (probably not even required). As further precaution we set currentImage to null while seeking. 
+    private String imageBeforeSeeking = null; //set while seeking to know the currentImage before (set to null to block all kinds of input while seeking)
+
     private Hashtable<String, ImageFileOperations> imageOperations; //only added once seen, so might not contain all images. The expected state for non contained images is category 0, no copies.
     private Hashtable<String, RotatedImage> imageBuffer; //holds the current image and some images before and after it, updated with every loadImage. 
     //we use here that javaFX images already load in the background and provide an empty image until they finished loading, so just creating  and 
@@ -399,12 +402,15 @@ public class Gallery {
 
         progress.setOnMousePressed((event) -> {
             if (event.getButton() == MouseButton.PRIMARY) startSeeking();
+            if (event.getButton() == MouseButton.SECONDARY && currentlySeekingBlockInput) {
+                stopSeeking(true);
+            }
         });
         progress.setOnMouseReleased((event) -> {
-            if (event.getButton() == MouseButton.PRIMARY) stopSeeking();
+            if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) stopSeeking(false);
         });
         progress.setOnMouseDragged((event) -> {
-            if (event.getButton() == MouseButton.PRIMARY) updateSeeking();
+            if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) updateSeeking();
         });
         
         rotationIndicator = new StackPane();
@@ -679,6 +685,14 @@ public class Gallery {
         rootPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
+                if (currentlySeekingBlockInput) {
+                    if (event.getCode() == KeyCode.ESCAPE) {
+                        stopSeeking(true);
+                        event.consume();
+                    }
+                    return;
+                }
+
                 //Fuck switch cases. 
                 boolean hideContextMenu = true;
                 if (event.getCode() == KeyCode.RIGHT) {// || event.getCode() == KeyCode.D) {
@@ -1305,19 +1319,25 @@ public class Gallery {
     }
 
     private void nextFilter() {
+        if (currentlySeekingBlockInput) return;
+
         if (++filter > numberOfCategories+numberOfTicks) {
             filter = -1;
         }
         updateFilter();
     }
     private void previousFilter() {
+        if (currentlySeekingBlockInput) return;
+
         if (--filter < -1) {
             filter = numberOfCategories+numberOfTicks;
         }
         updateFilter();
     }
-    //Sets the filter to the givenn number - except the filter is set already, then switch to no filter (so toggle)
+    //Sets the filter to the given number - except the filter is set already, then switch to no filter (so toggle)
     private void toggleFilter(int f) {
+        if (currentlySeekingBlockInput) return;
+
         if (filter == f) {
             filter = -1;
         } else {
@@ -1432,7 +1452,8 @@ public class Gallery {
         if (!imageAvailable) {
             if (filter == -1) {
                 noImagesLabel.setText("The selected folder does not contain any supported files. " + 
-                        "\nIn this folder, this app is not really useful, you may close it. \nWhen you restart the app, you can select another folder."+
+                        "\nIn this folder, this app is not really useful, you may close it. "+
+                        "\nWhen you restart the app, you can select another folder."+
                         "\nAlternatively, you can add files to this folder and press F5 to rescan the folder.");
             } else {
                 if (filter == 0) {
@@ -1463,15 +1484,7 @@ public class Gallery {
                 filterLabel.setText("only show copy to " + getTickName(filter - numberOfCategories-1));
             }
         }
-        //another TODO: when do we update the filter? Only on next / prev calls. Do we need to always update the filter? 
         //TODO: We should prompt a hint that the image will be invisible in this filter once you change the image.
-        //TODO: We need to updateFilter for every nextImage and prevImage call. 
-
-        //TODO: I have no idea what the following lines mean, maybe just delete them?
-        //do we need this call here? 
-        //does it stand showing the same image without reloading it?
-        //what about the fact that the call could occur any time (esp after deleting)
-        //rn im saying yes, replacing loadImage in the init with this call. 
     }
 
     //in images, not allImages. 
@@ -1897,20 +1910,30 @@ public class Gallery {
         progress.setVisible(false);
         label.setVisible(false);
         tickLabelVBox.setVisible(false);
+        imageBeforeSeeking = currentImage;
+        currentImage = null; //blocks basically all image commands, everything image-related has a check for this before. 
+        currentlySeekingBlockInput = true; //should actually be enough, as this blocks most keyboard input
     }
 
-    private void stopSeeking() {
+    private void stopSeeking(boolean cancelled) {
         progress.setCursor(Cursor.DEFAULT);
         view.setVisible(true);
         progress.setVisible(true);
         label.setVisible(true);
         tickLabelVBox.setVisible(true);
 
+        if (cancelled || true) {
+            currentImage = imageBeforeSeeking;
+        } else {
+            //selectImageAtIndex();
+        }
+        currentlySeekingBlockInput = false;
+
         rootPane.requestFocus();
     }
     
     private void updateSeeking() {
-        //work with robots here!^
+        //work with robots here!
 
         //known issue: Even though everything is hidden, you can still press all keys and scroll and everything...
     }
