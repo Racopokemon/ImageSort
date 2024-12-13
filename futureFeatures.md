@@ -81,9 +81,9 @@ Further workflow change ideas:
 - Always show again
 - On top show in green "successful +// take out trash"
 - usage hint tick is gone. automatically if 2 months not used. Option to show again. In menu, show usage hints
-- Show more exif info, if its relevant
-  - If the software is one of the big 5 or so (is there a list online, also for names? contains 'adobe' etc), write this in a new line. 
-  - Also, mark the aperture / exposure with a * if they are set in the exposure program. Also check for other possible values, there is a few, also weird creative modes and normal modes etc.
+- ~~Show more exif info, if its relevant~~
+  - ~~If the software is one of the big 5 or so (is there a list online, also for names? contains 'adobe' etc), write this in a new line.~~
+  - ~~Also, mark the aperture / exposure with a * if they are set in the exposure program. Also check for other possible values, there is a few, also weird creative modes and normal modes etc.~~
 [Exif IFD0] Software - Digital Camera X-S20 Ver2.01
 [Exif SubIFD] Exposure Program - Aperture priority
 
