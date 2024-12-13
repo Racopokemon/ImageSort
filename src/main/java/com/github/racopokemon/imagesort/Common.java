@@ -24,6 +24,10 @@ public class Common {
     private static FilenameFilter filterOther;
     private static Hashtable<String, Image> resources;
 
+    private static String[] relevantSoftwareMatches = 
+        {"adobe", "pixelmator", "gimp", "paint", "photopea", "corel", "cyberlink", "skylum", "capture", "dxo", "affinity", "darktable", "therapee", "movavi", "lightroom", "luminar", "scape", "processor", "aurora", "radiant"};
+        //Just the result of googling "best raw software" and "best photo software" etc, should work in very most of the cases, at least I had like 5 of the raw softwares installed once
+
     private static class ResolutionEntry {
         private double big, small;
         private String name;
@@ -319,6 +323,17 @@ public class Common {
         BigDecimal bd = new BigDecimal(value).setScale(placesAtMost, RoundingMode.HALF_UP);
         bd = bd.stripTrailingZeros();
         return bd.toPlainString();
+    }
+
+    public static boolean isExternalSoftware(String softwareName) {
+        //Should work well enough to just check if common brand names are contained somewhere inside, cams usually only write "ver 4.2" or "ABC HDR+ 14534"
+        softwareName = softwareName.toLowerCase();
+        for (String s : relevantSoftwareMatches) {
+            if (softwareName.contains(s)) {
+                return true;
+            }
+        }
+        return false; 
     }
 
 }
