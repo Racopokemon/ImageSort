@@ -34,6 +34,7 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
 import com.drew.metadata.Tag;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDescriptor;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.file.FileSystemDirectory;
 import com.drew.metadata.file.FileTypeDirectory;
@@ -150,7 +151,7 @@ public class RotatedImage extends Image {
             // Each Directory stores values in Tag objects
             //
             for (Tag tag : directory.getTags()) {
-                System.out.println(tag);
+                //System.out.println(tag);
             }
             
             //
@@ -160,6 +161,7 @@ public class RotatedImage extends Image {
                 System.err.println("ERROR: " + error);
             }
         }
+        
     }
 
     //Some things in Java are still ... a bit overcomplicated
@@ -225,6 +227,13 @@ public class RotatedImage extends Image {
             }
             makeModelAndLens += lensLine; 
         }
+        if (dir1.containsTag(ExifIFD0Directory.TAG_SOFTWARE)) {
+            String software = dir1.getString(ExifIFD0Directory.TAG_SOFTWARE);
+            if (true) {
+                if (!makeModelAndLens.equals("")) makeModelAndLens += "\n";
+                makeModelAndLens += software;
+            }
+        }
         if (!makeModelAndLens.equals("")) {
             output.add(makeModelAndLens);
         }
@@ -239,16 +248,37 @@ public class RotatedImage extends Image {
         //image properties line
         if (dir2 != null) {
             ArrayList<String> camBits = new ArrayList<String>(); //were doing the list-collecting thing AGAIN argh
+            int camMode = 0;
+            if (dir2.containsTag(ExifSubIFDDirectory.TAG_EXPOSURE_PROGRAM)) {
+                try {
+                    camMode = dir2.getInt(ExifSubIFDDirectory.TAG_EXPOSURE_PROGRAM);
+                    //0	No info
+                    //1	Manual
+                    //2	Normal / Auto
+                    //3	Aperture prio
+                    //4	Shutter prio
+                    //5	Creative (depth of field)
+                    //6	Action (fast shutter speed)
+                    //7	Portrait (closeup with background out of focus)
+                    //8	Landscape (background focus)
+                } catch (Exception e) {}
+            }
             if (dir2.containsTag(ExifSubIFDDirectory.TAG_FOCAL_LENGTH)) {
                 camBits.add(dir2.getString(ExifSubIFDDirectory.TAG_FOCAL_LENGTH) + " mm");
             }
             if (dir2.containsTag(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT)) {
                 camBits.add("ISO "+dir2.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT));
             }
+            //if (camMode == 2) { camBits.add("Auto");}
+            if (camMode == 5) { camBits.add("Creative");}
+            if (camMode == 6) { camBits.add("Action");}
+            if (camMode == 7) { camBits.add("Portrait");}
+            if (camMode == 8) { camBits.add("Landscape");}
             if (dir2.containsTag(ExifSubIFDDirectory.TAG_FNUMBER)) {
-                camBits.add("f/" + dir2.getString(ExifSubIFDDirectory.TAG_FNUMBER));
+                camBits.add("f/" + dir2.getString(ExifSubIFDDirectory.TAG_FNUMBER) + (camMode == 1 || camMode == 3 ? "*" : ""));
             }
             if (dir2.containsTag(ExifSubIFDDirectory.TAG_EXPOSURE_TIME)) {
+                String suffix = " sec" + (camMode == 1 || camMode == 4 ? "*" : "");
                 Rational exposureTime = dir2.getRational(ExifSubIFDDirectory.TAG_EXPOSURE_TIME);
                 if (exposureTime != null) {
                     boolean isExposureTimeUgly = exposureTime.getNumerator() != 1;
@@ -266,9 +296,9 @@ public class RotatedImage extends Image {
                         } else {
                             digitPrecision = 2-(int)(Math.log10(expTime)+0.0001);
                         }
-                        camBits.add(Common.formatDoubleUpToDecimalPlaces(expTime, digitPrecision) + " sec");
+                        camBits.add(Common.formatDoubleUpToDecimalPlaces(expTime, digitPrecision) + suffix);
                     } else {
-                        camBits.add(exposureTime.toSimpleString(true) + " sec");
+                        camBits.add(exposureTime.toSimpleString(true) + suffix);
                     }
                 }
             }
@@ -280,6 +310,7 @@ public class RotatedImage extends Image {
             }
             if (!camBits.isEmpty()) {
                 String allBitsMerged = "";
+
                 for (int i = 0; i < camBits.size(); i++) {
                     String bit = camBits.get(i);
                     if (i != 0) allBitsMerged += " | ";
@@ -291,6 +322,7 @@ public class RotatedImage extends Image {
                     secondLine += "\n";
                     secondLine += allBitsMerged;
                 }
+
             }
         }
         if (secondLine != null) {
