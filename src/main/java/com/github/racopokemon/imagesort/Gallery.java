@@ -400,18 +400,18 @@ public class Gallery {
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
 
-        progress.setOnMousePressed((event) -> {
-            if (event.getButton() == MouseButton.PRIMARY) startSeeking();
-            if (event.getButton() == MouseButton.SECONDARY && currentlySeekingBlockInput) {
-                stopSeeking(true);
-            }
-        });
-        progress.setOnMouseReleased((event) -> {
-            if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) stopSeeking(false);
-        });
-        progress.setOnMouseDragged((event) -> {
-            if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) updateSeeking();
-        });
+        // progress.setOnMousePressed((event) -> {
+        //     if (event.getButton() == MouseButton.PRIMARY) startSeeking();
+        //     if (event.getButton() == MouseButton.SECONDARY && currentlySeekingBlockInput) {
+        //         stopSeeking(true);
+        //     }
+        // });
+        // progress.setOnMouseReleased((event) -> {
+        //     if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) stopSeeking(false);
+        // });
+        // progress.setOnMouseDragged((event) -> {
+        //     if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) updateSeeking();
+        // });
         
         rotationIndicator = new StackPane();
         Text rotationIndicatorText = new Text("(rotating image)");

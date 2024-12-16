@@ -227,7 +227,7 @@ public class RotatedImage extends Image {
             }
             makeModelAndLens += lensLine; 
         }
-        if (dir1.containsTag(ExifIFD0Directory.TAG_SOFTWARE)) {
+        if (dir1 != null && dir1.containsTag(ExifIFD0Directory.TAG_SOFTWARE)) {
             String software = dir1.getString(ExifIFD0Directory.TAG_SOFTWARE);
             if (Common.isExternalSoftware(software)) {
                 if (!makeModelAndLens.equals("")) makeModelAndLens += "\n";
