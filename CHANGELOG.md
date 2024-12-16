@@ -1,3 +1,25 @@
+# ImageSort 1.7
+_December 16th, 2024_
+_To continue the tradition, another update with various things before christmas. Not the biggest features here, but you also wouldn't want to miss them anymore :)_
+
+This update introduces rotating images, instantly moving images to the system trash, better touch-pad scrolling and some love for the percentage bar, that now gives you even more useful information on the image you're currently looking at. Enjoy! 
+
+Gallery
+- You can now (EXIF-metadata) rotate JPG files! Yess! Press R for it (or use the context menu)
+- System trash is now supported! Ctrl+Delete will instantly move files there. 
+- We now show the current folder name in the window title
+- Better scrolling on trackpads :)
+- An action indicator flashes in the top-right corner on commands that otherwise don't give any visual feedback (copy file etc.)
+- F5 now reloads the image list
+
+Percentage bar
+- More EXIF stats: +0.3EV, used software if any, camera mode (auto, aperture focus, etc.)
+- When hovering the percentage bar, it now also shows how many images were deleted
+- The zoom indicator is also shown when hovering the percentage bar
+- In the percentage bar, there now is a (+1) etc written for the number of other files that will be moved along (our indirect RAW support feature)
+
+- Various bugfixes
+
 # ImageSort 1.6
 _December 17th, 2023_
 *The pre-christmas release*
