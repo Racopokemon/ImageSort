@@ -164,7 +164,7 @@ public class ImprovisedProgressBar extends VBox {
         int deletedForThisView = isForeground ? numberDeleted : 0;
         double globalOutOf = (outOf + deletedForThisView - 1);
         double percentL, percentR, percentD;
-        if (globalOutOf == 1) {
+        if (globalOutOf == 0) {
             percentL = 1;
             percentR = 0;
             percentD = 0;

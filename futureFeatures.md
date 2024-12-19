@@ -15,7 +15,7 @@
 * **Its annoying, but please make something like typing inside the listView already sorting / filtering the folders!**
   * Typing keys will select the first element starting with this letter in the list!
 * Quick n dirty 'history' that can be acessed with the mouse key and alt down. For every folder jumped in, overwrite. For every error (where does it even occur) update the history. 
-* ***Ctrl+V does not work if the text field is focused in the gallery***
+* ***Ctrl+V does not work if the text field is focused in the launcher***
   * check if clipboard is non-text. then consume, otherwise let it happen
 * ***Move the destination folder option to the confirmation dialog***
   * Remove the option where to place the delete-folder, I used it 0 times
@@ -28,6 +28,7 @@
 * Implement the option for "open with" in windows. If this is chosen, don't show the launcher (?) and dont show it once you finish? 
   
 ## Gallery
+* (check this) it kinda feels like the scroll is inverted on simply jumping between images o.0 is this true?
 * ~~Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated~~
   * Maybe even register FS listeners to reload an image once it changed on disk
     * Register a listener on the dir. If files change, add these changes to a datastructure that is threadsafe. Poll it in the main jfx thread / platform.runLater or so. If the file name is contained in the imageBuffer, add it again. If it is the current image, ... well, load it again I'd say. 
@@ -70,6 +71,7 @@
 * ~~Context menu~~
   * ~~Move to trash~~
   * ~~(later rotate)~~
+* ~~Bug right now: For 2 images, the percentage bar is filled on both images. For 1 image, it is not even rendered lol~~
 * **Filter label menu**
   * **Show how many images are there in each category**
   * Show here a big exit button on hover
@@ -84,8 +86,6 @@ Further workflow change ideas:
 - ~~Show more exif info, if its relevant~~
   - ~~If the software is one of the big 5 or so (is there a list online, also for names? contains 'adobe' etc), write this in a new line.~~
   - ~~Also, mark the aperture / exposure with a * if they are set in the exposure program. Also check for other possible values, there is a few, also weird creative modes and normal modes etc.~~
-[Exif IFD0] Software - Digital Camera X-S20 Ver2.01
-[Exif SubIFD] Exposure Program - Aperture priority
 
 
 New file formats?
