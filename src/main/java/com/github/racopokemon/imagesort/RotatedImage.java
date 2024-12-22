@@ -151,7 +151,7 @@ public class RotatedImage extends Image {
             // Each Directory stores values in Tag objects
             //
             for (Tag tag : directory.getTags()) {
-                //System.out.println(tag);
+                System.out.println(tag);
             }
             
             //
@@ -202,13 +202,19 @@ public class RotatedImage extends Image {
         String makeModelAndLens = "";
         if (dir1 != null) {
             if (dir1.containsTag(ExifIFD0Directory.TAG_MAKE)) {
-                makeModelAndLens += dir1.getString(ExifIFD0Directory.TAG_MAKE);
+                String make = dir1.getString(ExifIFD0Directory.TAG_MAKE);
+                if (make.matches(".*[a-zA-Z0-9].*")) { //had a weird case of make being "--", this matches at least one letter or number
+                    makeModelAndLens += make;
+                }
             }
             if (dir1.containsTag(ExifIFD0Directory.TAG_MODEL)) {
-                if (!makeModelAndLens.equals("")) {
-                    makeModelAndLens += " ";
+                String lens = dir1.getString(ExifIFD0Directory.TAG_MODEL);
+                if (lens.matches(".*[a-zA-Z0-9].*")) {
+                    if (!makeModelAndLens.equals("")) {
+                        makeModelAndLens += " ";
+                    }
+                    makeModelAndLens += lens;
                 }
-                makeModelAndLens += dir1.getString(ExifIFD0Directory.TAG_MODEL);
             }
         }
         String lensLine = "";
