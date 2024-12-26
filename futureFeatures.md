@@ -125,3 +125,19 @@ New file formats?
   * On the long run: Improve the priorities when loading images..
 * Launcher: maybe rename folders? Or is this too much? 
 
+# Issues on Mac
+- Exiting "fullscreen" instantly enters it again with esc, F11 etc. -> Make windows not maximized. 
+- All hotcorners don't really work at the top, uh wow. 
+- Ctrl+W does not work
+- On first start, the path from the browse dialog is not applied <- wait it *is* applied, to the separate destination folder. uh wow
+- We cannot paste files from finder, only paths. I don't know if this is on my side to fix, though
+- The shortcuts in mac are shown to be ^ but I really hope that this is cmd??
+- The shortcut for delete is shown to be backspace, but backspace doesnt work?!
+- open with doesnt work
+- The launcher does not support Cmd+W
+- the text-outlines have glitches. Again, this is not me to fix. 
+- Is 100% really 100%? Its scaled, isn't it? -> yeah, it is. 
+- right-clicking the gallery, waiting until the mouse disappears and then moving over the context menu does not show the cursor. 
+- after changing the window size, the zoom percentage on hovering the percentage bar is not updated! 
+- scrolling on the copy labels moves the cursor arbitrarily far, apparently a shifted mouse is not (instantly) registered by the ui
+- request focus on launcher start, vscode remains focussed otherwise :(

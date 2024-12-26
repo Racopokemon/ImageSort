@@ -66,7 +66,13 @@
                     <release>11</release>
                 </configuration>
             </plugin>
-
+<!--
+TL;DR
+JLinking: 
+- Jlink once, it throws errors. 
+- In the repo, in target/modules, move both jars into their internal maven directory (printed into the log everywhere bc of the automodules warning) and replace the original jars
+- Jlink afain. 
+-->
 
 <!-- 
 Finding this out took way too long: 
