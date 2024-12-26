@@ -1,3 +1,6 @@
+# Deployment
+* Mac Support (if I manage to get stuff signed etc)
+* jpackage supports a version tag. Play arond with it, if installers are automatically able to update etc. 
 
 ## Launcher
 * ~~On start, the launcher has the first folder selected instead of the images (if some are there), and pressing enter opens the folder instead~~
