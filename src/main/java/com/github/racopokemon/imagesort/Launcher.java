@@ -318,7 +318,6 @@ public class Launcher {
             textFieldBrowser.setText("-%*:#[]"); //this should be invalid enough (hacky hacky, sorry)
             updateBrowser();
         });
-
         scene.getAccelerators().put(KeyCombination.keyCombination("Shortcut+V"), () -> {
             File clipboardContent = readPathFromClipboard();
             if (clipboardContent != null) {
@@ -329,6 +328,9 @@ public class Launcher {
                 Clipboard.getSystemClipboard().clear();
                 listBrowser.requestFocus(); //used to be buttonLaunch, but now pressing enter in the browser launches as well. 
             }
+        });
+        scene.getAccelerators().put(KeyCombination.keyCombination("Shortcut+W"), () -> {
+            stage.close();
         });
 
         stage.setScene(scene);

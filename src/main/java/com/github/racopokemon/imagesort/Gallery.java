@@ -64,6 +64,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 /*
@@ -580,6 +581,10 @@ public class Gallery {
             handleImageRotationIfNecessary();
             updateImageRotation(); //special case: imagine we rotate an image and close, and the rotated image cant be written. Then the rotatedImage internally resets its orientation, but this is not yet shown in the gallery (if we choose to return instead of closing the window). Therefore, we update the rotation here. 
 
+            //On mac If were still fullscreen, the dialog spawns on its own desktop which is annoying. 
+            //Also closing a full-screened window and spawning a new one (the launcher) messes with cute lil OSX and either crashes or makes the launcher full-screen. So dont worry you cute dumb little OS, well just exit full-screen for you
+            if (Common.isMac()) stage.setFullScreen(false);
+
             boolean unsavedChanges = false;
             ArrayList<ArrayList<String>> operations = listAllFileOperations();
             //we start at 1, because 0 does not move the files
@@ -775,6 +780,8 @@ public class Gallery {
                     } else {
                         showOpenWithDialog();
                     }
+                } else if (event.getCode() == KeyCode.W) {
+                    stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
                 } else if (event.getCode() == KeyCode.R) {
                     rotateBy90Degrees(!event.isShortcutDown() && !event.isShiftDown());
                 } else if (event.getCode() == KeyCode.Q) {
