@@ -265,10 +265,10 @@ public class Gallery {
         });
         ScrollEventHandler zoomPaneScrollHandler = new ScrollEventHandler() {
             @Override
-            public void up() {if (!isZooming) nextImage();}
+            public void up() {if (!isZooming) prevImage();}
 
             @Override
-            public void down() {if (!isZooming) prevImage();}
+            public void down() {if (!isZooming) nextImage();}
 
             @Override
             public void raw(double amount) {
