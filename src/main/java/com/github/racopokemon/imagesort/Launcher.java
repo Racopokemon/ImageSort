@@ -397,6 +397,7 @@ public class Launcher {
             if (Common.tryListFiles(f) == null) {
                 Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe can't read folder \n"+f.getAbsolutePath(), ButtonType.OK);
                 alert.setHeaderText("Could not launch");
+                alert.initOwner(stage);
                 alert.showAndWait();
                 return;
             }
@@ -405,6 +406,7 @@ public class Launcher {
         if (getNumberOfSupportedImages(directory) == 0) {
             Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe could find no supported files in folder \n"+textFieldBrowser.getText(), ButtonType.OK);
             alert.setHeaderText("Could not launch");
+            alert.initOwner(stage);
             alert.showAndWait();
             return;
         }

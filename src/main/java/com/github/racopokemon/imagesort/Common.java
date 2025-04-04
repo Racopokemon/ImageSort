@@ -168,6 +168,10 @@ public class Common {
     public static boolean isWindows() {
         return System.getProperty("os.name").startsWith("Windows");
     }
+    
+    public static boolean isMac() {
+        return System.getProperty("os.name").startsWith("Mac");
+    }
 
     //Just use the filename, without path, without extension. 
     public static Image getResource(String name) {
@@ -335,5 +339,6 @@ public class Common {
         }
         return false; 
     }
+
 
 }

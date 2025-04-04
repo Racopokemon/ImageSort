@@ -572,7 +572,10 @@ public class Gallery {
         Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
         scene.getStylesheets().add(Common.getResourcePath("style.css"));
-        stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
+        if (!Common.isMac()) {
+            //Mac does its own thing with full screen and maximization, caused bugs
+            stage.maximizedProperty().addListener((observable) -> {if (stage.isMaximized()) stage.setFullScreen(true);});
+        }
         stage.setOnCloseRequest((event) -> {
             handleImageRotationIfNecessary();
             updateImageRotation(); //special case: imagine we rotate an image and close, and the rotated image cant be written. Then the rotatedImage internally resets its orientation, but this is not yet shown in the gallery (if we choose to return instead of closing the window). Therefore, we update the rotation here. 
@@ -608,6 +611,7 @@ public class Gallery {
                 closeMessage += "\n'No' keeps the files unchanged and closes the gallery, which discards your work here. ";
                 Alert closeAlert = new Alert(AlertType.NONE, closeMessage, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                 closeAlert.setHeaderText(closeHeader);
+                closeAlert.initOwner(stage);
                 Optional<ButtonType> result = closeAlert.showAndWait();
                 if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
                     //prevent window close by consuming event
@@ -835,7 +839,8 @@ public class Gallery {
                 "Close the window to perform the file operations (don't worry, you will be asked for confirmation).\n"+
                 "When executing the file operations, first all copy operations are done, and afterwards the move operations.\n\n"+
                 "Find this project on github.com/Racopokemon/ImageSort"
-            );
+                );
+            useInfo.initOwner(stage);
             useInfo.showAndWait();
         }
 
@@ -1175,6 +1180,7 @@ public class Gallery {
             if (rotationResult != null) {
                 Alert errorMessage = new Alert(AlertType.NONE, "Sadly, while writing the new image rotation to file, we encountered the following error: \n\n"+rotationResult, ButtonType.OK);
                 errorMessage.setTitle("Rotation Error");
+                errorMessage.initOwner(stage);
                 errorMessage.showAndWait();
             }
             rotationIndicator.setVisible(false);
