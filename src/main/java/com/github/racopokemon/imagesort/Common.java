@@ -11,6 +11,7 @@ import java.awt.Desktop;
 import java.awt.Desktop.Action;
 
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyEvent;
 
 import java.io.File;
 
@@ -338,6 +339,10 @@ public class Common {
             }
         }
         return false; 
+    }
+
+    public static boolean isNoModifierDown(KeyEvent event) {
+        return !event.isAltDown() && !event.isShiftDown() && !event.isShortcutDown();
     }
 
 

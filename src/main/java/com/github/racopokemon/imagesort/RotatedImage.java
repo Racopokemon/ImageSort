@@ -138,7 +138,7 @@ public class RotatedImage extends Image {
     //A debug method that prints all metadata available in this image into the console. Might come in handy again. 
     public void printImageMetadata() {
         if (metadata == null) {
-            System.out.println("no metadata found");
+            System.out.println("no metadata found for "+image.getName());
         }
         //sample code taken from the library example code at 
         //https://github.com/drewnoakes/metadata-extractor/blob/master/Samples/com/drew/metadata/SampleUsage.java#L123

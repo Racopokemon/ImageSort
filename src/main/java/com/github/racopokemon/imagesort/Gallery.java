@@ -580,7 +580,7 @@ public class Gallery {
         stage.setOnCloseRequest((event) -> {
             handleImageRotationIfNecessary();
             updateImageRotation(); //special case: imagine we rotate an image and close, and the rotated image cant be written. Then the rotatedImage internally resets its orientation, but this is not yet shown in the gallery (if we choose to return instead of closing the window). Therefore, we update the rotation here. 
-
+                        
             //On mac If were still fullscreen, the dialog spawns on its own desktop which is annoying. 
             //Also closing a full-screened window and spawning a new one (the launcher) messes with cute lil OSX and either crashes or makes the launcher full-screen. So dont worry you cute dumb little OS, well just exit full-screen for you
             if (Common.isMac()) stage.setFullScreen(false);
@@ -759,7 +759,7 @@ public class Gallery {
                     imageBuffer.clear(); // it is getting refilled with the updateFilesList() call, which ultimatively calls loadImage()
                     updateFilesList();
                     showActionIndicator();
-                } else if (event.getCode().isDigitKey()) {
+                } else if (event.getCode().isDigitKey() && Common.isNoModifierDown(event)) {
                     String keyName = event.getCode().getName();
                     int skim = Integer.valueOf(keyName.substring(keyName.length() - 1, keyName.length())); 
                     //hacky hacky. Its either '5' or 'Numpad 5', so we take the last char
@@ -780,15 +780,15 @@ public class Gallery {
                     } else {
                         showOpenWithDialog();
                     }
-                } else if (event.getCode() == KeyCode.W) {
+                } else if (event.getCode() == KeyCode.W && event.isMetaDown()) {
                     stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
-                } else if (event.getCode() == KeyCode.R) {
+                } else if (event.getCode() == KeyCode.R && Common.isNoModifierDown(event)) {
                     rotateBy90Degrees(!event.isShortcutDown() && !event.isShiftDown());
-                } else if (event.getCode() == KeyCode.Q) {
+                } else if (event.getCode() == KeyCode.Q && Common.isNoModifierDown(event)) {
                     rotateBy90Degrees(false);
-                } else if (event.getCode() == KeyCode.E) {
+                } else if (event.getCode() == KeyCode.E && Common.isNoModifierDown(event)) {
                     rotateBy90Degrees(true);
-                } else if (event.getCode().isLetterKey()) { //interestingly, is false for language specific letters like ö and ß in german. 
+                } else if (event.getCode().isLetterKey() && Common.isNoModifierDown(event)) { //interestingly, is false for language specific letters like ö and ß in G-g-g-german. 
                     int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
                     if (pos >= 0 && pos < numberOfTicks) {
                         toggleCurrentImageTick(pos);
