@@ -75,7 +75,7 @@ public class Common {
     //Filename filter that accepts everything except some annoying system files (windows links and windows desktop.ini for example)
     private static class HideStuffFilenameFilter implements FilenameFilter {
         private FilenameFilter unwantedExtensions = new ExtensionFilenameFilter("lnk"); //let's just hide links (in windows at least)
-        private String[] unwantedFilenames = {"desktop.ini", "DS_Store"};
+        private String[] unwantedFilenames = {"desktop.ini", ".DS_Store"};
         @Override
         public boolean accept(File dir, String name) {
             if (unwantedExtensions.accept(dir, name)) {
