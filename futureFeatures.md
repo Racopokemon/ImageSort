@@ -51,7 +51,7 @@
 * ~~However you will implement this in detail, add the zoom percentage indicator ALSO when only hovering the percentage bar!~~
 * ~~In the percentage bar in main view, show in brackets how many images were deleted (-6)~~
 * To complete keyboard navigation, make that keeping the space bar pressed does the same zoom in as clicking the screen center
-  * In the same manner, make I, P and M do the same as hovering the percentage bar
+  * ~~In the same manner, make I, P and M do the same as hovering the percentage bar~~
 * Usage window
   * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * ~~Feature request: Show the current folder name in the window title (with a - ImageSort as suffix)~~
