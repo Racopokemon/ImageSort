@@ -124,7 +124,7 @@ public class ImprovisedProgressBar extends VBox {
     
     private void toBackground() {
         if (!isForeground) {
-            return;    
+            return;
         }
 
         percentageBarPane.setOpacity(0.1);
