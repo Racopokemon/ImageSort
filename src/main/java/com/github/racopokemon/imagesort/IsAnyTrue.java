@@ -16,6 +16,7 @@ public class IsAnyTrue {
 
     public IsAnyTrue(int numberOfConditions, ConditionCallback callback) {
         conditions = new boolean[numberOfConditions];
+        this.callback = callback;
     }
 
     public void update(int index, boolean value) {
