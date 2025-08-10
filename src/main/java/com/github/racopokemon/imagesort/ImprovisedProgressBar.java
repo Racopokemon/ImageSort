@@ -9,6 +9,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -58,10 +59,7 @@ public class ImprovisedProgressBar extends VBox {
         deletedTextNode.setFill(Color.BLACK);
         deletedTextNode.setFont(new Font(15));
         deletedTextNode.setTextAlignment(TextAlignment.RIGHT);
-
-        percentageBarPane.setOnMouseEntered((event) -> {toForeground();});
-        percentageBarPane.setOnMouseExited((event) -> {toBackground();});
-
+        
         HBox progressItself = new HBox();
         progressItself.setSnapToPixel(false);
 
@@ -96,10 +94,20 @@ public class ImprovisedProgressBar extends VBox {
 
         this.setSpacing(3);
 
+        isForeground = true; //otherwise, toBackground instantly returns
         toBackground();
     }
 
+    //More precisely: The pane that, if hovered, should cause the bar to show the details (but this is done in the Gallery bc it also depends on keystrokes)
+    public Pane getDetailsPane() {
+        return percentageBarPane;
+    }
+
     private void toForeground() {
+        if (isForeground) {
+            return;    
+        }
+
         percentageBarPane.setOpacity(1.0);
         if (getChildren().size() == 2) {
             getChildren().add(1, marginPropertiesBox); //used to just use setVisible() here which is the nicer solution, ...
@@ -115,6 +123,10 @@ public class ImprovisedProgressBar extends VBox {
     }
     
     private void toBackground() {
+        if (!isForeground) {
+            return;    
+        }
+
         percentageBarPane.setOpacity(0.1);
         if (getChildren().size() > 2) {
             getChildren().remove(marginPropertiesBox);
@@ -176,5 +188,13 @@ public class ImprovisedProgressBar extends VBox {
         leftBox.setWidth(width * percentL);
         rightBox.setWidth(width * percentR);
         deletedBox.setWidth(width * percentD);
+    }
+
+    public void updateDetails(boolean f) {
+        if (f) {
+            toForeground();
+        } else {
+            toBackground();
+        }
     }
 }

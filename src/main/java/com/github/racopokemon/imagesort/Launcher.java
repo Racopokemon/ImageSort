@@ -40,6 +40,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 
@@ -337,7 +338,7 @@ public class Launcher {
         stage.setTitle("Image Sort");
         stage.getIcons().add(Common.getResource("logo"));
         stage.show();
-
+        
         //a start path is already written to the textFieldBrowser at its creation, now validate the browser. 
         updateBrowser(); 
         if (textFieldBrowser.getText().equals(fallbackDirectory.getAbsolutePath())) { //if we end up in the default dir, show the folder selection dialog already. 
@@ -348,6 +349,9 @@ public class Launcher {
         //buttonBrowserBrowse.requestFocus();
         listBrowser.requestFocus();
         listBrowser.getSelectionModel().clearSelection();
+
+        //fighting focus on mac (doesnt work though)
+        Platform.runLater(() -> {stage.requestFocus();System.out.println("bro");});
     }
 
     private File readPathFromClipboard() {

@@ -157,6 +157,8 @@ public class Gallery {
     private Rectangle[] resolutionGraphicRects;
 
     private ImprovisedProgressBar progress;
+    //0: hovered, 1: Tab pressed, 2: P pressed
+    private boolean[] progressDetailsIndicators = new boolean[3]; 
 
     private ProgressIndicator loadingProgress; 
     private Label errorLabel; 
@@ -400,6 +402,16 @@ public class Gallery {
         progress = new ImprovisedProgressBar(350, 30, resolutionIndicator, zoomIndicator);
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
+
+        Pane progressBarDetailsPane = progress.getDetailsPane();
+        progressBarDetailsPane.setOnMouseEntered((event) -> {
+            progressDetailsIndicators[0]=true; 
+            updateProgressBarDetails();
+        });
+        progressBarDetailsPane.setOnMouseExited((event) -> {
+            progressDetailsIndicators[0]=false; 
+            updateProgressBarDetails();
+        });
 
         // progress.setOnMousePressed((event) -> {
         //     if (event.getButton() == MouseButton.PRIMARY) startSeeking();
@@ -690,7 +702,14 @@ public class Gallery {
                 new Launcher().start(new Stage());
             }
         });
-
+        rootPane.setOnKeyReleased((event) -> {
+            //no opt-out for seeking, otherwise we might get stuck when pressing a key first and then releasing while seeking
+            if (event.getCode() == KeyCode.P || event.getCode() == KeyCode.TAB) {
+                progressDetailsIndicators[event.getCode() == KeyCode.P ? 1 : 2] = false;
+                updateProgressBarDetails();
+            }
+        });
+        
         rootPane.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
@@ -740,7 +759,7 @@ public class Gallery {
                     } else {
                         decrementCurrentImageCategory();
                     }
-                } else if (event.getCode() == KeyCode.DELETE) { //event.getCode() == KeyCode.BACK_SPACE removed for now (re-add for macs)
+                } else if (event.getCode() == KeyCode.DELETE || (event.getCode() == KeyCode.BACK_SPACE && Common.isMac())) {
                     if (event.isAltDown() || event.isShiftDown() || event.isShortcutDown()) {
                         moveToSystemTrash();
                     } else {
@@ -788,6 +807,9 @@ public class Gallery {
                     rotateBy90Degrees(false);
                 } else if (event.getCode() == KeyCode.E && Common.isNoModifierDown(event)) {
                     rotateBy90Degrees(true);
+                } else if (event.getCode() == KeyCode.P || event.getCode() == KeyCode.TAB) { //this bites us if (for whatever reason) we have categories up to P
+                    progressDetailsIndicators[event.getCode() == KeyCode.P ? 1 : 2] = true;
+                    updateProgressBarDetails();
                 } else if (event.getCode().isLetterKey() && Common.isNoModifierDown(event)) { //interestingly, is false for language specific letters like ö and ß in G-g-g-german. 
                     int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
                     if (pos >= 0 && pos < numberOfTicks) {
@@ -1661,7 +1683,8 @@ public class Gallery {
         }
         updateFilesList();
     }
-
+    
+    
     private void undoDelete() {
         if (deleteHistory.isEmpty()) {
             return;
@@ -1915,6 +1938,16 @@ public class Gallery {
             view.fitHeightProperty().bind(rootPane.heightProperty());
         }
         updateViewport();
+    }
+
+    public void updateProgressBarDetails() {
+        for (boolean b : progressDetailsIndicators) {
+            if (b) {
+                progress.updateDetails(true);
+                return;
+            }
+        }
+        progress.updateDetails(false);
     }
 
     private void startSeeking() {
