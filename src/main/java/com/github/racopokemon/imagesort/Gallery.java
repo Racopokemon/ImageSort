@@ -403,8 +403,7 @@ public class Gallery {
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
         progressDetailConditions = new IsAnyTrue(3, (isAnyTrue) -> {
-            System.out.println("bro");
-            progress.updateDetails(isAnyTrue);
+            progress.updateShowingDetails(isAnyTrue);
         });
         Pane progressBarDetailsPane = progress.getDetailsPane();
         progressBarDetailsPane.setOnMouseEntered((event) -> {
@@ -1003,11 +1002,9 @@ public class Gallery {
         zoomPane.setTranslateX(spaceX * relTransX);
         zoomPane.setTranslateY(spaceY * relTransY);
 
-        zoomIndicator.setVisible(true);
-
         zoomPane.setCursor(Cursor.NONE);
-        resolutionIndicator.setVisible(true);
         
+        progress.setZooming(true); //makes zoom & resolution indicator visible
         isZooming = true;
 
         updateZoomIndicatorText();
@@ -1019,8 +1016,7 @@ public class Gallery {
         zoomPane.setTranslateX(0);
         zoomPane.setTranslateY(0);
 
-        zoomIndicator.setVisible(false);
-        resolutionIndicator.setVisible(false);
+        progress.setZooming(false); //make zoom & resolution indicator invisible, if also no details shown
         zoomPane.setCursor(Cursor.DEFAULT);
         isZooming = false;
 

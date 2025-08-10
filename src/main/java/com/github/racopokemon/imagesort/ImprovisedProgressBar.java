@@ -24,7 +24,6 @@ public class ImprovisedProgressBar extends VBox {
 
     private double width, height;
     private Node resolutionIndicator; //making use of very good OO, we also receive a random node that should also be made visible on mouse hover
-    private Node zoomIndicator;
     private StackPane percentageBarPane;
     private Text percentageTextNode;
     private Text deletedTextNode;
@@ -33,6 +32,7 @@ public class ImprovisedProgressBar extends VBox {
     private int currentIndex, outOf, numberDeleted;
     private boolean isForeground;
     private Rectangle leftBox, rightBox, deletedBox;
+    private IsAnyTrue zoomIndicatorVisibilityConditions; //0: showing details (foreground), 1: zooming
 
     private static final double SPACING = 3;
     private static final Font FONT = new Font(14);
@@ -44,7 +44,6 @@ public class ImprovisedProgressBar extends VBox {
         width = w;
         height = h;
         this.resolutionIndicator = resolutionIndicator;
-        this.zoomIndicator = zoomIndicator;
 
         percentageBarPane = new StackPane();
 
@@ -94,6 +93,11 @@ public class ImprovisedProgressBar extends VBox {
 
         this.setSpacing(3);
 
+        zoomIndicatorVisibilityConditions = new IsAnyTrue(2, (isAnyTrue) -> {
+            zoomIndicator.setVisible(isAnyTrue);
+            resolutionIndicator.setVisible(isAnyTrue);
+        });
+
         isForeground = true; //otherwise, toBackground instantly returns
         toBackground();
     }
@@ -114,9 +118,8 @@ public class ImprovisedProgressBar extends VBox {
             //but then the mouse still leaves the pane below and the mouse-auto-hide does actually not hide in this area
             //getChildren().add(resolutionIndicator);
         }
-        resolutionIndicator.setVisible(true);
         deletedTextNode.setVisible(true);
-        zoomIndicator.setVisible(true);
+        zoomIndicatorVisibilityConditions.update(0, true);
 
         isForeground = true;
         drawProgress();
@@ -132,9 +135,8 @@ public class ImprovisedProgressBar extends VBox {
             getChildren().remove(marginPropertiesBox);
             //getChildren().remove(resolutionIndicator);
         }
-        resolutionIndicator.setVisible(false);
         deletedTextNode.setVisible(false);
-        zoomIndicator.setVisible(false);
+        zoomIndicatorVisibilityConditions.update(0, false);
 
         isForeground = false;
         drawProgress();
@@ -190,11 +192,17 @@ public class ImprovisedProgressBar extends VBox {
         deletedBox.setWidth(width * percentD);
     }
 
-    public void updateDetails(boolean f) {
+    public void updateShowingDetails(boolean f) {
         if (f) {
             toForeground();
         } else {
             toBackground();
         }
+    }
+
+    //if zooming, the zoom indicator must be shown, so tell us :)
+    //were doing the work, bc if were showing details it also must be shown. 
+    public void setZooming(boolean zooming) {
+        zoomIndicatorVisibilityConditions.update(1, zooming);
     }
 }
