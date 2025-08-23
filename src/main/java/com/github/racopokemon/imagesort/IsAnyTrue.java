@@ -33,4 +33,8 @@ public class IsAnyTrue {
             callback.onUpdate(false);
         }
     }
+
+    public void ignoreEverythingAndSetValue(boolean isAnyTrue) {
+        callback.onUpdate(isAnyTrue);
+    }
 }

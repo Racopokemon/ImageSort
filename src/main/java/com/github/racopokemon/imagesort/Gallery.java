@@ -147,6 +147,7 @@ public class Gallery {
 
     private static final double HOT_CORNER_SIZE = 3; 
     private Rectangle hideUiHotcorner;
+    private IsAnyTrue hideUiConditions;
 
     private StackPane zoomIndicator;
     private Text zoomIndicatorText;
@@ -542,22 +543,25 @@ public class Gallery {
         StackPane.setAlignment(hideUiHotcorner, Pos.TOP_LEFT);
         hideUiHotcorner.setCursor(Cursor.NONE);
         hideUiHotcorner.setOnMouseEntered((e) -> {
-            label.setVisible(false);
-            progress.setVisible(false);
-            tickLabelVBox.setVisible(false);
-            filterLabel.setVisible(false);
+            hideUiConditions.update(0, true);
         });
         hideUiHotcorner.setOnMouseExited((e) -> {
-            label.setVisible(true);
-            progress.setVisible(true);
-            tickLabelVBox.setVisible(true);
-            filterLabel.setVisible(true);
+            hideUiConditions.update(0, false);
+        });
+        hideUiConditions = new IsAnyTrue(3, (b) -> {
+            label.setVisible(!b);
+            progress.setVisible(!b);
+            tickLabelVBox.setVisible(!b);
+            filterLabel.setVisible(!b);
         });
         hideUiHotcorner.setOnScroll(zoomPaneScrollHandler);
 
         stage.fullScreenProperty().addListener((target, oldValue, newValue) -> {
             exitFullscreenRect.setVisible(newValue);
             hideUiHotcorner.setVisible(newValue);
+            if (!newValue) {
+                hideUiConditions.ignoreEverythingAndSetValue(false);
+            }
         });
         
         rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
@@ -706,6 +710,8 @@ public class Gallery {
             //no opt-out for seeking, otherwise we might get stuck when pressing a key first and then releasing while seeking
             if (event.getCode() == KeyCode.P || event.getCode() == KeyCode.TAB) {
                 progressDetailConditions.update(event.getCode() == KeyCode.P ? 1 : 2, false);
+            } else if (event.getCode() == KeyCode.I || event.getCode() == KeyCode.H) {
+                hideUiConditions.update(event.getCode() == KeyCode.I ? 1 : 2, false);
             }
         });
         
@@ -807,7 +813,9 @@ public class Gallery {
                 } else if (event.getCode() == KeyCode.E && Common.isNoModifierDown(event)) {
                     rotateBy90Degrees(true);
                 } else if (event.getCode() == KeyCode.P || event.getCode() == KeyCode.TAB) { //this bites us if (for whatever reason) we have categories up to P
-                    progressDetailConditions.update(event.getCode() == KeyCode.P ? 1 : 2, true);                
+                    progressDetailConditions.update(event.getCode() == KeyCode.P ? 1 : 2, true);
+                } else if (event.getCode() == KeyCode.I || event.getCode() == KeyCode.H) {
+                    hideUiConditions.update(event.getCode() == KeyCode.I ? 1 : 2, true);
                 } else if (event.getCode().isLetterKey() && Common.isNoModifierDown(event)) { //interestingly, is false for language specific letters like ö and ß in G-g-g-german. 
                     int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
                     if (pos >= 0 && pos < numberOfTicks) {
