@@ -125,7 +125,9 @@ public class Gallery {
     private int successfullLoadsWithoutMemoryProblems = 0; //we constantly probe if we exceed the memory limits by counting up here, and may increase the buffer
 
     private double zoom = 2.9;
-    private boolean isZooming = false;
+    private boolean isSpaceDown = false; //tracking the difference to get rid of multiple shots that occur
+    private boolean isZoomingByMouse = false;
+    private boolean isZoomingByKey = false;
     private double mouseRelativeX, mouseRelativeY;
     private static final double MIN_ZOOM = 1.15;
     private static final double MAX_ZOOM = 10;
@@ -257,10 +259,11 @@ public class Gallery {
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
                     setMousePosition(event);
+                    isZoomingByMouse = true;
                     zoomIn();
                     event.consume();
                 } else if (event.getButton() == MouseButton.MIDDLE) {
-                    if (isZooming) {
+                    if (isZoomingByMouse || isZoomingByKey) {
                         zoomTo100Percent();
                         event.consume();
                     }
@@ -269,14 +272,14 @@ public class Gallery {
         });
         ScrollEventHandler zoomPaneScrollHandler = new ScrollEventHandler() {
             @Override
-            public void up() {if (!isZooming) prevImage();}
+            public void up() {if (!isZoomingByMouse && !isZoomingByKey) prevImage();}
 
             @Override
-            public void down() {if (!isZooming) nextImage();}
+            public void down() {if (!isZoomingByMouse && !isZoomingByKey) nextImage();}
 
             @Override
             public void raw(double amount) {
-                if (isZooming && amount != 0) changeZoomBy(amount);
+                if ((isZoomingByMouse || isZoomingByKey) && amount != 0) changeZoomBy(amount);
             }
         };
         zoomPane.setOnScroll(zoomPaneScrollHandler);
@@ -293,8 +296,8 @@ public class Gallery {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
-                    zoomOut();
-                    hideMouseOnIdle.playFromStart();
+                    isZoomingByMouse = false;
+                    zoomOutIfNeeded();
                 }
             }
         });
@@ -712,6 +715,12 @@ public class Gallery {
                 progressDetailConditions.update(event.getCode() == KeyCode.P ? 1 : 2, false);
             } else if (event.getCode() == KeyCode.I || event.getCode() == KeyCode.H) {
                 hideUiConditions.update(event.getCode() == KeyCode.I ? 1 : 2, false);
+            } else if (event.getCode() == KeyCode.SPACE) {
+                if (isZoomingByKey) {
+                    isZoomingByKey = false;
+                    zoomOutIfNeeded();
+                }
+                isSpaceDown = false;
             }
         });
         
@@ -726,8 +735,8 @@ public class Gallery {
                     return;
                 }
 
-                //Fuck switch cases. 
                 boolean hideContextMenu = true;
+                //Fuck switch cases, all my homies use if clauses like normal people
                 if (event.getCode() == KeyCode.RIGHT) {// || event.getCode() == KeyCode.D) {
                     if (event.isShortcutDown() && event.getCode() == KeyCode.RIGHT) {
                         selectImageAtIndex(images.size()-1); //last image
@@ -775,10 +784,16 @@ public class Gallery {
                 } else if (event.getCode() == KeyCode.MINUS) {
                     changeZoomBy(-40);
                 } else if (event.getCode() == KeyCode.SPACE) {
-                    if (isZooming) zoomTo100Percent();
-                //} else if (event.getCode() == KeyCode.ENTER) {
-                //    view.setSmooth(!view.isSmooth());
-                //    view.setCache(false);
+                    if (!isSpaceDown) {
+                        isSpaceDown = true;
+                        if (isZoomingByMouse) {
+                            zoomTo100Percent();
+                        } else {
+                            isZoomingByKey = true;
+                            setMousePosition(null); //centered zoom
+                            zoomIn();
+                        }
+                    }
                 } else if (event.getCode() == KeyCode.F5) {
                     imageBuffer.clear(); // it is getting refilled with the updateFilesList() call, which ultimatively calls loadImage()
                     updateFilesList();
@@ -981,7 +996,7 @@ public class Gallery {
         double requiredZoom = 1 / calculateBaseImageScale();
         zoom = Math.min(Math.max(requiredZoom, MIN_ZOOM), MAX_ZOOM);
 
-        if (isZooming) {
+        if (isZoomingByMouse || isZoomingByKey) {
             zoomIn();
         }
     }
@@ -1013,12 +1028,14 @@ public class Gallery {
         zoomPane.setCursor(Cursor.NONE);
         
         progress.setZooming(true); //makes zoom & resolution indicator visible
-        isZooming = true;
 
         updateZoomIndicatorText();
     }
-    // Resets the zoom to the usual 1:1 in the app
-    private void zoomOut() {
+
+    // Resets the zoom to the usual 1:1 in the app IF both key and mouse zoom are over
+    private void zoomOutIfNeeded() {
+        if (isZoomingByKey || isZoomingByMouse) return;
+
         zoomPane.setScaleX(1);
         zoomPane.setScaleY(1);
         zoomPane.setTranslateX(0);
@@ -1026,7 +1043,8 @@ public class Gallery {
 
         progress.setZooming(false); //make zoom & resolution indicator invisible, if also no details shown
         zoomPane.setCursor(Cursor.DEFAULT);
-        isZooming = false;
+
+        hideMouseOnIdle.playFromStart();
 
         updateZoomIndicatorText();
     }
@@ -1045,7 +1063,7 @@ public class Gallery {
             zoom = MIN_ZOOM;
         }
 
-        if (isZooming) {
+        if (isZoomingByMouse || isZoomingByKey) {
             zoomIn();
         }
     }
@@ -1054,11 +1072,17 @@ public class Gallery {
     //We store it externally and dont simply pass it over when zooming in,
     //because when the zoom (scale) changes, we don't get new information on
     //the mouse, but need to update the zoom based on the mouse position
+    //you can pass null for centered cursor pos
     private void setMousePosition(MouseEvent event) {
-        mouseRelativeX = event.getSceneX() / rootPane.getWidth();
-        mouseRelativeY = event.getSceneY() / rootPane.getHeight();
-        mouseRelativeX = Math.max(Math.min(mouseRelativeX, 1), 0);
-        mouseRelativeY = Math.max(Math.min(mouseRelativeY, 1), 0);
+        if (event == null) {
+            mouseRelativeX = 0.5;
+            mouseRelativeY = 0.5;
+        } else {
+            mouseRelativeX = event.getSceneX() / rootPane.getWidth();
+            mouseRelativeY = event.getSceneY() / rootPane.getHeight();
+            mouseRelativeX = Math.max(Math.min(mouseRelativeX, 1), 0);
+            mouseRelativeY = Math.max(Math.min(mouseRelativeY, 1), 0);
+        }
     }
 
     private void showInExplorer() {
@@ -1249,7 +1273,7 @@ public class Gallery {
             errorLabel.setVisible(false);
             loadingProgress.setProgress(img.getProgress());
         }
-        if (isZooming) {
+        if (isZoomingByMouse || isZoomingByKey) {
             zoomIn();
         }
     }
@@ -1907,7 +1931,7 @@ public class Gallery {
     }
 
     private void updateZoomIndicatorText() {
-        zoomIndicatorText.setText(String.format("%.0f%%", calculateBaseImageScale() * (isZooming ? zoom : 1) * 100));
+        zoomIndicatorText.setText(String.format("%.0f%%", calculateBaseImageScale() * (isZoomingByMouse||isZoomingByKey ? zoom : 1) * 100));
     }
     
     private void rotateBy90Degrees(boolean clockwise) {
