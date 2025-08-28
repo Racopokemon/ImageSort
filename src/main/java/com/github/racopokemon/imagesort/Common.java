@@ -107,7 +107,8 @@ public class Common {
 
         filterImages = new ExtensionFilenameFilter("jpg", "jpeg", "png", "gif", "bmp");
         filterRaws = new ExtensionFilenameFilter("raw", "arw", "crw", "rw2", "cr2", "raf", "nef"); //no idea if any of the other extensions are actually used anywhere, just quickly googled for canon and panasonic raw formats
-        filterVideos = new ExtensionFilenameFilter("mp4","m4a","m4v","m3u8"); //https://openjfx.io/javadoc/16/javafx.media/javafx/scene/media/package-summary.html this is the video extensions they mention at least
+        filterVideos = new ExtensionFilenameFilter("mp4","m4a","m4v","m3u8","mov"); //https://openjfx.io/javadoc/16/javafx.media/javafx/scene/media/package-summary.html this is the video extensions they mention at least
+            //note however, that .movs might not be supported (we'll see once video support is there)
         filterOther = new HideStuffFilenameFilter();
     }
 
@@ -347,3 +348,4 @@ public class Common {
 
 
 }
+
