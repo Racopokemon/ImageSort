@@ -30,6 +30,10 @@
 * Option to also cycle all subfolders!
 * Implement the option for "open with" in windows. If this is chosen, don't show the launcher (?) and dont show it once you finish? 
   
+## Polish etc
+* Metadata extractor is not modular, therefore the build with maven is using an annoying hack. The library for rotating images ... well, can apparently do the same as the metadata extractor, but *is* modular. So why not exchange all code and get rid of this altogether? 
+* Also, once this is fixed, is there a possibility to build .exes etc with a github flow? (would be wyld)
+
 ## Gallery
 * (check this) it kinda feels like the scroll is inverted on simply jumping between images o.0 is this true?
 * ~~Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated~~

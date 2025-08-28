@@ -52,6 +52,13 @@
             <artifactId>commons-imaging</artifactId>
             <version>1.0.0-alpha5</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.awxkee</groupId>
+            <artifactId>avif-coder</artifactId>
+            <version>2.1.4</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -71,7 +78,7 @@ TL;DR
 JLinking: 
 - Jlink once, it throws errors. 
 - In the repo, in target/modules, move both jars into their internal maven directory (printed into the log everywhere bc of the automodules warning) and replace the original jars
-- Jlink afain. 
+- Jlink again. 
 -->
 
 <!-- 
@@ -174,4 +181,12 @@ it was already done, and the compiler error of maven writes you, what is declare
 
         </plugins>
     </build>
+
+    <repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://www.jitpack.io</url>
+		</repository>
+    </repositories>
+
 </project>
