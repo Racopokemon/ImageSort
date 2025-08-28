@@ -351,7 +351,7 @@ public class Launcher {
         listBrowser.getSelectionModel().clearSelection();
 
         //fighting focus on mac (doesnt work though)
-        Platform.runLater(() -> {stage.requestFocus();System.out.println("bro");});
+        Platform.runLater(() -> {stage.requestFocus();});
     }
 
     private File readPathFromClipboard() {
