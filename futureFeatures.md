@@ -33,6 +33,7 @@
 ## Polish etc
 * Metadata extractor is not modular, therefore the build with maven is using an annoying hack. The library for rotating images ... well, can apparently do the same as the metadata extractor, but *is* modular. So why not exchange all code and get rid of this altogether? 
 * Also, once this is fixed, is there a possibility to build .exes etc with a github flow? (would be wyld)
+* Polish the readme to be a bit more seroius, 1-2 ppl are actually using this software
 
 ## Gallery
 * (check this) it kinda feels like the scroll is inverted on simply jumping between images o.0 is this true?

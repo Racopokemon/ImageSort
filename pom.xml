@@ -53,11 +53,19 @@
             <version>1.0.0-alpha5</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.github.awxkee</groupId>
-            <artifactId>avif-coder</artifactId>
-            <version>2.1.4</version>
-        </dependency>
+    <!-- https://mvnrepository.com/artifact/org.im4java/im4java (not used rn) -->
+
+    <dependency>
+        <groupId>openize</groupId>
+        <artifactId>openize-heic</artifactId>
+        <version>25.4</version>
+    </dependency>
+    <dependency>
+        <groupId>openize</groupId>
+        <artifactId>openize-heic</artifactId>
+        <version>25.4</version>
+        <classifier>javadoc</classifier>
+    </dependency>
 
     </dependencies>
 
@@ -183,10 +191,11 @@ it was already done, and the compiler error of maven writes you, what is declare
     </build>
 
     <repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://www.jitpack.io</url>
-		</repository>
+        <repository>
+            <id>AsposeJavaRepo</id>
+            <name>Aspose Java Repository</name>
+            <url>https://releases.aspose.com/java/repo/</url>
+        </repository>
     </repositories>
 
 </project>

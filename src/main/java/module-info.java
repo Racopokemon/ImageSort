@@ -7,6 +7,8 @@ module imagesort {
     requires metadata.extractor;
     requires org.apache.commons.imaging;
     requires org.apache.commons.io;
-
+    //requires im4java;
+    requires openize.heic;
+    
     exports com.github.racopokemon.imagesort;
 }
