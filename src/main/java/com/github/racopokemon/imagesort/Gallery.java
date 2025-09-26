@@ -149,7 +149,11 @@ public class Gallery {
 
     private static final double HOT_CORNER_SIZE = 3; 
     private Rectangle hideUiHotcorner;
+    //Is hotcorner hovered? 0. I or H pressed: 1, 2. 
     private IsAnyTrue hideUiConditions;
+    //we always show l/r buttons, label, tick label, progress, EXCEPT:
+    //0 no files with filter / in folder, 1 currently seeking, 2 hideui above is active
+    private IsAnyTrue hideMainUIControlsConditions;
 
     private StackPane zoomIndicator;
     private Text zoomIndicatorText;
@@ -548,16 +552,23 @@ public class Gallery {
         hideUiHotcorner.setOnMouseEntered((e) -> {
             hideUiConditions.update(0, true);
         });
+
         hideUiHotcorner.setOnMouseExited((e) -> {
             hideUiConditions.update(0, false);
         });
         hideUiConditions = new IsAnyTrue(3, (b) -> {
-            label.setVisible(!b);
-            progress.setVisible(!b);
-            tickLabelVBox.setVisible(!b);
             filterLabel.setVisible(!b);
+            hideMainUIControlsConditions.update(2, b);
         });
         hideUiHotcorner.setOnScroll(zoomPaneScrollHandler);
+        
+        hideMainUIControlsConditions = new IsAnyTrue(3, (b) -> {            
+            label.setVisible(!b);
+            progress.makeVisible(!b);
+            tickLabelVBox.setVisible(!b);
+            leftButton.setVisible(!b);
+            rightButton.setVisible(!b);
+        });
 
         stage.fullScreenProperty().addListener((target, oldValue, newValue) -> {
             exitFullscreenRect.setVisible(newValue);
@@ -1504,12 +1515,8 @@ public class Gallery {
 
         noImagesLabel.setVisible(!imageAvailable);
         imageAndLoadingPane.setVisible(imageAvailable);
-        label.setVisible(imageAvailable);
-        leftButton.setVisible(imageAvailable);
-        rightButton.setVisible(imageAvailable);
-        progress.setVisible(imageAvailable);
-        tickLabelVBox.setVisible(imageAvailable);
         hideUiHotcorner.setVisible(imageAvailable && stage.isFullScreen());
+        hideMainUIControlsConditions.update(0,!imageAvailable); //hide main gui if no images with current filter / in folder
 
         if (!imageAvailable) {
             if (filter == -1) {
@@ -1970,20 +1977,16 @@ public class Gallery {
     private void startSeeking() {
         progress.setCursor(Cursor.NONE);
         view.setVisible(false);
-        progress.setVisible(false);
-        label.setVisible(false);
-        tickLabelVBox.setVisible(false);
+        hideMainUIControlsConditions.update(1, true);
         imageBeforeSeeking = currentImage;
-        currentImage = null; //blocks basically all image commands, everything image-related has a check for this before. 
+        currentImage = null; //blocks basically all image commands, everything image-related has a check about this before. 
         currentlySeekingBlockInput = true; //should actually be enough, as this blocks most keyboard input
     }
-
+    
     private void stopSeeking(boolean cancelled) {
         progress.setCursor(Cursor.DEFAULT);
         view.setVisible(true);
-        progress.setVisible(true);
-        label.setVisible(true);
-        tickLabelVBox.setVisible(true);
+        hideMainUIControlsConditions.update(1, true);
 
         if (cancelled || true) {
             currentImage = imageBeforeSeeking;

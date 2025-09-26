@@ -102,6 +102,11 @@ public class ImprovisedProgressBar extends VBox {
         toBackground();
     }
 
+    public void makeVisible(boolean visible) {
+        super.setVisible(visible);
+        zoomIndicatorVisibilityConditions.updateBlocker(!visible);
+    }
+
     //More precisely: The pane that, if hovered, should cause the bar to show the details (but this is done in the Gallery bc it also depends on keystrokes)
     public Pane getDetailsPane() {
         return percentageBarPane;

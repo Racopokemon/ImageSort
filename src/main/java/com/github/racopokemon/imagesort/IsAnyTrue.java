@@ -13,6 +13,7 @@ public class IsAnyTrue {
 
     private ConditionCallback callback;
     private boolean[] conditions;
+    private boolean blocked;
 
     public IsAnyTrue(int numberOfConditions, ConditionCallback callback) {
         conditions = new boolean[numberOfConditions];
@@ -21,8 +22,21 @@ public class IsAnyTrue {
 
     public void update(int index, boolean value) {
         conditions[index] = value;
-        if (value) {
-            callback.onUpdate(true);
+        doUpdate();
+    }
+
+    public void updateBlocker(boolean blocked) {
+        this.blocked = blocked;
+        if (blocked) {
+            callback.onUpdate(false);
+        } else {
+            doUpdate();
+        }
+    }
+
+    private void doUpdate() {
+        if (blocked) {
+            callback.onUpdate(false);
         } else {
             for (boolean b : conditions) {
                 if (b) {
