@@ -312,8 +312,10 @@ public class Gallery {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
-                    isZoomingByMouse = false;
-                    zoomOutIfNeeded();
+                    if (isZoomingByMouse) {
+                        isZoomingByMouse = false;
+                        zoomOut();
+                    }
                 } else {
                     //case above already does this, this is when finishing mid-mouse drags etc.
                     zoomPane.setCursor(Cursor.DEFAULT);
@@ -331,7 +333,11 @@ public class Gallery {
             if (isZoomingByKey) {
                 setMousePosition(e);
                 zoomIn();
-                if (mouseRelativeX != 0.5 && mouseRelativeY != 0.5) { //the initial robot mouse move causes this as well. So we check if were moving away from zoom center before disabling mouse reset
+                if (0.499 > mouseRelativeX || mouseRelativeX > 0.501 || 
+                    0.499 > mouseRelativeY || mouseRelativeY > 0.501) { 
+                    //the initial robot mouse move causes this as well. So we check if the mouse was actually moved away from the 0.5 0.5 relative center 
+                    //before disabling mouse reset
+                    
                     //we do not reset the mouse if it was moved by the user while zooming
                     zoomingByKeyResetMouseTo = null; 
                 }
@@ -755,7 +761,10 @@ public class Gallery {
             } else if (event.getCode() == KeyCode.SPACE) {
                 if (isZoomingByKey) {
                     isZoomingByKey = false;
-                    zoomOutIfNeeded();
+                    zoomOut();
+                    if (zoomingByKeyResetMouseTo != null) {
+                        Common.setMouseScreenPos(zoomingByKeyResetMouseTo);
+                    }
                 }
                 isSpaceDown = false;
             }
@@ -829,8 +838,8 @@ public class Gallery {
                             isZoomingByKey = true;
                             setMousePosition(null); //centered zoom
                             zoomingByKeyResetMouseTo = Common.getMouseScreenPos(); //this aready toggles a mouse move event 
-                            Common.setMouseScreenPos(rootPane.localToScreen(rootPane.getWidth()*0.5, rootPane.getHeight()*0.5));
                             zoomIn();
+                            Common.setMouseScreenPos(rootPane.localToScreen(rootPane.getWidth()*0.5, rootPane.getHeight()*0.5));
                         }
                     }
                 } else if (event.getCode() == KeyCode.F5) {
@@ -1072,9 +1081,8 @@ public class Gallery {
     }
 
     // Resets the zoom to the usual 1:1 in the app IF both key and mouse zoom are over
-    private void zoomOutIfNeeded() {
-        if (isZoomingByKey || isZoomingByMouse) return;
-
+    private void zoomOut() {
+        
         zoomPane.setScaleX(1);
         zoomPane.setScaleY(1);
         zoomPane.setTranslateX(0);
