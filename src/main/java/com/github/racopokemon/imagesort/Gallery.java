@@ -446,18 +446,18 @@ public class Gallery {
             progressDetailConditions.update(0, false);
         });
 
-        // progress.setOnMousePressed((event) -> {
-        //     if (event.getButton() == MouseButton.PRIMARY) startSeeking();
-        //     if (event.getButton() == MouseButton.SECONDARY && currentlySeekingBlockInput) {
-        //         stopSeeking(true);
-        //     }
-        // });
-        // progress.setOnMouseReleased((event) -> {
-        //     if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) stopSeeking(false);
-        // });
-        // progress.setOnMouseDragged((event) -> {
-        //     if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) updateSeeking();
-        // });
+        progress.setOnMousePressed((event) -> {
+            if (event.getButton() == MouseButton.PRIMARY) startSeeking();
+            if (event.getButton() != MouseButton.PRIMARY && currentlySeekingBlockInput) {
+                stopSeeking(true);
+            }
+        });
+        progress.setOnMouseReleased((event) -> {
+            if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) stopSeeking(false);
+        });
+        progress.setOnMouseDragged((event) -> {
+            if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) updateSeeking();
+        });
         
         rotationIndicator = new StackPane();
         Text rotationIndicatorText = new Text("(rotating image)");
@@ -1983,7 +1983,7 @@ public class Gallery {
     private void stopSeeking(boolean cancelled) {
         progress.setCursor(Cursor.DEFAULT);
         view.setVisible(true);
-        hideMainUIControlsConditions.update(1, true);
+        hideMainUIControlsConditions.update(1, false);
 
         if (cancelled || true) {
             currentImage = imageBeforeSeeking;
