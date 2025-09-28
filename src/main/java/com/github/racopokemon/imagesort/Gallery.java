@@ -407,7 +407,6 @@ public class Gallery {
         zoomIndicator = new StackPane(zoomIndicatorBack, zoomIndicatorText);
         zoomIndicator.setMaxSize(0, 0);
         zoomIndicator.setMouseTransparent(true);
-        zoomIndicator.setVisible(false);
         
         resolutionTextEstimate = new Text("xK filler");
         resolutionTextEstimate.setFont(Font.font(resolutionTextEstimate.getFont().getFamily(), FontWeight.BOLD, FontPosture.REGULAR, 14));
@@ -1558,9 +1557,8 @@ public class Gallery {
         if (!imageAvailable) {
             if (filter == -1) {
                 noImagesLabel.setText("The selected folder does not contain any supported files. " + 
-                        "\nIn this folder, this app is not really useful, you may close it. "+
-                        "\nWhen you restart the app, you can select another folder."+
-                        "\nAlternatively, you can add files to this folder and press F5 to rescan the folder.");
+                        "\nYou might want to restart and select a different folder. " +
+                        "\nAlternatively, you can add files to this folder and press F5.");
             } else {
                 if (filter == 0) {
                     noImagesLabel.setText("There are no images not to be moved. ");

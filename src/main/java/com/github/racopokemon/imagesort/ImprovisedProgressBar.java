@@ -24,6 +24,7 @@ public class ImprovisedProgressBar extends VBox {
 
     private double width, height;
     private Node resolutionIndicator; //making use of very good OO, we also receive a random node that should also be made visible on mouse hover
+    private Node zoomIndicator;
     private StackPane percentageBarPane;
     private Text percentageTextNode;
     private Text deletedTextNode;
@@ -31,6 +32,7 @@ public class ImprovisedProgressBar extends VBox {
     private VBox marginPropertiesBox; 
     private int currentIndex, outOf, numberDeleted;
     private boolean isForeground;
+    private boolean isZoomIndicatorVisible;
     private Rectangle leftBox, rightBox, deletedBox;
     private IsAnyTrue zoomIndicatorVisibilityConditions; //0: showing details (foreground), 1: zooming
 
@@ -44,6 +46,7 @@ public class ImprovisedProgressBar extends VBox {
         width = w;
         height = h;
         this.resolutionIndicator = resolutionIndicator;
+        this.zoomIndicator = zoomIndicator;
 
         percentageBarPane = new StackPane();
 
@@ -84,7 +87,7 @@ public class ImprovisedProgressBar extends VBox {
         marginPropertiesBox.setBackground(new Background(new BackgroundFill(Color.color(1, 1, 1, 0.8), new CornerRadii(5), null)));
 
         getChildren().add(percentageBarPane);
-        getChildren().add(zoomIndicator);
+        //getChildren().add(zoomIndicator);
         VBox.setMargin(zoomIndicator, new Insets(10,0,0,0));        
         setMaxSize(0, 0); //this seems to be the better solution if we want the vbox to use the minimum space possible
         setAlignment(Pos.CENTER); //This gets important when the filename or any of the properties is longer than the percentage bar
@@ -94,7 +97,7 @@ public class ImprovisedProgressBar extends VBox {
         this.setSpacing(3);
 
         zoomIndicatorVisibilityConditions = new IsAnyTrue(2, (isAnyTrue) -> {
-            zoomIndicator.setVisible(isAnyTrue);
+            setZoomIndicatorVisible(isAnyTrue);
             resolutionIndicator.setVisible(isAnyTrue);
         });
 
@@ -107,6 +110,17 @@ public class ImprovisedProgressBar extends VBox {
         zoomIndicatorVisibilityConditions.updateBlocker(!visible);
     }
 
+    //We actually need to actually remove and re-add it bc otherwise were spanning longer than visible and you cant zoom when clicking there, and autohide stuff
+    private void setZoomIndicatorVisible(boolean vis) {
+        if (isZoomIndicatorVisible == vis) return;
+        if (vis){
+            getChildren().add(zoomIndicator); //add at the end
+        } else {
+            getChildren().remove(zoomIndicator);
+        }
+        isZoomIndicatorVisible = vis;
+    }
+
     //More precisely: The pane that, if hovered, should cause the bar to show the details (but this is done in the Gallery bc it also depends on keystrokes)
     public Pane getDetailsPane() {
         return percentageBarPane;
@@ -114,15 +128,12 @@ public class ImprovisedProgressBar extends VBox {
 
     private void toForeground() {
         if (isForeground) {
-            return;    
+            return;
         }
 
         percentageBarPane.setOpacity(1.0);
-        if (getChildren().size() == 2) {
-            getChildren().add(1, marginPropertiesBox); //used to just use setVisible() here which is the nicer solution, ...
-            //but then the mouse still leaves the pane below and the mouse-auto-hide does actually not hide in this area
-            //getChildren().add(resolutionIndicator);
-        }
+        getChildren().add(1, marginPropertiesBox); //used to just use setVisible() here which is the nicer solution, ...
+        //but then the mouse still leaves the pane below and the mouse-auto-hide does actually not hide in this area
         deletedTextNode.setVisible(true);
         zoomIndicatorVisibilityConditions.update(0, true);
 
@@ -136,10 +147,7 @@ public class ImprovisedProgressBar extends VBox {
         }
 
         percentageBarPane.setOpacity(0.1);
-        if (getChildren().size() > 2) {
-            getChildren().remove(marginPropertiesBox);
-            //getChildren().remove(resolutionIndicator);
-        }
+        getChildren().remove(marginPropertiesBox);
         deletedTextNode.setVisible(false);
         zoomIndicatorVisibilityConditions.update(0, false);
 
