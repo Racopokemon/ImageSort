@@ -262,10 +262,12 @@ public class Gallery {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
-                    setMousePosition(event);
-                    isZoomingByMouse = true;
-                    zoomIn();
-                    event.consume();
+                    if (!isZoomingByKey) {
+                        setMousePosition(event);
+                        isZoomingByMouse = true;
+                        zoomIn();
+                        event.consume();
+                    }
                 } else if (event.getButton() == MouseButton.MIDDLE) {
                     if (isZoomingByMouse || isZoomingByKey) {
                         zoomTo100Percent();
@@ -291,8 +293,11 @@ public class Gallery {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.PRIMARY) {
-                    setMousePosition(event);
-                    zoomIn();
+                    if (!isZoomingByKey) {
+                        //must be zooming by mouse, then
+                        setMousePosition(event);
+                        zoomIn();
+                    }
                 }
             }
         });
