@@ -1571,6 +1571,8 @@ public class Gallery {
     //Select & show the next image
     void nextImage() {
         nImagesForth(1);
+        rightButton.flash();
+        leftButton.stopFlashing();
     }
     
     //Updates currentFile and shows the image
@@ -1594,6 +1596,8 @@ public class Gallery {
 
     void prevImage() {
         nImagesBack(1);
+        leftButton.flash();
+        rightButton.stopFlashing();
     }
     
     //Updates currentFile and shows the image
