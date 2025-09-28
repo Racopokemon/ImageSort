@@ -32,6 +32,7 @@
   
 ## Gallery
 * (check this) it kinda feels like the scroll is inverted on simply jumping between images o.0 is this true?
+* Scroll is broken now on windows, every ~4th scroll doesn't respond
 * ~~Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated~~
   * Maybe even register FS listeners to reload an image once it changed on disk
     * Register a listener on the dir. If files change, add these changes to a datastructure that is threadsafe. Poll it in the main jfx thread / platform.runLater or so. If the file name is contained in the imageBuffer, add it again. If it is the current image, ... well, load it again I'd say. 
@@ -50,8 +51,9 @@
   * ~~Also flash it on ctrl+Z, I just encountered that it takes a sec too much (but the reason for this is likely on the same thread, so that might not work as intended)~~
 * ~~However you will implement this in detail, add the zoom percentage indicator ALSO when only hovering the percentage bar!~~
 * ~~In the percentage bar in main view, show in brackets how many images were deleted (-6)~~
-* To complete keyboard navigation, make that keeping the space bar pressed does the same zoom in as clicking the screen center
+* ~~To complete keyboard navigation, make that keeping the space bar pressed does the same zoom in as clicking the screen center~~
   * ~~In the same manner, make I, P and M do the same as hovering the percentage bar~~
+* LR Buttons start skipping through the images when mouse presses longer
 * Usage window
   * Simple window with slideshow (inside the gallery which is also a window with a slideshow USE "Pagination" its already implemented!) that shows the usage, 3 slides with the hints or so
 * ~~Feature request: Show the current folder name in the window title (with a - ImageSort as suffix)~~
@@ -64,7 +66,7 @@
     * on the long run, also show the recording date of an image - however this is realized, also with updates etc. the simplest solution is just to cache this for every image that is being loaded, so the info is shown once the image was already seen
       * With this feature ahead, mark date changes (or better: 5am=new day) in the search bar as well, only discrete however and if it is not too much, as this might not always how the image dates are (maximum of 60 markers and also at least 1.2 pictures per day or so)
       * Knowing the record dates, we can even go further and mark the time passed between two consecutive images, maybe less than 10 sec, less than 1 min, less than 10 minutes, less than 1h
-      * also, we could indicate when the lense (and cameras) changed
+      * also, we could indicate when the lens (and cameras) changed
     * Once this is finished, the seek keys 0-9 are prob. not needed anymore - therefore we can use them as shortcuts for copies (swapping letters & numbers) and reimplement wasd etc. 
   * Bookmarking: Pressing B or M places markers in the percentage bar (that are also visible when seeking, maybe even snapping)
 * ~~Bug: The context menu does not disappear when arrow keys are pressed and another image is selected...~~

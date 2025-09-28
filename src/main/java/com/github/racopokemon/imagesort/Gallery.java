@@ -55,10 +55,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
@@ -145,9 +142,6 @@ public class Gallery {
     private VBox tickLabelVBox;
     private boolean setAllTickLabelsToFullOpacity = false; 
     public static final double TICK_LABEL_HEIGHT = 48;
-    private static final Color LR_HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
-    private static final Color LR_ARROW_COLOR = new Color(0, 0, 0, 0.5);
-    private static final double BUTTON_WIDTH = 100;
 
     private static final double HOT_CORNER_SIZE = 3; 
     private Rectangle hideUiHotcorner;
@@ -615,8 +609,8 @@ public class Gallery {
         rootPane.getChildren().add(imageAndLoadingPane);
         rootPane.getChildren().add(wrapSearchIndicator);
         
-        leftButton = new LRButton(rootPane, true); //this also adds them to the rootPane
-        rightButton = new LRButton(rootPane, false);
+        leftButton = new LRButton(this, rootPane, true); //this also adds them to the rootPane
+        rightButton = new LRButton(this, rootPane, false);
         leftButton.setOnScroll(zoomPaneScrollHandler);
         rightButton.setOnScroll(zoomPaneScrollHandler);
         
@@ -942,42 +936,6 @@ public class Gallery {
         }
 
         stage.setFullScreen(true);
-    }
-
-    private class LRButton extends StackPane {
-        //private boolean left;
-        public LRButton(StackPane root, boolean left) {
-            Rectangle rect = new Rectangle(BUTTON_WIDTH, 10, LR_HALF_TRANSPARENT);
-            //this.left = left;
-            StackPane.setAlignment(this, left ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
-            setMaxWidth(BUTTON_WIDTH);
-            maxHeightProperty().bind(root.heightProperty());
-            rect.heightProperty().bind(root.heightProperty());
-            root.getChildren().add(this);
-            setOnMouseEntered((event) -> {setOpacity(1.0);});
-            setOnMouseExited((event) -> {setOpacity(0.0);});
-            setOnMouseClicked((event) -> {
-                if (left) {
-                    prevImage();
-                } else {
-                    nextImage();
-                }
-            });
-
-            double mirror = left ? 1 : -1;
-            double scale = 10;
-            Polyline arrow = new Polyline(
-                scale*mirror, -scale*2, 
-                -scale*mirror, 0,
-                scale*mirror, scale*2);
-            arrow.setStrokeWidth(3);
-            arrow.setStrokeLineCap(StrokeLineCap.ROUND);
-            arrow.setStrokeLineJoin(StrokeLineJoin.ROUND);
-            arrow.setStroke(LR_ARROW_COLOR);
-
-            setOpacity(0.0);
-            getChildren().addAll(rect, arrow);
-        }
     }
 
     //sets up the viewport for the current image in the view and the rootPane size: 
@@ -1611,7 +1569,7 @@ public class Gallery {
     }
 
     //Select & show the next image
-    private void nextImage() {
+    void nextImage() {
         nImagesForth(1);
     }
     
@@ -1634,7 +1592,7 @@ public class Gallery {
         selectImageAtIndex(newIndex);    
     }
 
-    private void prevImage() {
+    void prevImage() {
         nImagesBack(1);
     }
     
