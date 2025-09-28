@@ -16,7 +16,7 @@ import javafx.util.Duration;
 class LRButton extends StackPane {
     
     static final Color HALF_TRANSPARENT = new Color(1, 1, 1, 0.08);
-    static final Color FLASH_COLOR = new Color(1, 1, 1, 0.09);
+    static final Color FLASH_COLOR = new Color(1, 1, 1, 0.08);
     static final Color ARROW_COLOR = new Color(0, 0, 0, 0.5);
     static final double BUTTON_WIDTH = 100;
 
@@ -79,7 +79,7 @@ class LRButton extends StackPane {
         holdTimeline.setCycleCount(1);
         flashTimeline = new Timeline(
             new KeyFrame(Duration.ZERO, new KeyValue(flashRect.opacityProperty(), 1.0)),
-            new KeyFrame(Duration.seconds(0.9), new KeyValue(flashRect.opacityProperty(), 0.0))
+            new KeyFrame(Duration.seconds(1.1), new KeyValue(flashRect.opacityProperty(), 0.0))
         );
     }
 

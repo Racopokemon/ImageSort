@@ -5,9 +5,9 @@ import javafx.scene.input.ScrollEvent;
 
 public abstract class ScrollEventHandler implements EventHandler<ScrollEvent> {
 
-    private static final double FIRST_THRESHOLD = 25;
-    private static final double REST_THRESHOLD = 19;
-    private static final double MIN_FIRE_INTERVAL = 38; //For touch pad scrolling this is awesome, for mouse wheel scrolling it literally discards single quick scrolls which feels bad. Maybe this feature is better omitted by setting it to 0. 
+    private static final double FIRST_THRESHOLD = 24;
+    private static final double REST_THRESHOLD = 13; //actually factor 2
+    private static final double MIN_FIRE_INTERVAL = 38; //In ms. For touch pad scrolling this is awesome, for mouse wheel scrolling it literally discards single quick scrolls which feels bad. Maybe this feature is better omitted by setting it to 0. 
     private static double scrolledDistance;
     private static boolean noThresholdReachedYet = true;
     private static long lastScroll;
@@ -26,6 +26,7 @@ public abstract class ScrollEventHandler implements EventHandler<ScrollEvent> {
 
         scrolledDistance += event.getDeltaY();
         //System.out.println(scrolledDistance);
+        System.out.println(event.getDeltaY());
 
         if (noThresholdReachedYet) {
             if (scrolledDistance <= -FIRST_THRESHOLD) {
