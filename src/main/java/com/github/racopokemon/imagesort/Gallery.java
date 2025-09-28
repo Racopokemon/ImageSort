@@ -1553,6 +1553,7 @@ public class Gallery {
         imageAndLoadingPane.setVisible(imageAvailable);
         hideUiHotcorner.setVisible(imageAvailable && stage.isFullScreen());
         hideMainUIControlsConditions.update(0,!imageAvailable); //hide main gui if no images with current filter / in folder
+        hideUiConditions.updateBlocker(!imageAvailable);
 
         if (!imageAvailable) {
             if (filter == -1) {

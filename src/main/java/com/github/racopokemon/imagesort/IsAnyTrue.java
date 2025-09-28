@@ -5,6 +5,8 @@ package com.github.racopokemon.imagesort;
 //Every update fires a call to the ConditionCallback that YOU provide. In the callback, we give you one boolean: isAnyTrue is true....... if any of the values is true. 
 
 //Useful if several conditions all trigger the same UI etc
+
+//Because no one likes simplicity, there is now also a single blocker condition (updateBlocker). If it is true, it blocks any of the conditions and were always false. 
 public class IsAnyTrue {
 
     public interface ConditionCallback {
@@ -25,6 +27,7 @@ public class IsAnyTrue {
         doUpdate();
     }
 
+    //If true, were blocking all possibly true conditions. 
     public void updateBlocker(boolean blocked) {
         this.blocked = blocked;
         if (blocked) {
