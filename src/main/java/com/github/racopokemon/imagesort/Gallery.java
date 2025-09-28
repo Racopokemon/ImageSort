@@ -23,6 +23,7 @@ import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.event.*;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
@@ -129,6 +130,7 @@ public class Gallery {
     private boolean isZoomingByMouse = false;
     private boolean isZoomingByKey = false;
     private double mouseRelativeX, mouseRelativeY;
+    private Point2D zoomingByKeyResetMouseTo; //null once the mouse got moved and we don't want a reset anymore
     private static final double MIN_ZOOM = 1.15;
     private static final double MAX_ZOOM = 10;
 
@@ -292,12 +294,17 @@ public class Gallery {
         zoomPane.setOnMouseDragged(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                if (event.getButton() == MouseButton.PRIMARY) {
-                    if (!isZoomingByKey) {
-                        //must be zooming by mouse, then
-                        setMousePosition(event);
-                        zoomIn();
+                if (event.getButton() == MouseButton.PRIMARY && (isZoomingByMouse||isZoomingByKey)) { 
+                    setMousePosition(event);
+                    zoomIn();
+                    if (isZoomingByKey) {
+                        zoomingByKeyResetMouseTo = null; 
                     }
+                } else {
+                    //only happens if you zoom by space, press mouse, release space. This essentially never happens naturally, but if someone provokes - were not hiding the mouse after 1 sec
+                    //wait this also happens if you right-click drag or so
+                    zoomPane.setCursor(Cursor.DEFAULT);
+                    hideMouseOnIdle.stop();
                 }
             }
         });
@@ -307,6 +314,10 @@ public class Gallery {
                 if (event.getButton() == MouseButton.PRIMARY) {
                     isZoomingByMouse = false;
                     zoomOutIfNeeded();
+                } else {
+                    //case above already does this, this is when finishing mid-mouse drags etc.
+                    zoomPane.setCursor(Cursor.DEFAULT);
+                    hideMouseOnIdle.playFromStart();
                 }
             }
         });
@@ -317,8 +328,18 @@ public class Gallery {
             });
         }
         zoomPane.setOnMouseMoved((e) -> {
-            zoomPane.setCursor(Cursor.DEFAULT);
-            hideMouseOnIdle.playFromStart();
+            if (isZoomingByKey) {
+                setMousePosition(e);
+                zoomIn();
+                if (mouseRelativeX != 0.5 && mouseRelativeY != 0.5) { //the initial robot mouse move causes this as well. So we check if were moving away from zoom center before disabling mouse reset
+                    //we do not reset the mouse if it was moved by the user while zooming
+                    zoomingByKeyResetMouseTo = null; 
+                }
+            } else {
+                zoomPane.setCursor(Cursor.DEFAULT);
+                hideMouseOnIdle.playFromStart();
+            }
+
         });
         zoomPane.setOnMouseExited((e) -> {
             zoomPane.setCursor(Cursor.DEFAULT);
@@ -807,6 +828,8 @@ public class Gallery {
                         } else {
                             isZoomingByKey = true;
                             setMousePosition(null); //centered zoom
+                            zoomingByKeyResetMouseTo = Common.getMouseScreenPos(); //this aready toggles a mouse move event 
+                            Common.setMouseScreenPos(rootPane.localToScreen(rootPane.getWidth()*0.5, rootPane.getHeight()*0.5));
                             zoomIn();
                         }
                     }

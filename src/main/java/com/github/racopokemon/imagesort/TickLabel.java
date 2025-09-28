@@ -2,8 +2,6 @@ package com.github.racopokemon.imagesort;
 
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.scene.robot.Robot;
-
 public class TickLabel extends InteractiveLabel {
 
     private int tickNumber, numberOfTicks;
@@ -14,26 +12,24 @@ public class TickLabel extends InteractiveLabel {
         this.numberOfTicks = numberOfTicks;
 
         scrollUp = () -> {
-            Robot r = new Robot();
             double skipSize;
             if (tickNumber >= numberOfTicks-1) {
                 skipSize = Gallery.TICK_LABEL_HEIGHT * (numberOfTicks-1);
             } else {
                 skipSize = -Gallery.TICK_LABEL_HEIGHT;
             }
-            Point2D p = r.getMousePosition().add(new Point2D(0, skipSize));
-            r.mouseMove(p);
+            Point2D p = Common.getMouseScreenPos().add(new Point2D(0, skipSize));
+            Common.setMouseScreenPos(p);
         };
         scrollDown = () -> {
-            Robot r = new Robot();
             double skipSize;
             if (tickNumber <= 0) {
                 skipSize = -Gallery.TICK_LABEL_HEIGHT * (numberOfTicks-1);
             } else {
                 skipSize = Gallery.TICK_LABEL_HEIGHT;
             }
-            Point2D p = r.getMousePosition().add(new Point2D(0, skipSize));
-            r.mouseMove(p);
+            Point2D p = Common.getMouseScreenPos().add(new Point2D(0, skipSize));
+            Common.setMouseScreenPos(p);
             //this 2nd part for scroll down has been brought to you by github copilot, "the best AI ever" (that also came as suggestion lol)
         };
     }    

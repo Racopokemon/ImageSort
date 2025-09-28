@@ -10,8 +10,10 @@ import java.util.prefs.Preferences;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
 
+import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.robot.Robot;
 
 import java.io.File;
 
@@ -24,6 +26,8 @@ public class Common {
     private static FilenameFilter filterVideos;
     private static FilenameFilter filterOther;
     private static Hashtable<String, Image> resources;
+
+    private static Robot robot = new Robot();
 
     private static String[] relevantSoftwareMatches = 
         {"adobe", "pixelmator", "gimp", "paint", "photopea", "corel", "cyberlink", "skylum", "capture", "dxo", "affinity", "darktable", "therapee", "movavi", "lightroom", "luminar", "scape", "processor", "aurora", "radiant"};
@@ -346,6 +350,13 @@ public class Common {
         return !event.isAltDown() && !event.isShiftDown() && !event.isShortcutDown();
     }
 
+    public static Point2D getMouseScreenPos() {
+        return robot.getMousePosition();
+    }
+
+    public static void setMouseScreenPos(Point2D point) {
+        robot.mouseMove(point);
+    }
 
 }
 
