@@ -117,8 +117,14 @@ public class Launcher {
         HBox.setHgrow(textFieldBrowser, Priority.ALWAYS);
         textFieldBrowser.setOnKeyPressed((e) -> {
             if (e.getCode() == KeyCode.DOWN && !e.isAltDown() && !e.isShortcutDown() && !e.isShiftDown()) {
-                listBrowser.requestFocus();
-                listBrowser.getSelectionModel().selectFirst();
+                if (textFieldBrowser.getCaretPosition() == textFieldBrowser.getText().length()) {
+                    if (!listBrowser.getSelectionModel().isEmpty()) {
+                        listBrowser.requestFocus();
+                        listBrowser.getSelectionModel().selectFirst();
+                    }
+                } else {
+                    textFieldBrowser.selectEnd(); //this never happens since the textfield does not consume the event but already moves the cursor to the end BEFORE this reaches us. Well. 80/20, leaving this for later
+                }
             }
         });
         Button buttonBrowserBrowse = new Button("Browse");
@@ -233,7 +239,11 @@ public class Launcher {
                 updateBrowser();
             }
         });
-        textFieldBrowser.setOnAction((e) -> {updateBrowser();});
+        textFieldBrowser.setOnAction((e) -> {
+            updateBrowser();
+            listBrowser.requestFocus();
+            listBrowser.getSelectionModel().selectFirst();
+        });
         textFieldFolder.focusedProperty().addListener((obs, oldV, newV) -> {
             if (!newV) {
                 //focus left!
@@ -277,7 +287,15 @@ public class Launcher {
             } else if (e.getCode() == KeyCode.BACK_SPACE || (e.getCode() == KeyCode.UP && e.isAltDown())) {
                 dirUp();
             } else if (e.getCode() == KeyCode.UP && item == null) {
-                listBrowser.getSelectionModel().selectLast();
+                if (listBrowser.getSelectionModel().isEmpty()) {
+                    textFieldBrowser.requestFocus();
+                    textFieldBrowser.selectEnd();
+                } else {
+                    listBrowser.getSelectionModel().selectLast();
+                }
+            } else if (e.getCode() == KeyCode.UP && listBrowser.getSelectionModel().getSelectedIndex() == 0) {
+                textFieldBrowser.requestFocus();
+                textFieldBrowser.selectEnd();
             } else if (e.getCode() == KeyCode.DOWN && item == null) {
                 listBrowser.getSelectionModel().selectFirst();
             } else if (e.getCode() == KeyCode.ESCAPE) {
