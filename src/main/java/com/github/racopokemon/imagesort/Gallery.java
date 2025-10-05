@@ -1572,8 +1572,6 @@ public class Gallery {
     //Select & show the next image
     void nextImage() {
         nImagesForth(1);
-        rightButton.flash();
-        leftButton.stopFlashing();
     }
     
     //Updates currentFile and shows the image
@@ -1582,6 +1580,9 @@ public class Gallery {
         if (currentImage == null) {
             return;
         }
+        rightButton.flash();
+        leftButton.stopFlashing();
+
         int currIndex = getCurrentImageIndex();
         int newIndex = currIndex + n;
         if (newIndex >= images.size()) {
@@ -1597,8 +1598,6 @@ public class Gallery {
 
     void prevImage() {
         nImagesBack(1);
-        leftButton.flash();
-        rightButton.stopFlashing();
     }
     
     //Updates currentFile and shows the image
@@ -1607,6 +1606,9 @@ public class Gallery {
         if (currentImage == null) {
             return;
         }
+        leftButton.flash();
+        rightButton.stopFlashing();
+
         int currIndex = getCurrentImageIndex();
         int newIndex = currIndex - n;
         if (newIndex < 0) {
