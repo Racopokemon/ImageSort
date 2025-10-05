@@ -546,7 +546,7 @@ public class Launcher {
         if (content.numberOfOther != 0) {
             String otherText = content.numberOfOther + " other " + Common.getSingularOrPluralOfFile(content.numberOfOther);
             int extSize = content.otherExtensions.size();
-            if (extSize <= 5) {
+            if (0 < extSize && extSize <= 5) {
                 otherText += " (";
                 for (String e : content.otherExtensions) {
                     otherText += "." + e;
