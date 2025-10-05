@@ -102,6 +102,7 @@ public class Gallery {
     private ArrayList<String> previouslyAllImages = new ArrayList<>();
     private ArrayList<ArrayList<String>> deleteHistory = new ArrayList<>(); //last element added: First set of image names to be restored (can be multiple because of moveAlong feature)
     private ArrayList<ImageFileOperations> deleteHistoryCategory = new ArrayList<>(); //We also store which category the deleted image was in
+    private long lastDeleteTimestamp; //used to filter quick double-taps that happen from time to time (had this with multiple keyboards)
 
     private FilenameFilter filenameFilter;
 
@@ -814,10 +815,15 @@ public class Gallery {
                         decrementCurrentImageCategory();
                     }
                 } else if (event.getCode() == KeyCode.DELETE || (event.getCode() == KeyCode.BACK_SPACE && Common.isMac())) {
-                    if (event.isAltDown() || event.isShiftDown() || event.isShortcutDown()) {
-                        moveToSystemTrash();
-                    } else {
-                        deleteImage();
+                    //doing the double-tap prevention here, bc in the context menu eg we should be immune to such stuff
+                    long timestamp = System.currentTimeMillis();
+                    if (lastDeleteTimestamp + 118 < timestamp) {
+                        if (event.isAltDown() || event.isShiftDown() || event.isShortcutDown()) {
+                            moveToSystemTrash();
+                        } else {
+                            deleteImage();
+                        }
+                        lastDeleteTimestamp = timestamp;
                     }
                 } else if (event.getCode() == KeyCode.PLUS) {
                     changeZoomBy(40);

@@ -31,15 +31,15 @@
 * Implement the option for "open with" in windows. If this is chosen, don't show the launcher (?) and dont show it once you finish? 
   
 ## Gallery
-* (check this) it kinda feels like the scroll is inverted on simply jumping between images o.0 is this true?
-* Scroll is broken now on windows, every ~4th scroll doesn't respond
+* ~~(check this) it kinda feels like the scroll is inverted on simply jumping between images o.0 is this true?~~
+* ~~Scroll is broken now on windows, every ~4th scroll doesn't respond~~
 * ~~Make F5 also reload all images! Otherwise there is no chance to update images themselves, if they have been updated~~
   * Maybe even register FS listeners to reload an image once it changed on disk
     * Register a listener on the dir. If files change, add these changes to a datastructure that is threadsafe. Poll it in the main jfx thread / platform.runLater or so. If the file name is contained in the imageBuffer, add it again. If it is the current image, ... well, load it again I'd say. 
 * General
   * **indicate that a modified image is moved once the currently previewed image changes**
   * ~~Ctrl delete for 'instant delete' which instantly moves it to system trash?~~
-  * make a very short timeout for the next delete operation to be triggered - esp with del and backspace on top of another it quickly happens that 2 images in a row are deleted!
+  * ~~make a very short timeout for the next delete operation to be triggered - esp with del and backspace on top of another it quickly happens that 2 images in a row are deleted!~~
   * ~~About scrolling: Maybe try quickly flashing the l/r button when you scroll forth / back?~~
   * ~~Better scrolling on touchpads!~~
   * GENERALLY for good style, RotatedImage should also read its metadata in a separate thread and then maybe update its data
