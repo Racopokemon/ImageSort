@@ -61,6 +61,7 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
@@ -1699,6 +1700,8 @@ public class Gallery {
         if (currentImage == null) {
             return;
         }
+
+        ((RotatedImage)view.getImage()).resetOrientationToFileOrientation(); //causes a funny error otherwise bc we move the file before rotating kicks in
 
         ArrayList<String> paths = new ArrayList<>();
         paths.add(getFullPathForFileInThisFolder(currentImage));

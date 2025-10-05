@@ -439,9 +439,14 @@ public class RotatedImage extends Image {
         return getHeight() == 0;
     }
 
-    //essentially, if the image has been rotated (b the gallery) while being viewed. 
+    //essentially, if the image has been rotated (by the gallery) while being viewed. 
     //internally, we store both the orientation from the file and our shown orientation, and we check if these match
     public boolean doPreviewAndFileOrientationMatch() {
         return orientation == fileOrientation;
+    }
+
+    //Used for the special case of deleting images, then we do not apply a rotation. Not the best solution but for now it works. 
+    public void resetOrientationToFileOrientation() {
+        orientation = fileOrientation;
     }
 }
