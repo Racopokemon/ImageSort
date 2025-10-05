@@ -444,9 +444,4 @@ public class RotatedImage extends Image {
     public boolean doPreviewAndFileOrientationMatch() {
         return orientation == fileOrientation;
     }
-
-    //Used for the special case of deleting images, then we do not apply a rotation. Not the best solution but for now it works. 
-    public void resetOrientationToFileOrientation() {
-        orientation = fileOrientation;
-    }
 }

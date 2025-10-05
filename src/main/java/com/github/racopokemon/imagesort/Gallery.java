@@ -1648,6 +1648,7 @@ public class Gallery {
         if (currentImage == null) {
             return;
         }
+        handleImageRotationIfNecessary();
         try {
             //if folder doesnt exist, create it
             if (!deleteDirectory.exists()) {
@@ -1701,7 +1702,7 @@ public class Gallery {
             return;
         }
 
-        ((RotatedImage)view.getImage()).resetOrientationToFileOrientation(); //causes a funny error otherwise bc we move the file before rotating kicks in
+        handleImageRotationIfNecessary();
 
         ArrayList<String> paths = new ArrayList<>();
         paths.add(getFullPathForFileInThisFolder(currentImage));
