@@ -37,6 +37,7 @@
   * Maybe even register FS listeners to reload an image once it changed on disk
     * Register a listener on the dir. If files change, add these changes to a datastructure that is threadsafe. Poll it in the main jfx thread / platform.runLater or so. If the file name is contained in the imageBuffer, add it again. If it is the current image, ... well, load it again I'd say. 
 * General
+  * I wanna see the filesize somewhere
   * **indicate that a modified image is moved once the currently previewed image changes**
   * ~~Ctrl delete for 'instant delete' which instantly moves it to system trash?~~
   * ~~make a very short timeout for the next delete operation to be triggered - esp with del and backspace on top of another it quickly happens that 2 images in a row are deleted!~~
