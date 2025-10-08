@@ -3,6 +3,7 @@
 * jpackage supports a version tag. Play arond with it, if installers are automatically able to update etc. 
 
 ## Launcher
+* In the launcher, in the list view, it already focusses the text field on 2nd entry, same error as with pressing arrow down in the text field. Can we register the listener somewhere else? Somewhere before?
 * ~~On start, the launcher has the first folder selected instead of the images (if some are there), and pressing enter opens the folder instead~~
   * Fix this only for the startup, afterwards this focus is ok. Either request the focus to the start button or truly unselect everything in the listview
 * better show other (not supported) file formats: 
@@ -12,7 +13,7 @@
   * the rest is shown simply as extension. 
 * context menu (please!)
   * **Open in system explorer!**
-  * **move 1 folder up**
+  * **move 1 folder up** (spill contents here)
   * (Move to /raw)
   * and move to system trash!
 * **Its annoying, but please make something like typing inside the listView already sorting / filtering the folders!**
@@ -37,7 +38,8 @@
   * Maybe even register FS listeners to reload an image once it changed on disk
     * Register a listener on the dir. If files change, add these changes to a datastructure that is threadsafe. Poll it in the main jfx thread / platform.runLater or so. If the file name is contained in the imageBuffer, add it again. If it is the current image, ... well, load it again I'd say. 
 * General
-  * I wanna see the filesize somewhere
+  * I wanna see the filesize somewhere (if we go way too hard, show a histogram above the resolution indicator)
+  * Add a megapixels unit (3.2 MP) after the 4k+ indicator
   * **indicate that a modified image is moved once the currently previewed image changes**
   * ~~Ctrl delete for 'instant delete' which instantly moves it to system trash?~~
   * ~~make a very short timeout for the next delete operation to be triggered - esp with del and backspace on top of another it quickly happens that 2 images in a row are deleted!~~
