@@ -4,6 +4,7 @@
 
 ## Launcher
 * In the launcher, in the list view, it already focusses the text field on 2nd entry, same error as with pressing arrow down in the text field. Can we register the listener somewhere else? Somewhere before?
+  * https://stackoverflow.com/questions/62795393/navigating-out-of-a-textfield-in-a-gridpane-using-the-arrow-keys-in-javafx <- this might fix it.
 * ~~On start, the launcher has the first folder selected instead of the images (if some are there), and pressing enter opens the folder instead~~
   * Fix this only for the startup, afterwards this focus is ok. Either request the focus to the start button or truly unselect everything in the listview
 * better show other (not supported) file formats: 
