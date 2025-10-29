@@ -28,6 +28,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -115,15 +116,15 @@ public class Launcher {
             textFieldBrowser.setText(startPath.getAbsolutePath());
         }
         HBox.setHgrow(textFieldBrowser, Priority.ALWAYS);
-        textFieldBrowser.setOnKeyPressed((e) -> {
+        //eventfilter instead of onKeyPressed to act *before* the caret is moved
+        textFieldBrowser.addEventFilter(KeyEvent.KEY_PRESSED, (e) -> {
             if (e.getCode() == KeyCode.DOWN && !e.isAltDown() && !e.isShortcutDown() && !e.isShiftDown()) {
                 if (textFieldBrowser.getCaretPosition() == textFieldBrowser.getText().length()) {
                     if (!listBrowser.getSelectionModel().isEmpty()) {
                         listBrowser.requestFocus();
                         listBrowser.getSelectionModel().selectFirst();
+                        e.consume();
                     }
-                } else {
-                    textFieldBrowser.selectEnd(); //this never happens since the textfield does not consume the event but already moves the cursor to the end BEFORE this reaches us. Well. 80/20, leaving this for later
                 }
             }
         });
@@ -268,6 +269,15 @@ public class Launcher {
         listBrowser.getSelectionModel().selectedItemProperty().addListener((e) -> {
             updateLaunchButton();
         });
+
+        //We have to split the handling; we need to intercept the UP button before the listView handles it itself without consuming it, which causes selecting the textfieldbrowser already from 2nd entry
+        listBrowser.addEventFilter(KeyEvent.KEY_PRESSED, (e) -> {
+            if (e.getCode() == KeyCode.UP && listBrowser.getSelectionModel().getSelectedIndex() == 0) {
+                textFieldBrowser.requestFocus();
+                textFieldBrowser.selectEnd();
+                e.consume();
+            }
+        });
         listBrowser.setOnKeyPressed((e) -> {
             BrowserItem item = listBrowser.getSelectionModel().getSelectedItem();
             if (e.getCode() == KeyCode.ENTER) {
@@ -293,9 +303,6 @@ public class Launcher {
                 } else {
                     listBrowser.getSelectionModel().selectLast();
                 }
-            } else if (e.getCode() == KeyCode.UP && listBrowser.getSelectionModel().getSelectedIndex() == 0) {
-                textFieldBrowser.requestFocus();
-                textFieldBrowser.selectEnd();
             } else if (e.getCode() == KeyCode.DOWN && item == null) {
                 listBrowser.getSelectionModel().selectFirst();
             } else if (e.getCode() == KeyCode.ESCAPE) {
