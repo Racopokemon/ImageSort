@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -158,6 +159,7 @@ public class Gallery {
     private StackPane resolutionIndicator;
     private Text resolutionTextDimension;
     private Text resolutionTextEstimate;
+    private Text resolutionTextSize;
     private static final int NUMBER_OF_RESOLUTION_RECTS = 15;
     private Rectangle[] resolutionGraphicRects;
 
@@ -409,6 +411,10 @@ public class Gallery {
         resolutionTextDimension = new Text("filler text");
         resolutionTextDimension.setFont(Font.font(resolutionTextDimension.getFont().getFamily(), 12));
         resolutionTextDimension.setFill(Color.BLACK);
+        resolutionTextDimension.setTextAlignment(TextAlignment.CENTER);
+        resolutionTextSize = new Text("24.6 M | 5.4 MB");
+        resolutionTextSize.setFont(Font.font(resolutionTextSize.getFont().getFamily(), FontWeight.NORMAL, FontPosture.ITALIC, 12));
+        resolutionTextSize.setFill(Color.BLACK);
         resolutionGraphicRects = new Rectangle[NUMBER_OF_RESOLUTION_RECTS];
         HBox resolutionGraphic = new HBox(3);
         for (int i = 0; i < NUMBER_OF_RESOLUTION_RECTS; i++) {
@@ -419,7 +425,7 @@ public class Gallery {
             resolutionGraphicRects[i] = r;
         }
         resolutionGraphic.setAlignment(Pos.CENTER);
-        VBox resolutionIndicatorBox = new VBox(resolutionTextEstimate, resolutionTextDimension, resolutionGraphic);
+        VBox resolutionIndicatorBox = new VBox(resolutionTextEstimate, resolutionTextDimension, resolutionTextSize, resolutionGraphic);
         resolutionIndicatorBox.setMaxSize(0, 0);
         //resolutionIndicator.setSpacing(5);
         resolutionIndicatorBox.setAlignment(Pos.CENTER);
@@ -1318,6 +1324,11 @@ public class Gallery {
         } else {
             status = Math.round(img.getWidth()) + " x " + Math.round(img.getHeight());
         }
+        double megapixels = img.getHeight()*img.getWidth() / 1000000;
+        if (megapixels >= 5) {
+            status += String.format(Locale.US, " (%.1fM)", megapixels);
+        }
+
         resolutionTextDimension.setText(status);
         double squareLength = Math.sqrt(img.getHeight() * img.getWidth());
         //I dont want log, i want a linear scale with the 1000s basically
@@ -1327,6 +1338,8 @@ public class Gallery {
         for (int i = 0; i < NUMBER_OF_RESOLUTION_RECTS; i++) {
             resolutionGraphicRects[i].setFill(i > clipScale ? null : Color.BLACK);
         }
+        String sizeText = ((RotatedImage)img).getFileSizeString();
+        resolutionTextSize.setText(sizeText);
     }
 
     private void updateLabels() {

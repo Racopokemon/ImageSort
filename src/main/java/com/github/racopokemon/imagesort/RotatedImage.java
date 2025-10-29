@@ -444,4 +444,8 @@ public class RotatedImage extends Image {
     public boolean doPreviewAndFileOrientationMatch() {
         return orientation == fileOrientation;
     }
+
+    public String getFileSizeString() {
+        return Common.readableFileSize(image.length());
+    }
 }

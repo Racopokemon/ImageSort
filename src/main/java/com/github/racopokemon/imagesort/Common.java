@@ -4,6 +4,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.prefs.Preferences;
@@ -356,6 +358,16 @@ public class Common {
 
     public static void setMouseScreenPos(Point2D point) {
         robot.mouseMove(point);
+    }
+
+    // Formats a file size in bytes properly
+    // Copied from https://stackoverflow.com/a/5599842
+    public static String readableFileSize(long size) {
+        if(size <= 0) return "0";
+        final String[] units = new String[] { "B", "kB", "MB", "GB", "TB", "PB", "EB" };
+        int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
+        return new DecimalFormat("#,##0.#", DecimalFormatSymbols.getInstance(java.util.Locale.US))
+            .format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
 
 }
