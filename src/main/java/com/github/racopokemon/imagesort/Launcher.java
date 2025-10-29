@@ -51,17 +51,12 @@ public class Launcher {
     public static final double BIG_GAP = 16;
     public static final double BIG_INTEND_GAP = 34;
 
-    private static final String CHECK_DELETE_FOLDER_SEL_TEXT = "Also create the 'delete' folder here. (Otherwise, it is created in the images folder)";
-    private static final String CHECK_DELETE_FOLDER_UNSEL_TEXT = "Also create the 'delete' folder here. (Right now, it is created in the images folder)";
-
     private Stage stage;
     private ListView<BrowserItem> listBrowser;
     private TextField textFieldBrowser;
     private TextField textFieldFolder;
     private RadioButton radioFolderRelative;
     private Button buttonLaunch;
-    private CheckBox checkDeleteFolderAbsolute;
-    private CheckBox checkMiscRelaunch;
     private CheckBox checkMiscShowUsage;
 
     private File fallbackDirectory = new File(System.getProperty("user.home"));
@@ -81,7 +76,7 @@ public class Launcher {
         Insets indentBig = new Insets(0, 0, 0, BIG_INTEND_GAP);
 
         Label labelIntro = new Label(
-                "This app is an image gallery, where you cycle through all images in a folder you select below. You may assign them to categories. Once you have finished, these files can be automatically moved or copied to folders, corresponding to the category you selected. ");
+                "In this gallery you can assign images in a folder to categories. When you close the window, these files can be automatically moved or copied to folders based on your assignment.");
         Font fontNormal = labelIntro.getFont();
         Font fontItalic = Font.font(fontNormal.getFamily(), FontWeight.NORMAL, FontPosture.ITALIC,
                 fontNormal.getSize());
@@ -169,24 +164,16 @@ public class Launcher {
         HBox boxFolderBrowserLine = new HBox(textFieldFolder, buttonFolderBrowse);
         VBox.setMargin(boxFolderBrowserLine, indentBig);
 
-        checkDeleteFolderAbsolute = new CheckBox(CHECK_DELETE_FOLDER_UNSEL_TEXT);
-        checkDeleteFolderAbsolute.setWrapText(true);
-        checkDeleteFolderAbsolute.setMaxWidth(Double.POSITIVE_INFINITY);
-        VBox.setMargin(checkDeleteFolderAbsolute, indentBig);
-        checkDeleteFolderAbsolute.setSelected(prefs.getBoolean("deleteFolderAbsolute", false));
 
         VBox boxFolder = new VBox(SMALL_GAP, labelFolder, radioFolderRelative, radioFolderAbsolute,
-                boxFolderBrowserLine, checkDeleteFolderAbsolute);
+                boxFolderBrowserLine);
 
-        checkMiscRelaunch = new CheckBox("Reopen this launcher");
-        checkMiscRelaunch.setSelected(prefs.getBoolean("miscRelaunch", true));
-        checkMiscShowUsage = new CheckBox("Show usage hints when the gallery starts");
+        checkMiscShowUsage = new CheckBox("Show usage hints");
         checkMiscShowUsage.setSelected(prefs.getBoolean("miscShowUsage", true));
-        VBox miscBox = new VBox(SMALL_GAP, checkMiscRelaunch, checkMiscShowUsage);
+        VBox miscBox = new VBox(SMALL_GAP, checkMiscShowUsage);
 
         Label labelPermanent = new Label(
-                "Note: When launching this app, we will start at the path, file or folder that is currently in your clipboard. This might save you some seconds.");
-        //        "All settings you're making here are stored throughout sessions for your convenience.");
+                "Note: When launching this app, we check your clipboard and start there (if possible). This might save you some seconds.");
         labelPermanent.setWrapText(true);
         labelPermanent.setFont(fontItalic);
         buttonLaunch = new Button("LAUNCH GALLERY");
@@ -207,21 +194,10 @@ public class Launcher {
 
         Scene scene = new Scene(root, 520, 800);
 
-        checkDeleteFolderAbsolute.disableProperty().bind(radioFolderRelative.selectedProperty());
         boxFolderBrowserLine.disableProperty().bind(radioFolderRelative.selectedProperty());
         radioFolderRelative.selectedProperty().addListener((obs, oldV, newV) -> {
             prefs.putBoolean("folderRelative", newV);
             updateLaunchButton();
-        });
-
-        checkDeleteFolderAbsolute.selectedProperty().addListener((e) -> {
-            boolean selected = checkDeleteFolderAbsolute.isSelected();
-            if (selected) {
-                checkDeleteFolderAbsolute.setText(CHECK_DELETE_FOLDER_SEL_TEXT);
-            } else {
-                checkDeleteFolderAbsolute.setText(CHECK_DELETE_FOLDER_UNSEL_TEXT);
-            }
-            prefs.putBoolean("deleteFolderAbsolute", selected);
         });
 
         buttonBrowserBrowse.setOnAction((e) -> {
@@ -329,9 +305,6 @@ public class Launcher {
             }
         });
 
-        checkMiscRelaunch.selectedProperty().addListener((obs, oldV, newV) -> {
-            prefs.putBoolean("miscRelaunch", newV);
-        });
         checkMiscShowUsage.selectedProperty().addListener((obs, oldV, newV) -> {
             prefs.putBoolean("miscShowUsage", newV);
         });
@@ -416,9 +389,6 @@ public class Launcher {
         File targetDirectory = directory;
         if (!radioFolderRelative.isSelected()) {
             targetDirectory = new File(textFieldFolder.getText());
-            if (checkDeleteFolderAbsolute.isSelected()) {
-                delDirectory = new File(textFieldFolder.getText() + deleteSuffix);
-            }
         }
 
         ArrayList<File> foldersToCheck = new ArrayList<>();
@@ -452,7 +422,7 @@ public class Launcher {
         stage.close();
 
         new Gallery().start(directory, startImage, targetDirectory, delDirectory, 
-                    checkMiscRelaunch.isSelected(), checkMiscShowUsage.isSelected());
+                    checkMiscShowUsage.isSelected());
     }
 
     private boolean showBrowserDialogForTextField(String title, TextField field) {

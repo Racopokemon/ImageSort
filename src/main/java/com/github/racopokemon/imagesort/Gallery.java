@@ -86,7 +86,6 @@ public class Gallery {
     private File directory;
     private File targetDirectory;
     private File deleteDirectory;
-    private boolean reopenLauncherAfterwards;
 
     private int numberOfCategories = 3;
     private int numberOfTicks = 4;
@@ -233,11 +232,10 @@ public class Gallery {
         }
     }
 
-    public void start(File directory, String startFileName, File targetDirectory, File deleteDirectory, boolean reopenLauncher, boolean showHints) {
+    public void start(File directory, String startFileName, File targetDirectory, File deleteDirectory, boolean showHints) {
         this.directory = directory;
         this.targetDirectory = targetDirectory;
         this.deleteDirectory = deleteDirectory;
-        this.reopenLauncherAfterwards = reopenLauncher;
         lastImageManuallySelected = startFileName;
 
         System.out.println("The origin of the micro-lags is apparently loading the image metadata on the main thread. ... Just saying - this *COULD BE FIXED*");
@@ -748,10 +746,8 @@ public class Gallery {
                     }
                 }
             }
-            //the event was not consumed: the window will continue closing now
-            if (reopenLauncherAfterwards) {
-                new Launcher().start(new Stage());
-            }
+            //the event was not consumed: the window will continue closing now & were going back to launcher
+            new Launcher().start(new Stage());
         });
         rootPane.setOnKeyReleased((event) -> {
             //no opt-out for seeking, otherwise we might get stuck when pressing a key first and then releasing while seeking
