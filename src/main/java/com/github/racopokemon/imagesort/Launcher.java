@@ -142,7 +142,7 @@ public class Launcher {
 
         Label labelFolder = new Label("Where should we create the category folders?");
         labelFolder.setWrapText(true);
-        radioFolderRelative = new RadioButton("Inside the images folder selected above");
+        radioFolderRelative = new RadioButton("In the same folder");
         RadioButton radioFolderAbsolute = new RadioButton("In a separate folder:");
         ToggleGroup groupFolder = new ToggleGroup();
         radioFolderRelative.setToggleGroup(groupFolder);
