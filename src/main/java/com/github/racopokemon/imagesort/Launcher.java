@@ -59,7 +59,7 @@ public class Launcher {
     private Button buttonLaunch;
     private CheckBox checkMiscShowUsage;
 
-    private File fallbackDirectory = new File(System.getProperty("user.home"));
+    public static File FALLBACK_DIRECTORY = new File(System.getProperty("user.home"));
     private File lastValidBrowserDirectory = null;
 
     //little bonus feature: If you start from clipboard with a certain file and end up launching the gallery for this image,
@@ -106,7 +106,7 @@ public class Launcher {
         //prefs.get browserPath on initialization..
         if (startPath == null) {
             //No clipboard option, use the other options
-            textFieldBrowser.setText(prefs.get("browserPath", fallbackDirectory.getAbsolutePath())); //2nd is the default value if nothing is stored yet
+            textFieldBrowser.setText(prefs.get("browserPath", FALLBACK_DIRECTORY.getAbsolutePath())); //2nd is the default value if nothing is stored yet
         } else {
             textFieldBrowser.setText(startPath.getAbsolutePath());
         }
@@ -158,7 +158,7 @@ public class Launcher {
         radioFolderAbsolute.setMaxWidth(Double.POSITIVE_INFINITY);
 
         textFieldFolder = new TextField();
-        textFieldFolder.setText(prefs.get("folderPath", fallbackDirectory.getAbsolutePath()));
+        textFieldFolder.setText(prefs.get("folderPath", FALLBACK_DIRECTORY.getAbsolutePath()));
         HBox.setHgrow(textFieldFolder, Priority.ALWAYS);
         Button buttonFolderBrowse = new Button("Browse");
         HBox boxFolderBrowserLine = new HBox(textFieldFolder, buttonFolderBrowse);
@@ -339,7 +339,7 @@ public class Launcher {
         
         //a start path is already written to the textFieldBrowser at its creation, now validate the browser. 
         updateBrowser(); 
-        if (textFieldBrowser.getText().equals(fallbackDirectory.getAbsolutePath())) { //if we end up in the default dir, show the folder selection dialog already. 
+        if (textFieldBrowser.getText().equals(FALLBACK_DIRECTORY.getAbsolutePath())) { //if we end up in the default dir, show the folder selection dialog already. 
             buttonFolderBrowse.fireEvent(new ActionEvent());
         }
         updateLaunchButton();
@@ -383,9 +383,7 @@ public class Launcher {
             return;
         }
 
-        String deleteSuffix = FileSystems.getDefault().getSeparator() + "delete";
         File directory = getCurrentlySelectedDirectory();
-        File delDirectory = new File(textFieldBrowser.getText() + deleteSuffix);
         File targetDirectory = directory;
         if (!radioFolderRelative.isSelected()) {
             targetDirectory = new File(textFieldFolder.getText());
@@ -421,7 +419,7 @@ public class Launcher {
 
         stage.close();
 
-        new Gallery().start(directory, startImage, targetDirectory, delDirectory, 
+        new Gallery().start(directory, startImage, 
                     checkMiscShowUsage.isSelected());
     }
 
@@ -471,7 +469,7 @@ public class Launcher {
 
         //we will traverse the stack from last to first element to find the first valid folder. 
         ArrayList<File> fallbackStack = new ArrayList<>();
-        fallbackStack.add(fallbackDirectory);
+        fallbackStack.add(FALLBACK_DIRECTORY);
         if (lastValidBrowserDirectory != null) fallbackStack.add(lastValidBrowserDirectory);
 
         fallbackStack.add(newDir);

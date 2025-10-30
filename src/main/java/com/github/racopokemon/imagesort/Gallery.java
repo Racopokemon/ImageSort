@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
 import javafx.animation.Animation;
@@ -32,11 +33,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
@@ -52,6 +59,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -63,6 +71,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
@@ -84,7 +93,6 @@ public class Gallery {
     private static final boolean MOVE_ALONG = true; //Feature that silently also moves/copies/deletes not supported files during file operations, if they have the same file name (but different extension). For .raws
 
     private File directory;
-    private File targetDirectory;
     private File deleteDirectory;
 
     private int numberOfCategories = 3;
@@ -232,10 +240,10 @@ public class Gallery {
         }
     }
 
-    public void start(File directory, String startFileName, File targetDirectory, File deleteDirectory, boolean showHints) {
+    public void start(File directory, String startFileName, boolean showHints) {
         this.directory = directory;
-        this.targetDirectory = targetDirectory;
-        this.deleteDirectory = deleteDirectory;
+        this.deleteDirectory = new File(directory.getAbsolutePath() + FileSystems.getDefault().getSeparator() + "delete");
+
         lastImageManuallySelected = startFileName;
 
         System.out.println("The origin of the micro-lags is apparently loading the image metadata on the main thread. ... Just saying - this *COULD BE FIXED*");
@@ -663,27 +671,100 @@ public class Gallery {
                         if (i < numberOfCategories + 1) {
                             closeMessage += "   move " + operations.get(i).size() + " ";
                             closeMessage += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
-                            closeMessage +=  targetDirectory.getName() + "/" + i + "\n";
+                            closeMessage +=  "targetDirectory.getName()" + "/" + i + "\n";
                         } else {
                             closeMessage += "   copy " + operations.get(i).size() + " ";
                             closeMessage += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
-                            closeMessage += targetDirectory.getName() + "/" + getTickName(i - numberOfCategories - 1) + "\n";
+                            closeMessage += "targetDirectory.getName()" + "/" + getTickName(i - numberOfCategories - 1) + "\n";
                         }
                     }
                 }
                 boolean[] operationTypes = getFileOperationTypes(numberOfTicks, numberOfCategories, operations);
                 boolean moveOperation = operationTypes[0], copyOperation = operationTypes[1];
+                
                 closeHeader = moveOperation ? copyOperation ? "Move & copy files now?" : "Move files now?" : "Copy files now?";
                 closeMessage += "\n'No' keeps the files unchanged and closes the gallery, which discards your work here. ";
-                Alert closeAlert = new Alert(AlertType.NONE, closeMessage, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-                closeAlert.setHeaderText(closeHeader);
-                closeAlert.initOwner(stage);
-                Optional<ButtonType> result = closeAlert.showAndWait();
+                
+                // AI start
+                System.out.println("TODO REFACTOR INTO OWN CLASS");
+                Dialog<ButtonType> closingDialog = new Dialog<>();
+                closingDialog.setTitle(closeHeader);
+
+                Label info = new Label(closeMessage);
+                info.setWrapText(true);
+                VBox.setVgrow(info, Priority.NEVER);
+
+                RadioButton radioFolderRelative = new RadioButton("In the same folder");
+                RadioButton radioFolderAbsolute = new RadioButton("In a separate folder:");
+                ToggleGroup groupFolder = new ToggleGroup();
+                radioFolderRelative.setToggleGroup(groupFolder);
+                radioFolderAbsolute.setToggleGroup(groupFolder);
+
+                Preferences prefs = Common.getPreferences();
+                radioFolderRelative.setSelected(prefs.getBoolean("folderRelative", true));
+                radioFolderAbsolute.setSelected(!prefs.getBoolean("folderRelative", true));
+
+                TextField textFieldAbsolute = new TextField(prefs.get("folderPath", Launcher.FALLBACK_DIRECTORY.getAbsolutePath()));
+                Button buttonFolderBrowse = new Button("Browse");
+                buttonFolderBrowse.setOnAction(e -> {
+                    System.out.println("This here is not enjoying the benefits from showBrowserDialogForTextField in Launcher :(");
+                    DirectoryChooser chooser = new DirectoryChooser();
+                    chooser.setTitle("Select target directory");
+                    File dir = chooser.showDialog(stage);
+                    if (dir != null) {
+                        textFieldAbsolute.setText(dir.getAbsolutePath());
+                    }
+                });
+                HBox folderBox = new HBox(textFieldAbsolute, buttonFolderBrowse);
+                folderBox.disableProperty().bind(radioFolderRelative.selectedProperty());
+
+                textFieldAbsolute.focusedProperty().addListener((obs, oldV, newV) -> {
+                    if (!newV) {
+                        //focus left!
+                        prefs.put("folderPath", textFieldAbsolute.getText());
+                        //updateLaunchButton();
+                        System.out.println("CALL UPDATE LAUNCH BUTTON");
+                    }
+                });
+                textFieldAbsolute.setOnAction((e) -> {
+                    prefs.put("folderPath", textFieldAbsolute.getText());
+                    System.out.println("CALL UPDATE LAUNCH BUTTON");
+                    //updateLaunchButton();
+                });
+
+                VBox dialogContent = new VBox(Launcher.SMALL_GAP, info, radioFolderRelative, radioFolderAbsolute, folderBox);
+                dialogContent.setPadding(new Insets(Launcher.SMALL_GAP));
+                closingDialog.getDialogPane().setContent(dialogContent);
+
+                ButtonType yesBtn = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+                ButtonType noBtn = new ButtonType("No", ButtonBar.ButtonData.NO);
+                ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                closingDialog.getDialogPane().getButtonTypes().addAll(yesBtn, noBtn, cancelBtn);
+
+                prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
+                prefs.put("folderPath", textFieldAbsolute.getText());
+                closingDialog.initOwner(stage);
+                Optional<ButtonType> result = closingDialog.showAndWait();
+                
+                //TODO: IMPORTANT FIX THIS!
+                System.out.println("Todo: Validate that the inserted path is correct, otherwise block the YES button");
+
                 if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
                     //prevent window close by consuming event
                     event.consume();
                     return;
                 } else if (result.get() == ButtonType.YES) {
+
+                    prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
+                    prefs.put("folderPath", textFieldAbsolute.getText());
+
+                    File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
+
+                    System.out.println("TODO FIX THIS ADD ALERT AND CONSUME SUCH THAT WE DON'T DO ANYTHING");
+                    if (!Common.isValidFolder(targetDirectory)) {
+                        //TODO: IMPORTANT show error not valid dir
+                    }
+
                     //create jobs & send them to a file op window
                     //and then the gallery closes automatically on return, if we do not consume the event
                     
