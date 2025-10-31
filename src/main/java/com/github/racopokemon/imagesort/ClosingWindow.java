@@ -83,12 +83,21 @@ public class ClosingWindow extends Dialog<ButtonType> {
         ToggleGroup groupFolder = new ToggleGroup();
         radioFolderRelative.setToggleGroup(groupFolder);
         radioFolderAbsolute.setToggleGroup(groupFolder);
+        Insets indent = new Insets(0, 0, 0, Launcher.BIG_GAP);
+        VBox.setMargin(radioFolderRelative, indent);
+        VBox.setMargin(radioFolderAbsolute, indent);
+        radioFolderRelative.setMaxWidth(Double.POSITIVE_INFINITY);
+        radioFolderAbsolute.setMaxWidth(Double.POSITIVE_INFINITY);
 
         prefs = Common.getPreferences();
-        radioFolderRelative.setSelected(prefs.getBoolean("folderRelative", true));
-        radioFolderAbsolute.setSelected(!prefs.getBoolean("folderRelative", true));
+        if (prefs.getBoolean("folderRelative", true)) {
+            radioFolderRelative.setSelected(true);
+        } else {
+            radioFolderAbsolute.setSelected(true);
+        }
 
         textFieldAbsolute = new TextField(prefs.get("folderPath", Launcher.FALLBACK_DIRECTORY.getAbsolutePath()));
+        HBox.setHgrow(textFieldAbsolute, Priority.ALWAYS);
         Button buttonFolderBrowse = new Button("Browse");
 
         buttonFolderBrowse.setOnAction(e -> {
@@ -107,6 +116,8 @@ public class ClosingWindow extends Dialog<ButtonType> {
         });
 
         HBox folderBox = new HBox(textFieldAbsolute, buttonFolderBrowse);
+        VBox.setMargin(folderBox, new Insets(0, 0, 0, 34));
+
         folderBox.disableProperty().bind(radioFolderRelative.selectedProperty());
 
         textFieldAbsolute.focusedProperty().addListener((obs, oldV, newV) -> {
@@ -166,7 +177,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
         prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
         prefs.put("folderPath", textFieldAbsolute.getText());
 
-        if (result.get() == ButtonType.YES) {
+        if (result.get().getButtonData() == ButtonData.YES) {
 
             File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
 

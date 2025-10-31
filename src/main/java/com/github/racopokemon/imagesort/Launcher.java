@@ -49,13 +49,10 @@ public class Launcher {
 
     public static final double SMALL_GAP = 4;
     public static final double BIG_GAP = 16;
-    public static final double BIG_INTEND_GAP = 34;
 
     private Stage stage;
     private ListView<BrowserItem> listBrowser;
     private TextField textFieldBrowser;
-    private TextField textFieldFolder;
-    private RadioButton radioFolderRelative;
     private Button buttonLaunch;
     private CheckBox checkMiscShowUsage;
 
@@ -72,8 +69,6 @@ public class Launcher {
 
     public void start(Stage stage) {
         this.stage = stage;
-        Insets indent = new Insets(0, 0, 0, BIG_GAP);
-        Insets indentBig = new Insets(0, 0, 0, BIG_INTEND_GAP);
 
         Label labelIntro = new Label(
                 "In this gallery you can assign images in a folder to categories. When you close the window, these files can be automatically moved or copied to folders based on your assignment.");
@@ -140,42 +135,14 @@ public class Launcher {
         VBox boxBrowser = new VBox(SMALL_GAP, labelBrowserIntro, boxBrowserLine, listBrowser);
         VBox.setVgrow(boxBrowser, Priority.ALWAYS);
 
-        Label labelFolder = new Label("Where should we create the category folders?");
-        labelFolder.setWrapText(true);
-        radioFolderRelative = new RadioButton("In the same folder");
-        RadioButton radioFolderAbsolute = new RadioButton("In a separate folder:");
-        ToggleGroup groupFolder = new ToggleGroup();
-        radioFolderRelative.setToggleGroup(groupFolder);
-        radioFolderAbsolute.setToggleGroup(groupFolder);
-        if (prefs.getBoolean("folderRelative", true)) {
-            radioFolderRelative.setSelected(true);
-        } else {
-            radioFolderAbsolute.setSelected(true);
-        }
-        VBox.setMargin(radioFolderRelative, indent);
-        VBox.setMargin(radioFolderAbsolute, indent);
-        radioFolderRelative.setMaxWidth(Double.POSITIVE_INFINITY);
-        radioFolderAbsolute.setMaxWidth(Double.POSITIVE_INFINITY);
-
-        textFieldFolder = new TextField();
-        textFieldFolder.setText(prefs.get("folderPath", FALLBACK_DIRECTORY.getAbsolutePath()));
-        HBox.setHgrow(textFieldFolder, Priority.ALWAYS);
-        Button buttonFolderBrowse = new Button("Browse");
-        HBox boxFolderBrowserLine = new HBox(textFieldFolder, buttonFolderBrowse);
-        VBox.setMargin(boxFolderBrowserLine, indentBig);
-
-
-        VBox boxFolder = new VBox(SMALL_GAP, labelFolder, radioFolderRelative, radioFolderAbsolute,
-                boxFolderBrowserLine);
-
         checkMiscShowUsage = new CheckBox("Show usage hints");
         checkMiscShowUsage.setSelected(prefs.getBoolean("miscShowUsage", true));
         VBox miscBox = new VBox(SMALL_GAP, checkMiscShowUsage);
 
-        Label labelPermanent = new Label(
+        Label labelClipboard = new Label(
                 "Note: When launching this app, we check your clipboard and start there (if possible). This might save you some seconds.");
-        labelPermanent.setWrapText(true);
-        labelPermanent.setFont(fontItalic);
+        labelClipboard.setWrapText(true);
+        labelClipboard.setFont(fontItalic);
         buttonLaunch = new Button("LAUNCH GALLERY");
         buttonLaunch.setMaxWidth(Double.POSITIVE_INFINITY); // thats a VERY big boii
         buttonLaunch.setMaxHeight(70);
@@ -185,20 +152,13 @@ public class Launcher {
         VBox mainVertical = new VBox(BIG_GAP,
                 labelIntro,
                 boxBrowser,
-                boxFolder,
+                labelClipboard, 
                 miscBox,
-                labelPermanent, 
                 buttonLaunch);
         StackPane root = new StackPane(mainVertical);
         StackPane.setMargin(mainVertical, new Insets(14));
 
-        Scene scene = new Scene(root, 520, 800);
-
-        boxFolderBrowserLine.disableProperty().bind(radioFolderRelative.selectedProperty());
-        radioFolderRelative.selectedProperty().addListener((obs, oldV, newV) -> {
-            prefs.putBoolean("folderRelative", newV);
-            updateLaunchButton();
-        });
+        Scene scene = new Scene(root, 500, 670);
 
         buttonBrowserBrowse.setOnAction((e) -> {
             DirectoryChooser folderDirChooser = new DirectoryChooser();
@@ -228,17 +188,6 @@ public class Launcher {
             updateBrowser();
             listBrowser.requestFocus();
             listBrowser.getSelectionModel().selectFirst();
-        });
-        textFieldFolder.focusedProperty().addListener((obs, oldV, newV) -> {
-            if (!newV) {
-                //focus left!
-                prefs.put("folderPath", textFieldFolder.getText());
-                updateLaunchButton();
-            }
-        });
-        textFieldFolder.setOnAction((e) -> {
-            prefs.put("folderPath", textFieldFolder.getText());
-            updateLaunchButton();
         });
         
         listBrowser.setOnMouseClicked((e) -> {
@@ -340,8 +289,10 @@ public class Launcher {
         
         //a start path is already written to the textFieldBrowser at its creation, now validate the browser. 
         updateBrowser(); 
-        if (textFieldBrowser.getText().equals(FALLBACK_DIRECTORY.getAbsolutePath())) { //if we end up in the default dir, show the folder selection dialog already. 
-            buttonFolderBrowse.fireEvent(new ActionEvent());
+        if (textFieldBrowser.getText().equals(FALLBACK_DIRECTORY.getAbsolutePath())) {
+            //if we end up in the default dir, show the folder selection dialog already. 
+            //Convenience when first starting the app
+            buttonBrowserBrowse.fireEvent(new ActionEvent());
         }
         updateLaunchButton();
 
@@ -385,22 +336,13 @@ public class Launcher {
         }
 
         File directory = getCurrentlySelectedDirectory();
-        File targetDirectory = directory;
-        if (!radioFolderRelative.isSelected()) {
-            targetDirectory = new File(textFieldFolder.getText());
-        }
 
-        ArrayList<File> foldersToCheck = new ArrayList<>();
-        foldersToCheck.add(directory);
-        if (targetDirectory != directory) foldersToCheck.add(targetDirectory);
-        for (File f : foldersToCheck) {
-            if (Common.tryListFiles(f) == null) {
-                Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe can't read folder \n"+f.getAbsolutePath(), ButtonType.OK);
-                alert.setHeaderText("Could not launch");
-                alert.initOwner(stage);
-                alert.showAndWait();
-                return;
-            }
+        if (Common.tryListFiles(directory) == null) {
+            Alert alert = new Alert(AlertType.NONE, "Could not launch the Gallery: \nWe can't read folder \n"+directory.getAbsolutePath(), ButtonType.OK);
+            alert.setHeaderText("Could not launch");
+            alert.initOwner(stage);
+            alert.showAndWait();
+            return;
         }
 
         if (getNumberOfSupportedImages(directory) == 0) {
@@ -607,11 +549,8 @@ public class Launcher {
     }
 
     private void updateLaunchButton() {
-        boolean relative = radioFolderRelative.isSelected();
-        
         File mainDir = getCurrentlySelectedDirectory();
         boolean mainDirInvalid = !Common.isValidFolder(mainDir) || Common.tryListFiles(mainDir) == null;
-        boolean absoulteDirInvalid = false;
 
         prefs.put("browserPath", mainDir.getAbsolutePath());
 
@@ -630,21 +569,8 @@ public class Launcher {
             }
         }
         text += "\n";
-        File absoluteDir = null;
-        if (relative) {
-            text += "Target directory: The same directory";
-        } else {
-            absoluteDir = new File(textFieldFolder.getText());
-            absoulteDirInvalid = !Common.isValidFolder(absoluteDir);
-            if (absoulteDirInvalid) {
-                text += "Target directory: Invalid";
-            } else {
-                text += "Target directory:  '" + absoluteDir.getName() + "'";
-            }
-        }
 
         boolean disable = mainDirInvalid;
-        disable |= absoulteDirInvalid;
         disable |= imageCount == 0;
 
         buttonLaunch.setDisable(disable);
