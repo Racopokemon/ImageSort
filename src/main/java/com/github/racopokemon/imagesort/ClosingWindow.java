@@ -1,6 +1,7 @@
 package com.github.racopokemon.imagesort;
 
 import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import java.util.prefs.Preferences;
 
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -41,6 +43,10 @@ public class ClosingWindow extends Dialog<ButtonType> {
     private Preferences prefs;
     private TextField textFieldAbsolute;
     private RadioButton radioFolderRelative, radioFolderAbsolute;
+
+    private static ButtonType APPLY_BUTON = new ButtonType("Move and close", ButtonBar.ButtonData.YES);
+    private static ButtonType EXIT_BUTTON = new ButtonType("Close", ButtonBar.ButtonData.OTHER);
+    private static ButtonType BACK_BUTTON = new ButtonType("Back", ButtonBar.ButtonData.CANCEL_CLOSE);
 
     public ClosingWindow(Stage stage, ArrayList<ArrayList<String>> operations, Hashtable<String, 
                 ArrayList<String>> filesToMoveAlong, int numberOfCategories, int numberOfTicks, File directory) {
@@ -133,18 +139,28 @@ public class ClosingWindow extends Dialog<ButtonType> {
         });
 
         VBox dialogContent = new VBox(Launcher.SMALL_GAP, info, radioFolderRelative, radioFolderAbsolute, folderBox);
-        dialogContent.setPadding(new Insets(Launcher.SMALL_GAP));
-        this.getDialogPane().setContent(dialogContent);
-
-        ButtonType yesBtn = new ButtonType("Move and exit", ButtonBar.ButtonData.YES);
-        ButtonType noBtn = new ButtonType("Just exit", ButtonBar.ButtonData.NO);
-        ButtonType cancelBtn = new ButtonType("Go back", ButtonBar.ButtonData.CANCEL_CLOSE);
-        this.getDialogPane().getButtonTypes().addAll(yesBtn, noBtn, cancelBtn);
+        //dialogContent.setPadding(new Insets(14));
+        
+        DialogPane dialogPane = new DialogPane() {
+            protected Node createButtonBar() {
+                Node bar = super.createButtonBar();
+                ((ButtonBar)bar).setButtonOrder("C++UY"); 
+                return bar;
+            };
+        };
+        dialogPane.setContent(dialogContent);
+        dialogPane.getButtonTypes().addAll(BACK_BUTTON, EXIT_BUTTON, APPLY_BUTON);
+        this.setDialogPane(dialogPane);
     }
+
+    // @Override
+    // protected Node createButtonBar() {
+    //     return null;
+    // }
 
     private void updateButtons() {
         File currentFolder =  new File(textFieldAbsolute.getText());
-        getDialogPane().lookupButton(ButtonType.YES).setDisable(!Common.isValidFolder(currentFolder));
+        getDialogPane().lookupButton(APPLY_BUTON).setDisable(!Common.isValidFolder(currentFolder));
     }
 
     //Returns a boolean array with 2 elements: {hasMoveOperations, hasCopyOperations}
@@ -170,14 +186,15 @@ public class ClosingWindow extends Dialog<ButtonType> {
         initOwner(stage);
         Optional<ButtonType> result = showAndWait();
 
-        if (!result.isPresent() || 
-                    result.get().getButtonData() == ButtonData.CANCEL_CLOSE) {
-            return false; 
-        }
         prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
         prefs.put("folderPath", textFieldAbsolute.getText());
 
-        if (result.get().getButtonData() == ButtonData.YES) {
+        if (!result.isPresent() || 
+                    result.get() == BACK_BUTTON) {
+            return false; 
+        }
+
+        if (result.get() == APPLY_BUTON) {
 
             File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
 
