@@ -201,8 +201,16 @@ public class Launcher {
         });
 
         buttonBrowserBrowse.setOnAction((e) -> {
-            boolean success = showBrowserDialogForTextField("Select your image directory", textFieldBrowser);
-            if (success) {
+            DirectoryChooser folderDirChooser = new DirectoryChooser();
+            folderDirChooser.setTitle("Select your image directory");
+            File f = new File(textFieldBrowser.getText());
+            if (Common.isValidFolder(f)) {
+                folderDirChooser.setInitialDirectory(f);
+            }
+            File dir = folderDirChooser.showDialog(stage);
+            boolean successful = dir != null;
+            if (successful) {
+                textFieldBrowser.setText(dir.getAbsolutePath());
                 updateBrowser();
             }
         });
@@ -296,13 +304,6 @@ public class Launcher {
             //    textFieldBrowser.requestFocus();
             //    textFieldBrowser.selectEnd();
             //}
-        });
-        buttonFolderBrowse.setOnAction((e) -> {
-            boolean success = showBrowserDialogForTextField("Select the target directory", textFieldFolder);
-            if (success) {
-                prefs.put("folderPath", textFieldFolder.getText());
-                updateLaunchButton();
-            }
         });
 
         checkMiscShowUsage.selectedProperty().addListener((obs, oldV, newV) -> {
@@ -421,22 +422,6 @@ public class Launcher {
 
         new Gallery().start(directory, startImage, 
                     checkMiscShowUsage.isSelected());
-    }
-
-    private boolean showBrowserDialogForTextField(String title, TextField field) {
-        DirectoryChooser folderDirChooser = new DirectoryChooser();
-        folderDirChooser.setTitle(title);
-
-        File f = new File(field.getText());
-        if (Common.isValidFolder(f)) {
-            folderDirChooser.setInitialDirectory(f);
-        }
-        File dir = folderDirChooser.showDialog(stage);
-        boolean successful = dir != null;
-        if (successful) {
-            field.setText(dir.getAbsolutePath());
-        }
-        return successful;
     }
 
     //Returns either the base directory in the browser list, if no element is selected, or the selected directory in the browser list. 

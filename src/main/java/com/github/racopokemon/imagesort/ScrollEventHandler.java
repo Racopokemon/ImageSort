@@ -26,7 +26,7 @@ public abstract class ScrollEventHandler implements EventHandler<ScrollEvent> {
 
         scrolledDistance += event.getDeltaY();
         //System.out.println(scrolledDistance);
-        System.out.println(event.getDeltaY());
+        //System.out.println(event.getDeltaY());
 
         if (noThresholdReachedYet) {
             if (scrolledDistance <= -FIRST_THRESHOLD) {

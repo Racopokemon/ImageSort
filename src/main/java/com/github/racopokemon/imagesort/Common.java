@@ -13,9 +13,12 @@ import java.awt.Desktop;
 import java.awt.Desktop.Action;
 
 import javafx.geometry.Point2D;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.robot.Robot;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 
 import java.io.File;
 
@@ -361,7 +364,7 @@ public class Common {
     }
 
     // Formats a file size in bytes properly
-    // Copied from https://stackoverflow.com/a/5599842
+    // Recklessly copied from https://stackoverflow.com/a/5599842
     public static String readableFileSize(long size) {
         if(size <= 0) return "0";
         final String[] units = new String[] { "B", "kB", "MB", "GB", "TB", "PB", "EB" };
@@ -369,6 +372,5 @@ public class Common {
         return new DecimalFormat("#,##0.#", DecimalFormatSymbols.getInstance(java.util.Locale.US))
             .format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
-
 }
 

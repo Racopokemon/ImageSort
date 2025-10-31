@@ -664,167 +664,12 @@ public class Gallery {
                 }
             }
             if (unsavedChanges) {
-                String closeMessage, closeHeader;
-                closeMessage = "Should we now do the following?\n\n";
-                for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
-                    if (!operations.get(i).isEmpty()) {
-                        if (i < numberOfCategories + 1) {
-                            closeMessage += "   move " + operations.get(i).size() + " ";
-                            closeMessage += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
-                            closeMessage +=  "targetDirectory.getName()" + "/" + i + "\n";
-                        } else {
-                            closeMessage += "   copy " + operations.get(i).size() + " ";
-                            closeMessage += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
-                            closeMessage += "targetDirectory.getName()" + "/" + getTickName(i - numberOfCategories - 1) + "\n";
-                        }
-                    }
-                }
-                boolean[] operationTypes = getFileOperationTypes(numberOfTicks, numberOfCategories, operations);
-                boolean moveOperation = operationTypes[0], copyOperation = operationTypes[1];
-                
-                closeHeader = moveOperation ? copyOperation ? "Move & copy files now?" : "Move files now?" : "Copy files now?";
-                closeMessage += "\n'No' keeps the files unchanged and closes the gallery, which discards your work here. ";
-                
-                // AI start
-                System.out.println("TODO REFACTOR INTO OWN CLASS");
-                Dialog<ButtonType> closingDialog = new Dialog<>();
-                closingDialog.setTitle(closeHeader);
-
-                Label info = new Label(closeMessage);
-                info.setWrapText(true);
-                VBox.setVgrow(info, Priority.NEVER);
-
-                RadioButton radioFolderRelative = new RadioButton("In the same folder");
-                RadioButton radioFolderAbsolute = new RadioButton("In a separate folder:");
-                ToggleGroup groupFolder = new ToggleGroup();
-                radioFolderRelative.setToggleGroup(groupFolder);
-                radioFolderAbsolute.setToggleGroup(groupFolder);
-
-                Preferences prefs = Common.getPreferences();
-                radioFolderRelative.setSelected(prefs.getBoolean("folderRelative", true));
-                radioFolderAbsolute.setSelected(!prefs.getBoolean("folderRelative", true));
-
-                TextField textFieldAbsolute = new TextField(prefs.get("folderPath", Launcher.FALLBACK_DIRECTORY.getAbsolutePath()));
-                Button buttonFolderBrowse = new Button("Browse");
-                buttonFolderBrowse.setOnAction(e -> {
-                    System.out.println("This here is not enjoying the benefits from showBrowserDialogForTextField in Launcher :(");
-                    DirectoryChooser chooser = new DirectoryChooser();
-                    chooser.setTitle("Select target directory");
-                    File dir = chooser.showDialog(stage);
-                    if (dir != null) {
-                        textFieldAbsolute.setText(dir.getAbsolutePath());
-                    }
-                });
-                HBox folderBox = new HBox(textFieldAbsolute, buttonFolderBrowse);
-                folderBox.disableProperty().bind(radioFolderRelative.selectedProperty());
-
-                textFieldAbsolute.focusedProperty().addListener((obs, oldV, newV) -> {
-                    if (!newV) {
-                        //focus left!
-                        prefs.put("folderPath", textFieldAbsolute.getText());
-                        //updateLaunchButton();
-                        System.out.println("CALL UPDATE LAUNCH BUTTON");
-                    }
-                });
-                textFieldAbsolute.setOnAction((e) -> {
-                    prefs.put("folderPath", textFieldAbsolute.getText());
-                    System.out.println("CALL UPDATE LAUNCH BUTTON");
-                    //updateLaunchButton();
-                });
-
-                VBox dialogContent = new VBox(Launcher.SMALL_GAP, info, radioFolderRelative, radioFolderAbsolute, folderBox);
-                dialogContent.setPadding(new Insets(Launcher.SMALL_GAP));
-                closingDialog.getDialogPane().setContent(dialogContent);
-
-                ButtonType yesBtn = new ButtonType("Yes", ButtonBar.ButtonData.YES);
-                ButtonType noBtn = new ButtonType("No", ButtonBar.ButtonData.NO);
-                ButtonType cancelBtn = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-                closingDialog.getDialogPane().getButtonTypes().addAll(yesBtn, noBtn, cancelBtn);
-
-                prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
-                prefs.put("folderPath", textFieldAbsolute.getText());
-                closingDialog.initOwner(stage);
-                Optional<ButtonType> result = closingDialog.showAndWait();
-                
-                //TODO: IMPORTANT FIX THIS!
-                System.out.println("Todo: Validate that the inserted path is correct, otherwise block the YES button");
-
-                if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
-                    //prevent window close by consuming event
+                //show dialog, move files. 
+                ClosingWindow closingWindow = new ClosingWindow(stage, operations, filesToMoveAlong, numberOfCategories, numberOfTicks, directory);
+                if (!closingWindow.showWindow()) {
                     event.consume();
                     return;
-                } else if (result.get() == ButtonType.YES) {
-
-                    prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
-                    prefs.put("folderPath", textFieldAbsolute.getText());
-
-                    File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
-
-                    System.out.println("TODO FIX THIS ADD ALERT AND CONSUME SUCH THAT WE DON'T DO ANYTHING");
-                    if (!Common.isValidFolder(targetDirectory)) {
-                        //TODO: IMPORTANT show error not valid dir
-                    }
-
-                    //create jobs & send them to a file op window
-                    //and then the gallery closes automatically on return, if we do not consume the event
-                    
-                    //turn the user selections into a job list that can be executed by a FileOperationsWindow
-                    ArrayList<Job> jobs = new ArrayList<>();
-
-                    //first COPY files
-                    for (int i = 0; i < numberOfTicks; i++) {
-                        ArrayList<String> copyOperations = operations.get(i + numberOfCategories + 1);
-                        if (!copyOperations.isEmpty()) {
-                            ArrayList<Job> copyJobs = new ArrayList<>();
-                            String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
-                            String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
-                                + getTickName(i) + FileSystems.getDefault().getSeparator();
-                            for (String name : copyOperations) {
-                                copyJobs.add(new JobCopy(originPrefix + name, destPrefix + name));
-                                ArrayList<String> copyAlongList = filesToMoveAlong.get(name);
-                                if (copyAlongList != null) {
-                                    for (String copyAlong : copyAlongList) {
-                                        copyJobs.add(new JobCopy(originPrefix + copyAlong, destPrefix + copyAlong));
-                                    }
-                                }
-                            }
-                            jobs.add(new JobCreateDirectory(destPrefix, copyJobs, true));
-                        }
-                    }
-
-                    //then MOVE files
-                    for (int i = 1; i < numberOfCategories+1; i++) {
-                        ArrayList<String> moveOperations = operations.get(i);
-                        if (!moveOperations.isEmpty()) {
-                            ArrayList<Job> moveJobs = new ArrayList<>();
-                            String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
-                            String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
-                                + i + FileSystems.getDefault().getSeparator();
-                            for (String name : moveOperations) {
-                                moveJobs.add(new JobMove(originPrefix + name, destPrefix + name));
-                                ArrayList<String> moveAlongList = filesToMoveAlong.get(name);
-                                if (moveAlongList != null) {
-                                    for (String moveAlong : moveAlongList) {
-                                        moveJobs.add(new JobMove(originPrefix + moveAlong, destPrefix + moveAlong));
-                                    }
-                                }
-                            }
-                            jobs.add(new JobCreateDirectory(destPrefix, moveJobs, true));
-                        }
-                    }
-
-                    JobCheckDirectory overallCheckJob = new JobCheckDirectory(targetDirectory, jobs);
-                    ArrayList<Job> finalJobList = new ArrayList<>();
-                    finalJobList.add(overallCheckJob);
-
-                    FileOperationsWindow fileOpWindow = new FileOperationsWindow(finalJobList, false, stage);
-                    fileOpWindow.showAndWait();
-
-                    if (fileOpWindow.shouldWeShowTheGalleryAgain()) {
-                        //Consume the close event, so that the window is actually not closed. 
-                        event.consume();
-                        return;
-                    }
+                    //cancel here, consume the event such that the window is NOT closed. 
                 }
             }
             //the event was not consumed: the window will continue closing now & were going back to launcher
@@ -1983,21 +1828,6 @@ public class Gallery {
 
         return result;
     }    
-
-    //Returns a boolean array with 2 elements: {hasMoveOperations, hasCopyOperations}
-    public static boolean[] getFileOperationTypes(int numberOfTicks, int numberOfCategories, ArrayList<ArrayList<String>> operations) {
-        boolean moveOperation = false, copyOperation = false;
-        for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
-            if (!operations.get(i).isEmpty()) {
-                if (i < numberOfCategories + 1) {
-                    moveOperation = true;
-                } else {
-                    copyOperation = true;
-                }
-            }
-        }
-        return new boolean[] {moveOperation, copyOperation};
-    }
 
     //if pathOnly is false, we copy the image itself (as file)
     //otherwise, we only write the path to clipboard.
