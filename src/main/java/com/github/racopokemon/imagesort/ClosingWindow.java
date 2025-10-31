@@ -46,6 +46,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 ArrayList<String>> filesToMoveAlong, int numberOfCategories, int numberOfTicks, File directory) {
         
         this.operations = operations;
+        this.filesToMoveAlong = filesToMoveAlong;
         this.numberOfCategories = numberOfCategories;
         this.numberOfTicks = numberOfTicks;
         this.directory = directory; 
@@ -108,7 +109,6 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 chooser.setInitialDirectory(f);
             }
             File dir = chooser.showDialog(stage);
-            System.out.println("isitbloicking?");
             if (dir != null) {
                 textFieldAbsolute.setText(dir.getAbsolutePath());
                 updateButtons();
