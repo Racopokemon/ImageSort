@@ -2,6 +2,9 @@
 * Mac Support (if I manage to get stuff signed etc)
 * jpackage supports a version tag. Play arond with it, if installers are automatically able to update etc. 
 
+## Known issues
+* When zooming by space bar the mouse can still hover the percentage bar 
+
 ## Launcher
 * ~~In the launcher, in the list view, it already focusses the text field on 2nd entry, same error as with pressing arrow down in the text field. Can we register the listener somewhere else? Somewhere before?~~
   * ~~https://stackoverflow.com/questions/62795393/navigating-out-of-a-textfield-in-a-gridpane-using-the-arrow-keys-in-javafx <- this might fix it.~~

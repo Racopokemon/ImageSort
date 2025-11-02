@@ -23,7 +23,6 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -35,8 +34,15 @@ public class ClosingWindow extends Dialog<ButtonType> {
 
     //With all these vars that we need to get from the Gallery, this would be more natural to be an inner class - but Gallery is already too big. 
     private Stage stage;
+    
+    //operations contains lists of file names that should be copied / moved to certain folders. All lists are contained in another list where you may access all lists with the following indices: 
+    //0: images not to move (are essentially ignored in this class)
+    //1 to numberOfMoveCategories + 1: images to be moved to their corresponding categories
+    //numberOfMoveCategories + 1 to numberOfMoveCategories + numberOfCopyCategories + 1 images to copy, corresponding to the indices
     private ArrayList<ArrayList<String>> operations;
-    private int numberOfCategories, numberOfTicks;
+    private int numberOfMoveCategories, numberOfCopyCategories;
+    //The app treats all files that have the same name but a different extension as a group that is moved together; 
+    //this is already resolved in this hashtable: If there are several files for a name, a list of all additional files exists for the file name
     private Hashtable<String, ArrayList<String>> filesToMoveAlong;
     private File directory;
 
@@ -53,22 +59,22 @@ public class ClosingWindow extends Dialog<ButtonType> {
         
         this.operations = operations;
         this.filesToMoveAlong = filesToMoveAlong;
-        this.numberOfCategories = numberOfCategories;
-        this.numberOfTicks = numberOfTicks;
+        this.numberOfMoveCategories = numberOfCategories;
+        this.numberOfCopyCategories = numberOfTicks;
         this.directory = directory; 
 
-        String closeMessage, closeHeader;
-        closeMessage = "Should we now do the following?\n\n";
+        String summaryText, closeHeader;
+        summaryText = "Summary: \n\n";
         for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
             if (!operations.get(i).isEmpty()) {
                 if (i < numberOfCategories + 1) {
-                    closeMessage += "   move " + operations.get(i).size() + " ";
-                    closeMessage += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
-                    closeMessage +=  "targetDirectory.getName()" + "/" + i + "\n";
+                    summaryText += "   move " + operations.get(i).size() + " ";
+                    summaryText += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
+                    summaryText +=  "/" + i + "\n";
                 } else {
-                    closeMessage += "   copy " + operations.get(i).size() + " ";
-                    closeMessage += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
-                    closeMessage += "targetDirectory.getName()" + "/" + Gallery.getTickName(i - numberOfCategories - 1) + "\n";
+                    summaryText += "   copy " + operations.get(i).size() + " ";
+                    summaryText += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
+                    summaryText += "/" + Gallery.getTickName(i - numberOfCategories - 1) + "\n";
                 }
             }
         }
@@ -77,13 +83,8 @@ public class ClosingWindow extends Dialog<ButtonType> {
         boolean copyOperation = operationTypes[1];
         
         closeHeader = moveOperation ? copyOperation ? "Move & copy files now?" : "Move files now?" : "Copy files now?";
-        closeMessage += "\n'No' keeps the files unchanged and closes the gallery, which discards your work here. ";
         
         this.setTitle(closeHeader);
-
-        Label info = new Label(closeMessage);
-        info.setWrapText(true);
-        VBox.setVgrow(info, Priority.NEVER);
 
         radioFolderRelative = new RadioButton("In the same folder");
         radioFolderAbsolute = new RadioButton("In a separate folder:");
@@ -138,7 +139,16 @@ public class ClosingWindow extends Dialog<ButtonType> {
             updateButtons();
         });
 
-        VBox dialogContent = new VBox(Launcher.SMALL_GAP, info, radioFolderRelative, radioFolderAbsolute, folderBox);
+
+        Label info1 = new Label("Move/copy files to");
+        info1.setWrapText(true);
+        VBox.setVgrow(info1, Priority.NEVER);
+
+        Label info2 = new Label(summaryText);
+        info2.setWrapText(true);
+        VBox.setVgrow(info2, Priority.NEVER);
+
+        VBox dialogContent = new VBox(Launcher.SMALL_GAP, info1, radioFolderRelative, radioFolderAbsolute, folderBox, info2);
         //dialogContent.setPadding(new Insets(14));
         
         DialogPane dialogPane = new DialogPane() {
@@ -151,12 +161,8 @@ public class ClosingWindow extends Dialog<ButtonType> {
         dialogPane.setContent(dialogContent);
         dialogPane.getButtonTypes().addAll(BACK_BUTTON, EXIT_BUTTON, APPLY_BUTON);
         this.setDialogPane(dialogPane);
+        updateButtons();
     }
-
-    // @Override
-    // protected Node createButtonBar() {
-    //     return null;
-    // }
 
     private void updateButtons() {
         File currentFolder =  new File(textFieldAbsolute.getText());
@@ -198,9 +204,9 @@ public class ClosingWindow extends Dialog<ButtonType> {
 
             File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
 
-            if (!Common.isValidFolder(targetDirectory)) {
+            if (!Common.isValidFolder(targetDirectory) || Common.tryListFiles(directory) == null) {
                 
-                Alert alert = new Alert(AlertType.NONE, "The provided directory is invalid :(\n\n"+textFieldAbsolute.getText(), ButtonType.OK);
+                Alert alert = new Alert(AlertType.NONE, "The provided directory is invalid. Sending you back to the gallery. \n\n"+textFieldAbsolute.getText(), ButtonType.OK);
 
                 alert.setTitle("Cannot apply file operations");
                 alert.initOwner(stage);
@@ -216,8 +222,8 @@ public class ClosingWindow extends Dialog<ButtonType> {
             ArrayList<Job> jobs = new ArrayList<>();
 
             //first COPY files
-            for (int i = 0; i < numberOfTicks; i++) {
-                ArrayList<String> copyOperations = operations.get(i + numberOfCategories + 1);
+            for (int i = 0; i < numberOfCopyCategories; i++) {
+                ArrayList<String> copyOperations = operations.get(i + numberOfMoveCategories + 1);
                 if (!copyOperations.isEmpty()) {
                     ArrayList<Job> copyJobs = new ArrayList<>();
                     String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
@@ -237,7 +243,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
             }
 
             //then MOVE files
-            for (int i = 1; i < numberOfCategories+1; i++) {
+            for (int i = 1; i < numberOfMoveCategories+1; i++) {
                 ArrayList<String> moveOperations = operations.get(i);
                 if (!moveOperations.isEmpty()) {
                     ArrayList<Job> moveJobs = new ArrayList<>();
