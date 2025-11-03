@@ -33,7 +33,7 @@ public class JobCreateDirectory extends JobContainer {
         target.setCurrentOperation("Creating " + directory.getName() + "/");
         if (!directory.exists()) {
             try {
-                directory.mkdir();
+                directory.mkdirs();
             } catch (Exception e) {
                 target.logError("Could not create folder " + directory.getAbsolutePath() + ": " + Common.formatException(e), isCritical());
                 e.printStackTrace();

@@ -4,6 +4,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -371,6 +373,16 @@ public class Common {
         int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
         return new DecimalFormat("#,##0.#", DecimalFormatSymbols.getInstance(java.util.Locale.US))
             .format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+    }
+
+    public static boolean isValidPath(String name) {
+        if (name == null || name.trim().isEmpty()) return false;
+        try {
+            Path p = Paths.get(name);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
 

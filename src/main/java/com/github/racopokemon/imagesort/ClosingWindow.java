@@ -6,9 +6,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Button;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
@@ -26,6 +29,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 
 /**
  * Asking user for target dir & doing the file movement.
@@ -34,6 +38,11 @@ public class ClosingWindow extends Dialog<ButtonType> {
 
     //With all these vars that we need to get from the Gallery, this would be more natural to be an inner class - but Gallery is already too big. 
     private Stage stage;
+    
+    private ArrayList<CheckBox> operationCheckboxes = new ArrayList<>();
+    private ArrayList<Button> operationTypeButtons = new ArrayList<>();
+    private ArrayList<TextField> folderNameFields = new ArrayList<>();
+    private IsAnyTrue operationsEnabledState;
     
     //operations contains lists of file names that should be copied / moved to certain folders. All lists are contained in another list where you may access all lists with the following indices: 
     //0: images not to move (are essentially ignored in this class)
@@ -50,41 +59,82 @@ public class ClosingWindow extends Dialog<ButtonType> {
     private TextField textFieldAbsolute;
     private RadioButton radioFolderRelative, radioFolderAbsolute;
 
-    private static ButtonType APPLY_BUTON = new ButtonType("Move and close", ButtonBar.ButtonData.YES);
+    private static ButtonType APPLY_BUTTON = new ButtonType("Move and close", ButtonBar.ButtonData.YES);
     private static ButtonType EXIT_BUTTON = new ButtonType("Close", ButtonBar.ButtonData.OTHER);
     private static ButtonType BACK_BUTTON = new ButtonType("Back", ButtonBar.ButtonData.CANCEL_CLOSE);
 
     public ClosingWindow(Stage stage, ArrayList<ArrayList<String>> operations, Hashtable<String, 
-                ArrayList<String>> filesToMoveAlong, int numberOfCategories, int numberOfTicks, File directory) {
+                ArrayList<String>> filesToMoveAlong, int numberOfMoveCategories, int numberOfCopyCategories, File directory) {
         
         this.operations = operations;
         this.filesToMoveAlong = filesToMoveAlong;
-        this.numberOfMoveCategories = numberOfCategories;
-        this.numberOfCopyCategories = numberOfTicks;
+        this.numberOfMoveCategories = numberOfMoveCategories;
+        this.numberOfCopyCategories = numberOfCopyCategories;
         this.directory = directory; 
 
-        String summaryText, closeHeader;
-        summaryText = "Summary: \n\n";
-        for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
+        this.setTitle("ImageSort");
+        
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(5);
+        
+        // Initialize operation validation
+        operationsEnabledState = new IsAnyTrue(numberOfMoveCategories + numberOfCopyCategories, anyEnabled -> {
+            updateButtons();
+        });
+
+        // Create UI for each operation
+        int row = 0;
+        for (int i = 1; i < numberOfMoveCategories + numberOfCopyCategories + 1; i++) {
             if (!operations.get(i).isEmpty()) {
-                if (i < numberOfCategories + 1) {
-                    summaryText += "   move " + operations.get(i).size() + " ";
-                    summaryText += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
-                    summaryText +=  "/" + i + "\n";
-                } else {
-                    summaryText += "   copy " + operations.get(i).size() + " ";
-                    summaryText += Common.getSingularOrPluralOfFile(operations.get(i).size()) + " to ";
-                    summaryText += "/" + Gallery.getTickName(i - numberOfCategories - 1) + "\n";
-                }
+                final int index = i;  // for lambda
+                
+                CheckBox enableOperation = new CheckBox();
+                enableOperation.setSelected(true);
+                operationCheckboxes.add(enableOperation);
+                
+                Label filesLabel = new Label(operations.get(i).size() + " " + 
+                    (operations.get(i).size() == 1 ? "file is" : "files are"));
+                
+                Button typeButton = new Button(i <= numberOfMoveCategories ? "moved" : "copied");
+                typeButton.setOnAction(e -> {
+                    if (typeButton.getText().equals("moved")) {
+                        typeButton.setText("copied");
+                    } else {
+                        typeButton.setText("moved");
+                    }
+                    updateButtons();
+                });
+                operationTypeButtons.add(typeButton);
+                
+                Label toLabel = new Label("to folder");
+                
+                TextField folderField = new TextField(i <= numberOfMoveCategories ? 
+                    String.valueOf(i) : Gallery.getTickName(i - numberOfMoveCategories - 1));
+                folderNameFields.add(folderField);
+                GridPane.setHgrow(folderField, Priority.ALWAYS);
+                
+                // Bind disabling
+                filesLabel.disableProperty().bind(enableOperation.selectedProperty().not());
+                typeButton.disableProperty().bind(enableOperation.selectedProperty().not());
+                toLabel.disableProperty().bind(enableOperation.selectedProperty().not());
+                folderField.disableProperty().bind(enableOperation.selectedProperty().not());
+                
+                // Update validation state when checkbox changes
+                enableOperation.setOnAction(e -> {
+                    operationsEnabledState.update(index - 1, enableOperation.isSelected());
+                });
+                
+                // Add to grid
+                grid.add(enableOperation, 0, row);
+                grid.add(filesLabel, 1, row);
+                grid.add(typeButton, 2, row);
+                grid.add(toLabel, 3, row);
+                grid.add(folderField, 4, row);
+                
+                row++;
             }
         }
-        boolean[] operationTypes = getFileOperationTypes(numberOfTicks, numberOfCategories, operations);
-        boolean moveOperation = operationTypes[0];
-        boolean copyOperation = operationTypes[1];
-        
-        closeHeader = moveOperation ? copyOperation ? "Move & copy files now?" : "Move files now?" : "Copy files now?";
-        
-        this.setTitle(closeHeader);
 
         radioFolderRelative = new RadioButton("In the same folder");
         radioFolderAbsolute = new RadioButton("In a separate folder:");
@@ -140,16 +190,12 @@ public class ClosingWindow extends Dialog<ButtonType> {
         });
 
 
-        Label info1 = new Label("Move/copy files to");
+        Label info1 = new Label("Choose destination folder:");
         info1.setWrapText(true);
         VBox.setVgrow(info1, Priority.NEVER);
 
-        Label info2 = new Label(summaryText);
-        info2.setWrapText(true);
-        VBox.setVgrow(info2, Priority.NEVER);
-
-        VBox dialogContent = new VBox(Launcher.SMALL_GAP, info1, radioFolderRelative, radioFolderAbsolute, folderBox, info2);
-        //dialogContent.setPadding(new Insets(14));
+        VBox dialogContent = new VBox(Launcher.SMALL_GAP, grid, info1, radioFolderRelative, radioFolderAbsolute, folderBox);
+        dialogContent.setPadding(new Insets(14));
         
         DialogPane dialogPane = new DialogPane() {
             protected Node createButtonBar() {
@@ -159,14 +205,114 @@ public class ClosingWindow extends Dialog<ButtonType> {
             };
         };
         dialogPane.setContent(dialogContent);
-        dialogPane.getButtonTypes().addAll(BACK_BUTTON, EXIT_BUTTON, APPLY_BUTON);
+        dialogPane.getButtonTypes().addAll(BACK_BUTTON, EXIT_BUTTON, APPLY_BUTTON);
         this.setDialogPane(dialogPane);
         updateButtons();
     }
 
     private void updateButtons() {
-        File currentFolder =  new File(textFieldAbsolute.getText());
-        getDialogPane().lookupButton(APPLY_BUTON).setDisable(!Common.isValidFolder(currentFolder));
+        File currentFolder = new File(textFieldAbsolute.getText());
+        boolean validAbsoluteFolder = Common.isValidFolder(currentFolder);
+        
+        // Check if any operations are enabled and their folder names are valid
+        boolean anyInvalidFolderNames = false;
+        boolean hasMoves = false;
+        boolean hasCopies = false;
+        
+        for (int i = 0; i < operationCheckboxes.size(); i++) {
+            if (operationCheckboxes.get(i).isSelected()) {
+                String folderName = folderNameFields.get(i).getText().trim();
+                if (!Common.isValidPath(folderName)) {
+                    anyInvalidFolderNames = true;
+                }
+                
+                if (operationTypeButtons.get(i).getText().equals("moved")) {
+                    hasMoves = true;
+                } else {
+                    hasCopies = true;
+                }
+            }
+        }
+        
+        // Update apply button text
+        String buttonText;
+        if (hasMoves && hasCopies) {
+            buttonText = "Move, Copy and Close";
+        } else if (hasMoves) {
+            buttonText = "Move and Close";
+        } else if (hasCopies) {
+            buttonText = "Copy and Close";
+        } else {
+            buttonText = "Nothing to do"; // No operations selected
+        }
+        
+        // Update button type if text changed
+        if (APPLY_BUTTON == null || !APPLY_BUTTON.getText().equals(buttonText)) {
+            APPLY_BUTTON = new ButtonType(buttonText, ButtonBar.ButtonData.YES);
+            DialogPane dialogPane = getDialogPane();
+            dialogPane.getButtonTypes().remove(dialogPane.getButtonTypes().size() - 1);
+            dialogPane.getButtonTypes().add(APPLY_BUTTON);
+        }
+        
+        // Disable button if no valid operations or invalid folders
+        Button applyButton = (Button)getDialogPane().lookupButton(APPLY_BUTTON);
+        boolean enableButton = (hasMoves || hasCopies) && 
+                             (!radioFolderAbsolute.isSelected() || validAbsoluteFolder) &&
+                             !anyInvalidFolderNames;
+        applyButton.setDisable(!enableButton);
+    }
+
+    private boolean executeFileOperations(File targetDirectory) {
+        ArrayList<Job> jobs = new ArrayList<>();
+        
+        // Process each enabled operation
+        for (int i = 0; i < operationCheckboxes.size(); i++) {
+            if (!operationCheckboxes.get(i).isSelected()) continue;
+            
+            String folderName = folderNameFields.get(i).getText().trim();
+            boolean isCopyOperation = operationTypeButtons.get(i).getText().equals("copied");
+            
+            ArrayList<String> fileList = operations.get(i + 1); // +1 because index 0 is for non-moved files
+            if (fileList.isEmpty()) continue;
+            
+            ArrayList<Job> operationJobs = new ArrayList<>();
+            String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
+            String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
+                            + folderName + FileSystems.getDefault().getSeparator();
+            
+            for (String name : fileList) {
+                Job job;
+                if (isCopyOperation) {
+                    job = new JobCopy(originPrefix + name, destPrefix + name);
+                } else {
+                    job = new JobMove(originPrefix + name, destPrefix + name);
+                }
+                operationJobs.add(job);
+                
+                ArrayList<String> moveAlongList = filesToMoveAlong.get(name);
+                if (moveAlongList != null) {
+                    for (String moveAlong : moveAlongList) {
+                        if (isCopyOperation) {
+                            job = new JobCopy(originPrefix + moveAlong, destPrefix + moveAlong);
+                        } else {
+                            job = new JobMove(originPrefix + moveAlong, destPrefix + moveAlong);
+                        }
+                        operationJobs.add(job);
+                    }
+                }
+            }
+            
+            jobs.add(new JobCreateDirectory(destPrefix, operationJobs, true));
+        }
+
+        JobCheckDirectory overallCheckJob = new JobCheckDirectory(targetDirectory, jobs);
+        ArrayList<Job> finalJobList = new ArrayList<>();
+        finalJobList.add(overallCheckJob);
+
+        FileOperationsWindow fileOpWindow = new FileOperationsWindow(finalJobList, false, stage);
+        fileOpWindow.showAndWait();
+        
+        return !fileOpWindow.shouldWeShowTheGalleryAgain();
     }
 
     //Returns a boolean array with 2 elements: {hasMoveOperations, hasCopyOperations}
@@ -200,81 +346,19 @@ public class ClosingWindow extends Dialog<ButtonType> {
             return false; 
         }
 
-        if (result.get() == APPLY_BUTON) {
-
+        if (result.get() == APPLY_BUTTON) {
             File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
 
             if (!Common.isValidFolder(targetDirectory) || Common.tryListFiles(directory) == null) {
-                
                 Alert alert = new Alert(AlertType.NONE, "The provided directory is invalid. Sending you back to the gallery. \n\n"+textFieldAbsolute.getText(), ButtonType.OK);
-
                 alert.setTitle("Cannot apply file operations");
                 alert.initOwner(stage);
                 alert.showAndWait();
-
                 return false;
             }
 
-            //create jobs & send them to a file op window
-            //and then the gallery closes automatically on return, if we do not consume the event
-            
-            //turn the user selections into a job list that can be executed by a FileOperationsWindow
-            ArrayList<Job> jobs = new ArrayList<>();
-
-            //first COPY files
-            for (int i = 0; i < numberOfCopyCategories; i++) {
-                ArrayList<String> copyOperations = operations.get(i + numberOfMoveCategories + 1);
-                if (!copyOperations.isEmpty()) {
-                    ArrayList<Job> copyJobs = new ArrayList<>();
-                    String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
-                    String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
-                        + Gallery.getTickName(i) + FileSystems.getDefault().getSeparator();
-                    for (String name : copyOperations) {
-                        copyJobs.add(new JobCopy(originPrefix + name, destPrefix + name));
-                        ArrayList<String> copyAlongList = filesToMoveAlong.get(name);
-                        if (copyAlongList != null) {
-                            for (String copyAlong : copyAlongList) {
-                                copyJobs.add(new JobCopy(originPrefix + copyAlong, destPrefix + copyAlong));
-                            }
-                        }
-                    }
-                    jobs.add(new JobCreateDirectory(destPrefix, copyJobs, true));
-                }
-            }
-
-            //then MOVE files
-            for (int i = 1; i < numberOfMoveCategories+1; i++) {
-                ArrayList<String> moveOperations = operations.get(i);
-                if (!moveOperations.isEmpty()) {
-                    ArrayList<Job> moveJobs = new ArrayList<>();
-                    String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
-                    String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
-                        + i + FileSystems.getDefault().getSeparator();
-                    for (String name : moveOperations) {
-                        moveJobs.add(new JobMove(originPrefix + name, destPrefix + name));
-                        ArrayList<String> moveAlongList = filesToMoveAlong.get(name);
-                        if (moveAlongList != null) {
-                            for (String moveAlong : moveAlongList) {
-                                moveJobs.add(new JobMove(originPrefix + moveAlong, destPrefix + moveAlong));
-                            }
-                        }
-                    }
-                    jobs.add(new JobCreateDirectory(destPrefix, moveJobs, true));
-                }
-            }
-
-            JobCheckDirectory overallCheckJob = new JobCheckDirectory(targetDirectory, jobs);
-            ArrayList<Job> finalJobList = new ArrayList<>();
-            finalJobList.add(overallCheckJob);
-
-            FileOperationsWindow fileOpWindow = new FileOperationsWindow(finalJobList, false, stage);
-            fileOpWindow.showAndWait();
-
-            if (fileOpWindow.shouldWeShowTheGalleryAgain()) {
-                return false;
-            }
+            return executeFileOperations(targetDirectory);
         }
-
         return true;
     }
 }
