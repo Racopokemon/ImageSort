@@ -42,7 +42,6 @@ public class ClosingWindow extends Dialog<ButtonType> {
     private ArrayList<CheckBox> operationCheckboxes = new ArrayList<>();
     private ArrayList<Button> operationTypeButtons = new ArrayList<>();
     private ArrayList<TextField> folderNameFields = new ArrayList<>();
-    private IsAnyTrue operationsEnabledState;
     
     //operations contains lists of file names that should be copied / moved to certain folders. All lists are contained in another list where you may access all lists with the following indices: 
     //0: images not to move (are essentially ignored in this class)
@@ -59,13 +58,21 @@ public class ClosingWindow extends Dialog<ButtonType> {
     private TextField textFieldAbsolute;
     private RadioButton radioFolderRelative, radioFolderAbsolute;
 
-    private static ButtonType APPLY_BUTTON = new ButtonType("Move and close", ButtonBar.ButtonData.YES);
-    private static ButtonType EXIT_BUTTON = new ButtonType("Close", ButtonBar.ButtonData.OTHER);
-    private static ButtonType BACK_BUTTON = new ButtonType("Back", ButtonBar.ButtonData.CANCEL_CLOSE);
+    private static final ButtonType EXIT_BUTTON = new ButtonType("Just close", ButtonBar.ButtonData.OTHER);
+    private static final ButtonType BACK_BUTTON = new ButtonType("Back", ButtonBar.ButtonData.CANCEL_CLOSE);
+    private ButtonType applyButton = new ButtonType("Move and close", ButtonBar.ButtonData.YES);
+
+    public class TextFieldUpdateUI extends TextField {
+        public TextFieldUpdateUI(String s) {
+            super(s);
+            //if focus left -> updateUI
+            focusedProperty().addListener((obs, oldV, newV) -> {if (!newV) updateUI();}); 
+            setOnAction((e) -> updateUI());
+        }
+    }
 
     public ClosingWindow(Stage stage, ArrayList<ArrayList<String>> operations, Hashtable<String, 
                 ArrayList<String>> filesToMoveAlong, int numberOfMoveCategories, int numberOfCopyCategories, File directory) {
-        
         this.operations = operations;
         this.filesToMoveAlong = filesToMoveAlong;
         this.numberOfMoveCategories = numberOfMoveCategories;
@@ -78,17 +85,10 @@ public class ClosingWindow extends Dialog<ButtonType> {
         grid.setHgap(10);
         grid.setVgap(5);
         
-        // Initialize operation validation
-        operationsEnabledState = new IsAnyTrue(numberOfMoveCategories + numberOfCopyCategories, anyEnabled -> {
-            updateButtons();
-        });
-
         // Create UI for each operation
         int row = 0;
         for (int i = 1; i < numberOfMoveCategories + numberOfCopyCategories + 1; i++) {
-            if (!operations.get(i).isEmpty()) {
-                final int index = i;  // for lambda
-                
+            if (!operations.get(i).isEmpty()) {           
                 CheckBox enableOperation = new CheckBox();
                 enableOperation.setSelected(true);
                 operationCheckboxes.add(enableOperation);
@@ -103,13 +103,13 @@ public class ClosingWindow extends Dialog<ButtonType> {
                     } else {
                         typeButton.setText("moved");
                     }
-                    updateButtons();
+                    updateUI();
                 });
                 operationTypeButtons.add(typeButton);
                 
                 Label toLabel = new Label("to folder");
                 
-                TextField folderField = new TextField(i <= numberOfMoveCategories ? 
+                TextField folderField = new TextFieldUpdateUI(i <= numberOfMoveCategories ? 
                     String.valueOf(i) : Gallery.getTickName(i - numberOfMoveCategories - 1));
                 folderNameFields.add(folderField);
                 GridPane.setHgrow(folderField, Priority.ALWAYS);
@@ -121,9 +121,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 folderField.disableProperty().bind(enableOperation.selectedProperty().not());
                 
                 // Update validation state when checkbox changes
-                enableOperation.setOnAction(e -> {
-                    operationsEnabledState.update(index - 1, enableOperation.isSelected());
-                });
+                enableOperation.setOnAction(e -> updateUI());
                 
                 // Add to grid
                 grid.add(enableOperation, 0, row);
@@ -154,7 +152,9 @@ public class ClosingWindow extends Dialog<ButtonType> {
             radioFolderAbsolute.setSelected(true);
         }
 
-        textFieldAbsolute = new TextField(prefs.get("folderPath", Launcher.FALLBACK_DIRECTORY.getAbsolutePath()));
+        radioFolderRelative.selectedProperty().addListener((e) -> updateUI());
+
+        textFieldAbsolute = new TextFieldUpdateUI(prefs.get("folderPath", Launcher.FALLBACK_DIRECTORY.getAbsolutePath()));
         HBox.setHgrow(textFieldAbsolute, Priority.ALWAYS);
         Button buttonFolderBrowse = new Button("Browse");
 
@@ -168,7 +168,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
             File dir = chooser.showDialog(stage);
             if (dir != null) {
                 textFieldAbsolute.setText(dir.getAbsolutePath());
-                updateButtons();
+                updateUI();
             }
         });
 
@@ -177,24 +177,15 @@ public class ClosingWindow extends Dialog<ButtonType> {
 
         folderBox.disableProperty().bind(radioFolderRelative.selectedProperty());
 
-        textFieldAbsolute.focusedProperty().addListener((obs, oldV, newV) -> {
-            if (!newV) {
-                //focus left!
-                prefs.put("folderPath", textFieldAbsolute.getText());
-                updateButtons();
-            }
-        });
-        textFieldAbsolute.setOnAction((e) -> {
-            prefs.put("folderPath", textFieldAbsolute.getText());
-            updateButtons();
-        });
-
-
         Label info1 = new Label("Choose destination folder:");
         info1.setWrapText(true);
         VBox.setVgrow(info1, Priority.NEVER);
 
-        VBox dialogContent = new VBox(Launcher.SMALL_GAP, grid, info1, radioFolderRelative, radioFolderAbsolute, folderBox);
+        Label info2 = new Label("Fine-tune your file operations:");
+        info2.setWrapText(true);
+        VBox.setVgrow(info2, Priority.NEVER);
+
+        VBox dialogContent = new VBox(Launcher.SMALL_GAP, info1, radioFolderRelative, radioFolderAbsolute, folderBox, info2, grid);
         dialogContent.setPadding(new Insets(14));
         
         DialogPane dialogPane = new DialogPane() {
@@ -205,25 +196,37 @@ public class ClosingWindow extends Dialog<ButtonType> {
             };
         };
         dialogPane.setContent(dialogContent);
-        dialogPane.getButtonTypes().addAll(BACK_BUTTON, EXIT_BUTTON, APPLY_BUTTON);
+        dialogPane.getButtonTypes().addAll(BACK_BUTTON, EXIT_BUTTON, applyButton);
         this.setDialogPane(dialogPane);
-        updateButtons();
+        updateUI();
     }
 
-    private void updateButtons() {
-        File currentFolder = new File(textFieldAbsolute.getText());
-        boolean validAbsoluteFolder = Common.isValidFolder(currentFolder);
+    private void updateUI() {
+        boolean validAbsoluteFolder = true; 
+        
+        String targetDirectory = directory.getAbsolutePath();
+        if (radioFolderAbsolute.isSelected()) {
+            targetDirectory = textFieldAbsolute.getText();
+            validAbsoluteFolder = Common.isValidFolder(new File(textFieldAbsolute.getText()));
+            //todo: format textFieldAbsolute font red IIF !validAbsoluteFolder
+        }
         
         // Check if any operations are enabled and their folder names are valid
         boolean anyInvalidFolderNames = false;
         boolean hasMoves = false;
         boolean hasCopies = false;
         
+        //todo here: format all folderNameFields with their initial / default text color
+
         for (int i = 0; i < operationCheckboxes.size(); i++) {
             if (operationCheckboxes.get(i).isSelected()) {
-                String folderName = folderNameFields.get(i).getText().trim();
-                if (!Common.isValidPath(folderName)) {
-                    anyInvalidFolderNames = true;
+                if (validAbsoluteFolder) {
+                    String folderName = folderNameFields.get(i).getText().trim();
+                    if (folderName.length() > 0 && 
+                            !Common.isValidPath(targetDirectory + FileSystems.getDefault().getSeparator() + folderName)) {
+                        anyInvalidFolderNames = true;
+                        //todo format text field text red
+                    }
                 }
                 
                 if (operationTypeButtons.get(i).getText().equals("moved")) {
@@ -237,29 +240,29 @@ public class ClosingWindow extends Dialog<ButtonType> {
         // Update apply button text
         String buttonText;
         if (hasMoves && hasCopies) {
-            buttonText = "Move, Copy and Close";
+            buttonText = "Move, Copy & Close";
         } else if (hasMoves) {
-            buttonText = "Move and Close";
+            buttonText = "Move & Close";
         } else if (hasCopies) {
-            buttonText = "Copy and Close";
+            buttonText = "Copy & Close";
         } else {
             buttonText = "Nothing to do"; // No operations selected
         }
         
         // Update button type if text changed
-        if (APPLY_BUTTON == null || !APPLY_BUTTON.getText().equals(buttonText)) {
-            APPLY_BUTTON = new ButtonType(buttonText, ButtonBar.ButtonData.YES);
+        if (applyButton == null || !applyButton.getText().equals(buttonText)) {
+            applyButton = new ButtonType(buttonText, ButtonBar.ButtonData.YES);
             DialogPane dialogPane = getDialogPane();
             dialogPane.getButtonTypes().remove(dialogPane.getButtonTypes().size() - 1);
-            dialogPane.getButtonTypes().add(APPLY_BUTTON);
+            dialogPane.getButtonTypes().add(applyButton);
         }
         
         // Disable button if no valid operations or invalid folders
-        Button applyButton = (Button)getDialogPane().lookupButton(APPLY_BUTTON);
+        Button button = (Button)getDialogPane().lookupButton(applyButton);
         boolean enableButton = (hasMoves || hasCopies) && 
                              (!radioFolderAbsolute.isSelected() || validAbsoluteFolder) &&
                              !anyInvalidFolderNames;
-        applyButton.setDisable(!enableButton);
+        button.setDisable(!enableButton);
     }
 
     private boolean executeFileOperations(File targetDirectory) {
@@ -346,7 +349,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
             return false; 
         }
 
-        if (result.get() == APPLY_BUTTON) {
+        if (result.get() == applyButton) {
             File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
 
             if (!Common.isValidFolder(targetDirectory) || Common.tryListFiles(directory) == null) {
