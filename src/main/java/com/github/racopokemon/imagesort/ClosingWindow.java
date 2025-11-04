@@ -14,6 +14,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Button;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.File;
 import java.nio.file.FileSystems;
@@ -26,10 +27,8 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
 
 /**
  * Asking user for target dir & doing the file movement.
@@ -80,6 +79,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
         this.directory = directory; 
 
         this.setTitle("ImageSort");
+        stage.setIconified(false);
         
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -208,7 +208,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
         if (radioFolderAbsolute.isSelected()) {
             targetDirectory = textFieldAbsolute.getText();
             validAbsoluteFolder = Common.isValidFolder(new File(textFieldAbsolute.getText()));
-            //todo: format textFieldAbsolute font red IIF !validAbsoluteFolder
+            textFieldAbsolute.setStyle(validAbsoluteFolder ? null : "-fx-text-inner-color: red");
         }
         
         // Check if any operations are enabled and their folder names are valid
@@ -216,8 +216,10 @@ public class ClosingWindow extends Dialog<ButtonType> {
         boolean hasMoves = false;
         boolean hasCopies = false;
         
-        //todo here: format all folderNameFields with their initial / default text color
-
+        for (TextField f : folderNameFields) {
+            //default text color
+            f.setStyle(null);
+        }
         for (int i = 0; i < operationCheckboxes.size(); i++) {
             if (operationCheckboxes.get(i).isSelected()) {
                 if (validAbsoluteFolder) {
@@ -225,7 +227,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                     if (folderName.length() > 0 && 
                             !Common.isValidPath(targetDirectory + FileSystems.getDefault().getSeparator() + folderName)) {
                         anyInvalidFolderNames = true;
-                        //todo format text field text red
+                        folderNameFields.get(i).setStyle("-fx-text-inner-color: red");
                     }
                 }
                 
@@ -318,27 +320,13 @@ public class ClosingWindow extends Dialog<ButtonType> {
         return !fileOpWindow.shouldWeShowTheGalleryAgain();
     }
 
-    //Returns a boolean array with 2 elements: {hasMoveOperations, hasCopyOperations}
-    public static boolean[] getFileOperationTypes(int numberOfTicks, int numberOfCategories, ArrayList<ArrayList<String>> operations) {
-        boolean moveOperation = false, copyOperation = false;
-        for (int i = 1; i < numberOfCategories + numberOfTicks + 1; i++) {
-            if (!operations.get(i).isEmpty()) {
-                if (i < numberOfCategories + 1) {
-                    moveOperation = true;
-                } else {
-                    copyOperation = true;
-                }
-            }
-        }
-        return new boolean[] {moveOperation, copyOperation};
-    }
-
     /**
      * Returns true if we can close the gallery after this and return to the launcher. 
      * Returns false if there was an error or the user clicked "cancel" and the gallery should stay. 
      */
     public boolean showWindow() {
         initOwner(stage);
+        initStyle(StageStyle.UTILITY);
         Optional<ButtonType> result = showAndWait();
 
         prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
