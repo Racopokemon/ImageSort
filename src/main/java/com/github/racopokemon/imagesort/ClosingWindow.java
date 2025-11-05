@@ -64,9 +64,14 @@ public class ClosingWindow extends Dialog<ButtonType> {
     public class TextFieldUpdateUI extends TextField {
         public TextFieldUpdateUI(String s) {
             super(s);
+            //previous approach: update on exit. However, if text fields are red, we expect them to instantly turn black when their input is valid. Therefore we now have ...
+            textProperty().addListener((o,oldVal,newVal) -> {
+                if (oldVal != newVal) updateUI();
+            });
+
             //if focus left -> updateUI
-            focusedProperty().addListener((obs, oldV, newV) -> {if (!newV) updateUI();}); 
-            setOnAction((e) -> updateUI());
+            //focusedProperty().addListener((obs, oldV, newV) -> {if (!newV) updateUI();}); 
+            //setOnAction((e) -> updateUI());
         }
     }
 
