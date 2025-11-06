@@ -19,8 +19,13 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.awt.Desktop;
+
 import java.io.File;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Optional;
@@ -363,6 +368,43 @@ public class ClosingWindow extends Dialog<ButtonType> {
         }
     }
 
+    /**
+     * Returns true if we can close the gallery after this and return to the launcher. 
+     * Returns false if there was an error or the user clicked "cancel" and the gallery should stay. 
+     */
+    public boolean showWindow() {
+        initOwner(stage);
+        initStyle(StageStyle.UTILITY);
+        Optional<ButtonType> result = showAndWait();
+
+        prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
+        prefs.put("folderPath", textFieldAbsolute.getText());
+
+        if (!result.isPresent() || 
+                    result.get() == BACK_BUTTON) {
+            return false; 
+        }
+
+        if (result.get() == applyButton) {
+            File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
+
+            if (!Common.isValidFolder(targetDirectory) || Common.tryListFiles(directory) == null) {
+                Alert alert = new Alert(AlertType.NONE, "The provided directory is invalid. Sending you back to the gallery. \n\n"+textFieldAbsolute.getText(), ButtonType.OK);
+                alert.setTitle("Cannot apply file operations");
+                alert.initOwner(stage);
+                alert.showAndWait();
+                return false;
+            }
+
+            boolean success = executeFileOperations(targetDirectory);
+            if (success) takeOutTheTrash();
+            return success;
+        } else {
+            takeOutTheTrash();
+            return true;
+        }
+    }
+    
     private boolean executeFileOperations(File targetDirectory) {
         ArrayList<Job> jobs = new ArrayList<>();
         
@@ -417,35 +459,48 @@ public class ClosingWindow extends Dialog<ButtonType> {
     }
 
     /**
-     * Returns true if we can close the gallery after this and return to the launcher. 
-     * Returns false if there was an error or the user clicked "cancel" and the gallery should stay. 
+     * Moves the /delete folder to system trash (if supported)
+     * Shows an alert if not successful (the you need to delete manually, you'll manage)
      */
-    public boolean showWindow() {
-        initOwner(stage);
-        initStyle(StageStyle.UTILITY);
-        Optional<ButtonType> result = showAndWait();
-
-        prefs.putBoolean("folderRelative", radioFolderRelative.isSelected());
-        prefs.put("folderPath", textFieldAbsolute.getText());
-
-        if (!result.isPresent() || 
-                    result.get() == BACK_BUTTON) {
-            return false; 
+    private void takeOutTheTrash() {
+        File trashFolder = new File(directory, "delete");
+        if (!trashFolder.exists() || !trashFolder.isDirectory()) {
+            return;
         }
 
-        if (result.get() == applyButton) {
-            File targetDirectory = radioFolderRelative.isSelected() ? directory : new File(textFieldAbsolute.getText());
+        if (!java.awt.Desktop.isDesktopSupported() ||
+            !java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.MOVE_TO_TRASH)) {
+            return;
+        }
 
-            if (!Common.isValidFolder(targetDirectory) || Common.tryListFiles(directory) == null) {
-                Alert alert = new Alert(AlertType.NONE, "The provided directory is invalid. Sending you back to the gallery. \n\n"+textFieldAbsolute.getText(), ButtonType.OK);
-                alert.setTitle("Cannot apply file operations");
-                alert.initOwner(stage);
-                alert.showAndWait();
-                return false;
+        String timestamp = LocalDateTime.now()
+            .format(DateTimeFormatter.ofPattern("yyyy_MM_dd-HH_mm_ss"));
+        File renamed = new File(directory, directory.getName() + "_deleted_" + timestamp);
+
+        String errorMessage = null;
+        try {
+            Files.move(trashFolder.toPath(), renamed.toPath());
+        } catch (Exception e) {
+            errorMessage = "Failed to rename the temporary 'delete' folder before moving it to system trash. "+
+            "You may manually delete it yourself. Here is the error message: \n" + e.getMessage();
+        }
+
+        if (errorMessage == null) {
+            try {
+                boolean moved = Desktop.getDesktop().moveToTrash(renamed);
+                if (!moved) {
+                    errorMessage = "Could not move the temporary 'delete' folder to system trash. " +
+                    "The folder remains as '" + renamed.getName() +"' in your directory, you may manually delete it.";
+                }
+            } catch (Exception e) {
+                errorMessage = "Error while moving the temporary 'delete' folder to system trash. You may manually delete the directory '" + renamed.getName() + "'. This is the error message: \n"+e.getMessage();
             }
-
-            return executeFileOperations(targetDirectory);
         }
-        return true;
+
+        Alert alert = new Alert(AlertType.NONE, errorMessage, ButtonType.OK);
+        alert.setTitle("Cannot take out trash");
+        alert.initOwner(stage);
+        alert.showAndWait();
+        return;
     }
 }
