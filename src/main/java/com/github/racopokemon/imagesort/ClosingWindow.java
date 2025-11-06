@@ -40,7 +40,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
     private Stage stage;
     
     private ArrayList<CheckBox> operationCheckboxes = new ArrayList<>();
-    private ArrayList<Button> operationTypeButtons = new ArrayList<>();
+    private ArrayList<Label> operationTypeButtons = new ArrayList<>();
     private ArrayList<TextField> folderNameFields = new ArrayList<>();
     
     //operations contains lists of file names that should be copied / moved to certain folders. All lists are contained in another list where you may access all lists with the following indices: 
@@ -120,24 +120,22 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 Label filesLabel = new Label(
                     (operations.get(i).size() == 1 ? "file is" : "files are"));
                 
-                Node typeNode;
+                Label typeLabel;
                 if (isCopy) {
-                    typeNode = new Label("copied");
+                    typeLabel = new Label("copied");
                 } else {
-                    Button typeButton = new Button(isCopy ? "moved" : "copied");
-                    typeButton.setOnAction(e -> {
-                        if (typeButton.getText().equals("moved")) {
-                            typeButton.setText("copied");
+                    typeLabel = new Label(isCopy ? "moved" : "copied");
+                    typeLabel.setOnMouseClicked(e -> {
+                        if (typeLabel.getText().equals("moved")) {
+                            typeLabel.setText("copied");
                         } else {
-                            typeButton.setText("moved");
+                            typeLabel.setText("moved");
                         }
                         updateUI();
                     });
-                    operationTypeButtons.add(typeButton);
-
-                    typeNode = typeButton;
+                    operationTypeButtons.add(typeLabel);
                 }
-                GridPane.setHalignment(typeNode, HPos.CENTER);
+                GridPane.setHalignment(typeLabel, HPos.CENTER);
                 
                 Label toLabel = new Label("to folder");
                 
@@ -150,7 +148,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 operationsLabel.disableProperty().bind(enableOperation.selectedProperty().not());
                 moveAlongLabel.disableProperty().bind(enableOperation.selectedProperty().not());
                 filesLabel.disableProperty().bind(enableOperation.selectedProperty().not());
-                typeNode.disableProperty().bind(enableOperation.selectedProperty().not());
+                typeLabel.disableProperty().bind(enableOperation.selectedProperty().not());
                 toLabel.disableProperty().bind(enableOperation.selectedProperty().not());
                 folderField.disableProperty().bind(enableOperation.selectedProperty().not());
                 
@@ -165,7 +163,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 grid.add(operationsLabel, 1, row);
                 grid.add(moveAlongLabel, 2, row);
                 grid.add(filesLabel, 3, row);
-                grid.add(typeNode, 4, row);
+                grid.add(typeLabel, 4, row);
                 grid.add(toLabel, 5, row);
                 grid.add(folderField, 6, row);
 
@@ -176,7 +174,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                     GridPane.setMargin(operationsLabel, margin);
                     GridPane.setMargin(moveAlongLabel, margin);
                     GridPane.setMargin(filesLabel, margin);
-                    GridPane.setMargin(typeNode, margin);
+                    GridPane.setMargin(typeLabel, margin);
                     GridPane.setMargin(toLabel, margin);
                     GridPane.setMargin(folderField, margin);
                 }
@@ -229,7 +227,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
 
         folderBox.disableProperty().bind(radioFolderRelative.selectedProperty());
 
-        Label info1 = new Label("Choose destination folder:");
+        Label info1 = new Label("Choose a destination folder:");
         info1.setWrapText(true);
         VBox.setVgrow(info1, Priority.NEVER);
 
