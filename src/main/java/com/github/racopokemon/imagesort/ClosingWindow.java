@@ -10,6 +10,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Button;
 import javafx.stage.DirectoryChooser;
@@ -25,6 +28,7 @@ import java.util.prefs.Preferences;
 
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -40,8 +44,9 @@ public class ClosingWindow extends Dialog<ButtonType> {
     private Stage stage;
     
     private ArrayList<CheckBox> operationCheckboxes = new ArrayList<>();
-    private ArrayList<Label> operationTypeButtons = new ArrayList<>();
+    private ArrayList<Label> operationTypeLabels = new ArrayList<>();
     private ArrayList<TextField> folderNameFields = new ArrayList<>();
+    private ArrayList<Integer> operationIndex = new ArrayList<>();
     
     //operations contains lists of file names that should be copied / moved to certain folders. All lists are contained in another list where you may access all lists with the following indices: 
     //0: images not to move (are essentially ignored in this class)
@@ -88,7 +93,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
         stage.setIconified(false);
         
         GridPane grid = new GridPane();
-        grid.setHgap(4);
+        grid.setHgap(2.5);
         grid.setVgap(2);
 
         int wasMove = -1;
@@ -98,12 +103,13 @@ public class ClosingWindow extends Dialog<ButtonType> {
         for (int i = 1; i < numberOfMoveCategories + numberOfCopyCategories + 1; i++) {
             if (!operations.get(i).isEmpty()) {
                 boolean isCopy = i > numberOfMoveCategories;
+                operationIndex.add(i);
 
                 CheckBox enableOperation = new CheckBox();
                 enableOperation.setSelected(true);
                 operationCheckboxes.add(enableOperation);
                 
-                Label operationsLabel = new Label(""+operations.get(i).size());
+                Label operationsLabel = new Label(" "+operations.get(i).size());
                 GridPane.setHalignment(operationsLabel, HPos.RIGHT);
                 
                 int moveAlongCount = 0;
@@ -116,15 +122,16 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 Label moveAlongLabel = new Label(
                         moveAlongCount == 0 ? "" : "(+" + moveAlongCount + ")");
                 GridPane.setHalignment(moveAlongLabel, HPos.RIGHT);
+                moveAlongLabel.setTextFill(Color.GRAY);
 
                 Label filesLabel = new Label(
-                    (operations.get(i).size() == 1 ? "file is" : "files are"));
+                    (operations.get(i).size()+moveAlongCount == 1 ? "file is" : "files are"));
                 
                 Label typeLabel;
                 if (isCopy) {
                     typeLabel = new Label("copied");
                 } else {
-                    typeLabel = new Label(isCopy ? "moved" : "copied");
+                    typeLabel = new Label("moved");
                     typeLabel.setOnMouseClicked(e -> {
                         if (typeLabel.getText().equals("moved")) {
                             typeLabel.setText("copied");
@@ -133,23 +140,46 @@ public class ClosingWindow extends Dialog<ButtonType> {
                         }
                         updateUI();
                     });
-                    operationTypeButtons.add(typeLabel);
                 }
-                GridPane.setHalignment(typeLabel, HPos.CENTER);
+                operationTypeLabels.add(typeLabel);
+                Font originalFont = typeLabel.getFont();
+                Font boldFont = Font.font(originalFont.getFamily(), FontWeight.BOLD, originalFont.getSize());
+                typeLabel.setFont(boldFont);
+                operationsLabel.setFont(boldFont);
                 
-                Label toLabel = new Label("to folder");
+                HBox labelContainer = new HBox(4, filesLabel, typeLabel, new Label("to folder"));
+                labelContainer.setOnMouseClicked((e) -> {
+                    System.out.println("asfasdf");
+                });
+                GridPane.setValignment(labelContainer, VPos.CENTER);
+                labelContainer.setMaxHeight(0);
                 
                 TextField folderField = new TextFieldUpdateUI(i <= numberOfMoveCategories ? 
                     String.valueOf(i) : Gallery.getTickName(i - numberOfMoveCategories - 1));
                 folderNameFields.add(folderField);
+                folderField.setPrefColumnCount(5);
+
                 GridPane.setHgrow(folderField, Priority.ALWAYS);
+                GridPane.setHgrow(labelContainer, Priority.NEVER);
+
+                Button swapButton = null;
+                if (!isCopy) {
+                    swapButton = new Button("...");
+                    swapButton.setOnAction((e) -> {
+                        if (typeLabel.getText().equals("moved")) {
+                            typeLabel.setText("copied");
+                        } else {
+                            typeLabel.setText("moved");
+                        }
+                        updateUI();
+                    });
+                    GridPane.setHgrow(swapButton, Priority.NEVER);
+                }
                 
                 // Bind disabling
                 operationsLabel.disableProperty().bind(enableOperation.selectedProperty().not());
                 moveAlongLabel.disableProperty().bind(enableOperation.selectedProperty().not());
-                filesLabel.disableProperty().bind(enableOperation.selectedProperty().not());
-                typeLabel.disableProperty().bind(enableOperation.selectedProperty().not());
-                toLabel.disableProperty().bind(enableOperation.selectedProperty().not());
+                labelContainer.disableProperty().bind(enableOperation.selectedProperty().not());
                 folderField.disableProperty().bind(enableOperation.selectedProperty().not());
                 
                 // Update validation state when checkbox changes
@@ -162,21 +192,23 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 grid.add(enableOperation, 0, row);
                 grid.add(operationsLabel, 1, row);
                 grid.add(moveAlongLabel, 2, row);
-                grid.add(filesLabel, 3, row);
-                grid.add(typeLabel, 4, row);
-                grid.add(toLabel, 5, row);
-                grid.add(folderField, 6, row);
+                grid.add(labelContainer, 3, row);
+                grid.add(folderField, 4, row);
+                if (swapButton == null) {
+                    GridPane.setColumnSpan(folderField, GridPane.REMAINING);
+                } else {
+                    grid.add(swapButton, 5, row);
+                }
 
                 // Make gap between block of move and copy operations
                 if (wasMove == 0 && isCopy) {
-                    Insets margin = new Insets(Launcher.SMALL_GAP, 0, 0, 0);
+                    Insets margin = new Insets(6, 0, 0, 0);
                     GridPane.setMargin(enableOperation, margin);
                     GridPane.setMargin(operationsLabel, margin);
                     GridPane.setMargin(moveAlongLabel, margin);
-                    GridPane.setMargin(filesLabel, margin);
-                    GridPane.setMargin(typeLabel, margin);
-                    GridPane.setMargin(toLabel, margin);
+                    GridPane.setMargin(labelContainer, margin);
                     GridPane.setMargin(folderField, margin);
+                    if (swapButton != null) GridPane.setMargin(swapButton, margin);
                 }
                 wasMove = isCopy ? 1 : 0;
                 
@@ -260,6 +292,8 @@ public class ClosingWindow extends Dialog<ButtonType> {
             targetDirectory = textFieldAbsolute.getText();
             validAbsoluteFolder = Common.isValidFolder(new File(textFieldAbsolute.getText()));
             textFieldAbsolute.setStyle(validAbsoluteFolder ? null : "-fx-text-inner-color: red");
+        } else {
+            textFieldAbsolute.setStyle(null);
         }
         
         // Check if any operations are enabled and their folder names are valid
@@ -318,10 +352,10 @@ public class ClosingWindow extends Dialog<ButtonType> {
     }
 
     private boolean isMoveOperation(int i) {
-        if (operationTypeButtons.size() <= i) {
+        if (operationTypeLabels.size() <= i) {
             return false;
         } else {
-            if (operationTypeButtons.get(i).getText().equals("moved")) {
+            if (operationTypeLabels.get(i).getText().equals("moved")) {
                 return true;
             } else {
                 return false;
@@ -337,7 +371,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
             if (!operationCheckboxes.get(i).isSelected()) continue;
             
             String folderName = folderNameFields.get(i).getText().trim();
-            boolean isCopyOperation = operationTypeButtons.get(i).getText().equals("copied");
+            boolean isCopyOperation = operationTypeLabels.get(i).getText().equals("copied");
             
             ArrayList<String> fileList = operations.get(i + 1); // +1 because index 0 is for non-moved files
             if (fileList.isEmpty()) continue;
