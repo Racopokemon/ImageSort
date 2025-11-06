@@ -28,6 +28,7 @@ import java.util.prefs.Preferences;
 
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -109,9 +110,6 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 enableOperation.setSelected(true);
                 operationCheckboxes.add(enableOperation);
                 
-                Label operationsLabel = new Label(" "+operations.get(i).size());
-                GridPane.setHalignment(operationsLabel, HPos.RIGHT);
-                
                 int moveAlongCount = 0;
                 for (String s : operations.get(i)) {
                     ArrayList<String> moveAlongList = filesToMoveAlong.get(s);
@@ -120,12 +118,19 @@ public class ClosingWindow extends Dialog<ButtonType> {
                     }
                 }
                 Label moveAlongLabel = new Label(
-                        moveAlongCount == 0 ? "" : "(+" + moveAlongCount + ")");
-                GridPane.setHalignment(moveAlongLabel, HPos.RIGHT);
-                moveAlongLabel.setTextFill(Color.GRAY);
+                    moveAlongCount == 0 ? " " : " " + moveAlongCount + "+");
+                moveAlongLabel.setTextFill(Color.SILVER);
+
+                Label operationsLabel = new Label(""+operations.get(i).size());
+                
+                HBox numberContainer = new HBox(moveAlongLabel, operationsLabel);
+                numberContainer.setMaxHeight(0);
+                GridPane.setHalignment(numberContainer, HPos.CENTER);
+                GridPane.setHgrow(numberContainer, Priority.NEVER);
+                numberContainer.setAlignment(Pos.CENTER_RIGHT);
 
                 Label filesLabel = new Label(
-                    (operations.get(i).size()+moveAlongCount == 1 ? "file is" : "files are"));
+                    (operations.get(i).size() == 1 ? "file is" : "files are"));
                 
                 Label typeLabel;
                 if (isCopy) {
@@ -138,6 +143,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                         } else {
                             typeLabel.setText("moved");
                         }
+                        typeLabel.requestFocus();
                         updateUI();
                     });
                 }
@@ -148,9 +154,6 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 operationsLabel.setFont(boldFont);
                 
                 HBox labelContainer = new HBox(4, filesLabel, typeLabel, new Label("to folder"));
-                labelContainer.setOnMouseClicked((e) -> {
-                    System.out.println("asfasdf");
-                });
                 GridPane.setValignment(labelContainer, VPos.CENTER);
                 labelContainer.setMaxHeight(0);
                 
@@ -177,8 +180,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 }
                 
                 // Bind disabling
-                operationsLabel.disableProperty().bind(enableOperation.selectedProperty().not());
-                moveAlongLabel.disableProperty().bind(enableOperation.selectedProperty().not());
+                numberContainer.disableProperty().bind(enableOperation.selectedProperty().not());
                 labelContainer.disableProperty().bind(enableOperation.selectedProperty().not());
                 folderField.disableProperty().bind(enableOperation.selectedProperty().not());
                 
@@ -190,10 +192,9 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 
                 // Add to grid
                 grid.add(enableOperation, 0, row);
-                grid.add(operationsLabel, 1, row);
-                grid.add(moveAlongLabel, 2, row);
-                grid.add(labelContainer, 3, row);
-                grid.add(folderField, 4, row);
+                grid.add(numberContainer, 1, row);
+                grid.add(labelContainer, 2, row);
+                grid.add(folderField, 3, row);
                 if (swapButton == null) {
                     GridPane.setColumnSpan(folderField, GridPane.REMAINING);
                 } else {
@@ -204,8 +205,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 if (wasMove == 0 && isCopy) {
                     Insets margin = new Insets(6, 0, 0, 0);
                     GridPane.setMargin(enableOperation, margin);
-                    GridPane.setMargin(operationsLabel, margin);
-                    GridPane.setMargin(moveAlongLabel, margin);
+                    GridPane.setMargin(numberContainer, margin);
                     GridPane.setMargin(labelContainer, margin);
                     GridPane.setMargin(folderField, margin);
                     if (swapButton != null) GridPane.setMargin(swapButton, margin);
@@ -215,7 +215,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 row++;
             }
         }
-
+        
         radioFolderRelative = new RadioButton("In the same folder");
         radioFolderAbsolute = new RadioButton("In a separate folder:");
         ToggleGroup groupFolder = new ToggleGroup();
@@ -247,7 +247,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
             if (Common.isValidFolder(f)) {
                 chooser.setInitialDirectory(f);
             }
-            File dir = chooser.showDialog(stage);
+            File dir = chooser.showDialog(getDialogPane().getScene().getWindow());
             if (dir != null) {
                 textFieldAbsolute.setText(dir.getAbsolutePath());
                 updateUI();
