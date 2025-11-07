@@ -671,8 +671,11 @@ public class Gallery {
                     return;
                     //cancel here, consume the event such that the window is NOT closed. 
                 }
+                //at this point, files have been moved if user wanted to, we continue to close. 
             }
             //the event was not consumed: the window will continue closing now & were going back to launcher
+            TheTrashOutTaker.takeOutTheTrash(stage, directory);
+
             new Launcher().start(new Stage());
         });
         rootPane.setOnKeyReleased((event) -> {

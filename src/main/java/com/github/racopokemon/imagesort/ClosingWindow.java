@@ -19,13 +19,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import java.awt.Desktop;
-
 import java.io.File;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Optional;
@@ -392,28 +387,25 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 alert.showAndWait();
                 return false;
             }
-
-            boolean success = executeFileOperations(targetDirectory);
-            if (success) takeOutTheTrash();
-            return success;
+            return executeFileOperations(targetDirectory);
         } else {
-            takeOutTheTrash();
             return true;
         }
     }
     
     private boolean executeFileOperations(File targetDirectory) {
-        ArrayList<Job> jobs = new ArrayList<>();
+        ArrayList<Job> moveJobs = new ArrayList<>();
+        ArrayList<Job> copyJobs = new ArrayList<>();
         
         // Process each enabled operation
         for (int i = 0; i < operationCheckboxes.size(); i++) {
             if (!operationCheckboxes.get(i).isSelected()) continue;
             
             String folderName = folderNameFields.get(i).getText().trim();
-            boolean isCopyOperation = operationTypeLabels.get(i).getText().equals("copied");
+            boolean isCopyOperation = !operationTypeLabels.get(i).getText().equals("moved");
             
-            ArrayList<String> fileList = operations.get(i + 1); // +1 because index 0 is for non-moved files
-            if (fileList.isEmpty()) continue;
+            ArrayList<String> fileList = operations.get(operationIndex.get(i)); 
+            //some operations may be empty, therefore we have this lookup
             
             ArrayList<Job> operationJobs = new ArrayList<>();
             String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
@@ -442,10 +434,16 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 }
             }
             
-            jobs.add(new JobCreateDirectory(destPrefix, operationJobs, true));
+            if (isCopyOperation) {
+                copyJobs.add(new JobCreateDirectory(destPrefix, operationJobs, true));
+            } else {
+                moveJobs.add(new JobCreateDirectory(destPrefix, operationJobs, true));
+            }
         }
 
-        JobCheckDirectory overallCheckJob = new JobCheckDirectory(targetDirectory, jobs);
+        //Its important to do the copy jobs first - after the move jobs the original files to copy might be gone
+        copyJobs.addAll(moveJobs); 
+        JobCheckDirectory overallCheckJob = new JobCheckDirectory(targetDirectory, copyJobs);
         ArrayList<Job> finalJobList = new ArrayList<>();
         finalJobList.add(overallCheckJob);
 
@@ -453,51 +451,5 @@ public class ClosingWindow extends Dialog<ButtonType> {
         fileOpWindow.showAndWait();
         
         return !fileOpWindow.shouldWeShowTheGalleryAgain();
-    }
-
-    /**
-     * Moves the /delete folder to system trash (if supported)
-     * Shows an alert if not successful (the you need to delete manually, you'll manage)
-     */
-    private void takeOutTheTrash() {
-        File trashFolder = new File(directory, "delete");
-        if (!trashFolder.exists() || !trashFolder.isDirectory()) {
-            return;
-        }
-
-        if (!java.awt.Desktop.isDesktopSupported() ||
-            !java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.MOVE_TO_TRASH)) {
-            return;
-        }
-
-        String timestamp = LocalDateTime.now()
-            .format(DateTimeFormatter.ofPattern("yyyy_MM_dd-HH_mm_ss"));
-        File renamed = new File(directory, directory.getName() + "_deleted_" + timestamp);
-
-        String errorMessage = null;
-        try {
-            Files.move(trashFolder.toPath(), renamed.toPath());
-        } catch (Exception e) {
-            errorMessage = "Failed to rename the temporary 'delete' folder before moving it to system trash. "+
-            "You may manually delete it yourself. Here is the error message: \n" + e.getMessage();
-        }
-
-        if (errorMessage == null) {
-            try {
-                boolean moved = Desktop.getDesktop().moveToTrash(renamed);
-                if (!moved) {
-                    errorMessage = "Could not move the temporary 'delete' folder to system trash. " +
-                    "The folder remains as '" + renamed.getName() +"' in your directory, you may manually delete it.";
-                }
-            } catch (Exception e) {
-                errorMessage = "Error while moving the temporary 'delete' folder to system trash. You may manually delete the directory '" + renamed.getName() + "'. This is the error message: \n"+e.getMessage();
-            }
-        }
-
-        Alert alert = new Alert(AlertType.NONE, errorMessage, ButtonType.OK);
-        alert.setTitle("Cannot take out trash");
-        alert.initOwner(stage);
-        alert.showAndWait();
-        return;
     }
 }
