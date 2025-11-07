@@ -59,7 +59,6 @@ public class ClosingWindow extends Dialog<ButtonType> {
     //1 to numberOfMoveCategories + 1: images to be moved to their corresponding categories
     //numberOfMoveCategories + 1 to numberOfMoveCategories + numberOfCopyCategories + 1 images to copy, corresponding to the indices
     private ArrayList<ArrayList<String>> operations;
-    private int numberOfMoveCategories, numberOfCopyCategories;
     //The app treats all files that have the same name but a different extension as a group that is moved together; 
     //this is already resolved in this hashtable: If there are several files for a name, a list of all additional files exists for the file name
     private Hashtable<String, ArrayList<String>> filesToMoveAlong;
@@ -91,8 +90,6 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 ArrayList<String>> filesToMoveAlong, int numberOfMoveCategories, int numberOfCopyCategories, File directory) {
         this.operations = operations;
         this.filesToMoveAlong = filesToMoveAlong;
-        this.numberOfMoveCategories = numberOfMoveCategories;
-        this.numberOfCopyCategories = numberOfCopyCategories;
         this.directory = directory; 
 
         this.setTitle("ImageSort");
