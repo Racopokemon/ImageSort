@@ -25,8 +25,8 @@
 * Quick n dirty 'history' that can be acessed with the mouse key and alt down. For every folder jumped in, overwrite. For every error (where does it even occur) update the history. 
 * ***Ctrl+V does not work if the text field is focused in the launcher***
   * check if clipboard is non-text. then consume, otherwise let it happen
-* ***Move the destination folder option to the confirmation dialog***
-  * Remove the option where to place the delete-folder, I used it 0 times
+* ~~Move the destination folder option to the confirmation dialog~~
+  * ~~Remove the option where to place the delete-folder, I used it 0 times~~
 * ***Bug right now: When the browser window automatically appears, the selected folder is never inserted into the text field or the prefs - what is going wrong here?***
 * ***Bug right now: Type D: into the search bar in the Launcher - youll end inside our current working directory, what is going on here??***
 * ***There are micro-lags when just -clicking- a folder with a lot of tiles. What is this supposed to be?***
@@ -93,8 +93,8 @@
 * ~~Show somewhere, how many files (general) are NOT shown in this app (bc the extension does not fit)~~
   * ~~Might be covered enough already by the Launcher "other files" now.~~
 Further workflow change ideas:
-- Always show again
-- On top show in green "successful +// take out trash"
+- ~~Always show again~~
+- ~~On top show in green "successful +// take out trash"~~
 - usage hint tick is gone. automatically if 2 months not used. Option to show again. In menu, show usage hints
 - ~~Show more exif info, if its relevant~~
   - ~~If the software is one of the big 5 or so (is there a list online, also for names? contains 'adobe' etc), write this in a new line.~~
@@ -108,18 +108,18 @@ New file formats?
 * HEIC file support
   * Never heard of this before, container format that iPhones produce. 
   * Either support them (this would finally require me to rewrite the ImageView) or make a functionality to autoextract the .jpg image before launching. 
-* RAW support (kindof walked around this one, but still there would be options!)
+* ~~RAW support (kindof walked around this one, but still there would be options!)~~
 
 ## File operations window
-  * Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)
-  * **Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!** 
+  * ~~Add the option to replace all move operations with copy operations (context sensitive, make a BUTTON for it)~~
+  * ~~Offer a button to take out the trash (move deleted folder \[4 files\]) to recycle bin, once copying has finished, IF there exists a delete folder!~~
   * **Option to automatically rename images that have the same name. Why was this never a feature request before?**
-  * Show summary of what was done? Same as what was shown before? ("moved 5 files" kind?)
+  * ~~Show summary of what was done? Same as what was shown before? ("moved 5 files" kind?)~~
 
 ## Other
 * Progress Window
-  * **once finished, add a 'put out the trash' button to move the deleted folder to system trash!**
-  * **also id really like a button with 'go to created folder abc / show in folder abc' if exactly one folder was created**
+  * ~~once finished, add a 'put out the trash' button to move the deleted folder to system trash!~~
+  * also id really like a button with 'go to created folder abc / show in folder abc' if exactly one folder was created
 * Session storage
   * Simply stores the maps to a file and continues from it if it lies in the folder (or so)
   * Also save the last position of the cursor
@@ -149,7 +149,7 @@ New file formats?
 - open with doesnt work
 - The launcher does not support Cmd+W
 - the text-outlines have glitches. Again, this is not me to fix. 
-- Is 100% really 100%? Its scaled, isn't it? -> yeah, it is. 
+- Is 100% really 100%? Its scaled, isn't it? -> yeah, it is. -> Issue also on windows for 4k screens
 - right-clicking the gallery, waiting until the mouse disappears and then moving over the context menu does not show the cursor. 
 - after changing the window size, the zoom percentage on hovering the percentage bar is not updated! 
 - scrolling on the copy labels moves the cursor arbitrarily far, apparently a shifted mouse is not (instantly) registered by the ui
