@@ -461,9 +461,15 @@ public class Gallery {
         });
 
         progress.setOnMousePressed((event) -> {
-            if (event.getButton() == MouseButton.PRIMARY) startSeeking();
-            if (event.getButton() != MouseButton.PRIMARY && currentlySeekingBlockInput) {
-                stopSeeking(true);
+            if (event.getButton() == MouseButton.PRIMARY) {
+                startSeeking();
+            } else {
+                if (currentlySeekingBlockInput) {
+                    stopSeeking(true);
+                } else {
+                    //seeking: 
+                    skimOnPercentageBar(event);
+                }
             }
         });
         progress.setOnMouseReleased((event) -> {
@@ -906,6 +912,8 @@ public class Gallery {
                 view.setViewport(new Rectangle2D((int)((iWidth-w)*0.5), (int)((iHeight-h)*0.5), w, h));
             }
         }
+
+        updateZoomIndicatorText();
     }
 
     //Calculates the pixel scale of the image, dependent on the window and image size (without considering current user zoom)
@@ -1777,6 +1785,17 @@ public class Gallery {
         }
 
         int skimDestination = (int)(images.size() * (numberKey * 0.1));
+        selectImageAtIndex(skimDestination);
+    }
+
+    private void skimOnPercentageBar(MouseEvent e) {
+        if (currentImage == null) {
+            return;
+        }
+        double percentage = e.getX() / progress.getBoundsInLocal().getWidth();
+        percentage = Math.max(0.0, Math.min(1.0, percentage));
+
+        int skimDestination = (int)(images.size() * percentage);
         selectImageAtIndex(skimDestination);
     }
 
