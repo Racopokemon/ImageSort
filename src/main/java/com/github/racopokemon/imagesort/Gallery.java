@@ -1789,13 +1789,14 @@ public class Gallery {
     }
 
     private void skimOnPercentageBar(MouseEvent e) {
-        if (currentImage == null) {
+        if (currentImage == null || images.size() <= 1) { //no skimming also when single image
             return;
         }
         double percentage = e.getX() / progress.getBoundsInLocal().getWidth();
         percentage = Math.max(0.0, Math.min(1.0, percentage));
 
-        int skimDestination = (int)(images.size() * percentage);
+        int skimDestination = (int)((2*images.size()-2) * percentage);
+        skimDestination = (skimDestination + 1) / 2;
         selectImageAtIndex(skimDestination);
     }
 
