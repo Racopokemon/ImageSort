@@ -453,3 +453,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
         return !fileOpWindow.shouldWeShowTheGalleryAgain();
     }
 }
+
+//fix that the move, copy etc is smtms ...ed
+
+//order buttons like in screenshot?

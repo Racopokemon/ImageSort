@@ -14,12 +14,15 @@ import java.util.prefs.Preferences;
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
 
+import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.robot.Robot;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -359,6 +362,11 @@ public class Common {
 
     public static Point2D getMouseScreenPos() {
         return robot.getMousePosition();
+    }
+
+    public static Rectangle2D getScreenSizeContainingPosition(Point2D pos) {
+        ObservableList<Screen> screens = Screen.getScreensForRectangle(pos.getX(), pos.getY(), 0, 0);
+        return screens.isEmpty() ? Screen.getPrimary().getBounds() : screens.get(0).getBounds();
     }
 
     public static void setMouseScreenPos(Point2D point) {

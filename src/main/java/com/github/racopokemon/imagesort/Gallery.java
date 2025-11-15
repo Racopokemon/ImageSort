@@ -23,6 +23,7 @@ import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -72,6 +73,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.transform.Rotate;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
@@ -119,6 +121,8 @@ public class Gallery {
     private int filter = -1; //-1: No filter. 0: Keep only. 1-numberOfCategories: Only this category (move). From that on: Only this category (copy / ticks)
     private boolean updateFilterOnNextImage = false; //slight acceleration, only reload the whole filter when this actually occured
 
+    private Point2D mousePosBeforeSeeking;
+    private Point2D mousePosWhileSeeking;
     private boolean currentlySeekingBlockInput = false; //turned on while seeking in the progress bar, so that nobody can switch filters, rotate / delete images etc. Blocks keystrokes & filter operations (probably not even required). As further precaution we set currentImage to null while seeking. 
     private String imageBeforeSeeking = null; //set while seeking to know the currentImage before (set to null to block all kinds of input while seeking)
 
@@ -462,7 +466,7 @@ public class Gallery {
 
         progress.setOnMousePressed((event) -> {
             if (event.getButton() == MouseButton.PRIMARY) {
-                startSeeking();
+                startSeeking(new Point2D(event.getScreenX(), event.getScreenY()));
             } else {
                 if (currentlySeekingBlockInput) {
                     stopSeeking(true);
@@ -1926,16 +1930,24 @@ public class Gallery {
         updateViewport();
     }
 
-    private void startSeeking() {
+    private void startSeeking(Point2D mousePos) {
         progress.setCursor(Cursor.NONE);
+        mousePosBeforeSeeking = mousePos;
+
+        Rectangle2D screen = Common.getScreenSizeContainingPosition(mousePos);
+        mousePosWhileSeeking = new Point2D(screen.getMinX() + screen.getWidth()*0.5, screen.getMinY() + screen.getHeight()*0.5);
+        Common.setMouseScreenPos(mousePosWhileSeeking);
+
         view.setVisible(false);
         hideMainUIControlsConditions.update(1, true);
         imageBeforeSeeking = currentImage;
         currentImage = null; //blocks basically all image commands, everything image-related has a check about this before. 
         currentlySeekingBlockInput = true; //should actually be enough, as this blocks most keyboard input
+        
     }
     
     private void stopSeeking(boolean cancelled) {
+        Common.setMouseScreenPos(mousePosBeforeSeeking);
         progress.setCursor(Cursor.DEFAULT);
         view.setVisible(true);
         hideMainUIControlsConditions.update(1, false);
