@@ -16,6 +16,8 @@ import java.util.Optional;
 import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
+import javax.swing.GroupLayout.Alignment;
+
 import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
@@ -174,7 +176,7 @@ public class Gallery {
     private static final int NUMBER_OF_RESOLUTION_RECTS = 15;
     private Rectangle[] resolutionGraphicRects;
 
-    private ImprovisedProgressBar progress;
+    private ProgressBar progress;
     //0: hovered, 1: Tab pressed, 2: P pressed
     private IsAnyTrue progressDetailConditions;
 
@@ -192,6 +194,9 @@ public class Gallery {
     private PauseTransition hideMouseOnIdle;
 
     private StackPane rotationIndicator;
+
+    private StackPane seekPane;
+    private Text seekTextImageName, seekTextImageSubtitle;
 
     private class ImageFileOperations {
         private int moveTo = 0; //0: Dont move. 1 - numberOfCategories: Move to this category
@@ -450,7 +455,7 @@ public class Gallery {
         StackPane.setAlignment(resolutionIndicator, Pos.BOTTOM_CENTER);
         StackPane.setMargin(resolutionIndicator, new Insets(0, 0, 38, 0));
         
-        progress = new ImprovisedProgressBar(350, 30, resolutionIndicator, zoomIndicator);
+        progress = new ProgressBar(350, 30, resolutionIndicator, zoomIndicator);
         StackPane.setAlignment(progress, Pos.TOP_CENTER);
         progress.setOnScroll(zoomPaneScrollHandler);
         progressDetailConditions = new IsAnyTrue(3, (isAnyTrue) -> {
@@ -626,6 +631,33 @@ public class Gallery {
                 hideUiConditions.ignoreEverythingAndSetValue(false);
             }
         });
+
+        Text seekImageCount = new Text("47/132");
+        seekImageCount.setFont(new Font(22));
+        seekImageCount.setFill(Color.WHITE);
+        StackPane.setAlignment(seekImageCount, Pos.TOP_CENTER);
+        StackPane.setMargin(seekImageCount, new Insets(2,0,0,0));
+        //innerSeekPane.setBackground(new Background(new BackgroundFill(Color.GRAY, null, null)));
+        Rectangle seekBar = new Rectangle(650,40, Color.GRAY);
+        StackPane.setAlignment(seekBar, Pos.TOP_CENTER);
+        StackPane.setMargin(seekBar, new Insets(10,0,0,0));
+        seekTextImageName = new Text("DSC08439.JPG");
+        seekTextImageName.setFont(new Font(30));
+        seekTextImageName.setFill(Color.WHITE);
+        seekTextImageSubtitle = new Text("Mo, 29. Oct 2025, 22:03");
+        seekTextImageSubtitle.setFont(new Font(15));
+        seekTextImageSubtitle.setFill(Color.WHITE);
+
+        VBox seekTextVBox = new VBox(3, seekTextImageName, seekTextImageSubtitle);
+        seekTextVBox.setAlignment(Pos.TOP_CENTER);
+        StackPane.setMargin(seekTextVBox, new Insets(100,0,0,0));
+
+        StackPane innerSeekPane = new StackPane(seekBar, seekTextVBox);
+        innerSeekPane.setMaxSize(650, 280);
+        
+        seekPane = new StackPane(seekImageCount, innerSeekPane);
+        seekPane.setMouseTransparent(true);
+        seekPane.setVisible(false);
         
         rootPane.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         rootPane.getChildren().add(invisibleContextMenuSource);
@@ -648,6 +680,7 @@ public class Gallery {
         rootPane.getChildren().add(hideUiHotcorner);
         rootPane.getChildren().add(rotationIndicator);
         rootPane.getChildren().add(actionIndicatorPane);
+        rootPane.getChildren().add(seekPane);
 
         Scene scene = new Scene(rootPane, 800, 600);
         stage.setScene(scene);
@@ -856,7 +889,7 @@ public class Gallery {
 
         stage.getIcons().add(Common.getResource("logo"));
         stage.setMinHeight(400);
-        stage.setMinWidth(600);
+        stage.setMinWidth(650);
         stage.show();
 
         rootPane.widthProperty().addListener((a, oldV, newV) -> {updateViewport(newV.doubleValue(), rootPane.heightProperty().get());});
@@ -1938,6 +1971,8 @@ public class Gallery {
         mousePosWhileSeeking = new Point2D(screen.getMinX() + screen.getWidth()*0.5, screen.getMinY() + screen.getHeight()*0.5);
         Common.setMouseScreenPos(mousePosWhileSeeking);
 
+        seekPane.setVisible(true);
+
         view.setVisible(false);
         hideMainUIControlsConditions.update(1, true);
         imageBeforeSeeking = currentImage;
@@ -1958,6 +1993,8 @@ public class Gallery {
             //selectImageAtIndex();
         }
         currentlySeekingBlockInput = false;
+
+        seekPane.setVisible(false);
 
         rootPane.requestFocus();
     }
