@@ -1962,7 +1962,7 @@ public class Gallery {
     }
 
     private void startSeeking(Point2D mousePos) {
-        //progress.setCursor(Cursor.NONE);
+        progress.setCursor(Cursor.NONE);
         mousePosBeforeSeeking = mousePos;
 
         Rectangle2D screen = Common.getScreenSizeContainingPosition(mousePos);
@@ -1970,7 +1970,7 @@ public class Gallery {
         Common.setMouseScreenPos(mousePosWhileSeeking);
 
         seekPane.setVisible(true);
-        seekHelper = new SeekHelper(mousePos, images.size(), getCurrentImageIndex());
+        seekHelper = new SeekHelper(mousePosWhileSeeking, images.size(), getCurrentImageIndex());
         updateSeekingUI();
 
         view.setVisible(false);
