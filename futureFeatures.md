@@ -4,6 +4,7 @@
 
 ## Known issues
 * When zooming by space bar the mouse can still hover the percentage bar 
+* Right-clicking percentage bar does not account for deleted images yet
 
 ## Launcher
 * ~~In the launcher, in the list view, it already focusses the text field on 2nd entry, same error as with pressing arrow down in the text field. Can we register the listener somewhere else? Somewhere before?~~

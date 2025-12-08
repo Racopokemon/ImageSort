@@ -196,7 +196,8 @@ public class Gallery {
     private StackPane rotationIndicator;
 
     private StackPane seekPane;
-    private Text seekTextImageName, seekTextImageSubtitle;
+    private Text seekImageCount, seekTextImageName, seekTextImageSubtitle;
+    private SeekHelper seekHelper;
 
     private class ImageFileOperations {
         private int moveTo = 0; //0: Dont move. 1 - numberOfCategories: Move to this category
@@ -485,7 +486,7 @@ public class Gallery {
             if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) stopSeeking(false);
         });
         progress.setOnMouseDragged((event) -> {
-            if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) updateSeeking();
+            if (event.getButton() == MouseButton.PRIMARY && currentlySeekingBlockInput) updateSeeking(event.getScreenX(), event.getScreenY());
         });
         
         rotationIndicator = new StackPane();
@@ -632,7 +633,7 @@ public class Gallery {
             }
         });
 
-        Text seekImageCount = new Text("47/132");
+        seekImageCount = new Text("47/132");
         seekImageCount.setFont(new Font(22));
         seekImageCount.setFill(Color.WHITE);
         StackPane.setAlignment(seekImageCount, Pos.TOP_CENTER);
@@ -647,14 +648,11 @@ public class Gallery {
         seekTextImageSubtitle = new Text("Mo, 29. Oct 2025, 22:03");
         seekTextImageSubtitle.setFont(new Font(15));
         seekTextImageSubtitle.setFill(Color.WHITE);
-
         VBox seekTextVBox = new VBox(3, seekTextImageName, seekTextImageSubtitle);
         seekTextVBox.setAlignment(Pos.TOP_CENTER);
         StackPane.setMargin(seekTextVBox, new Insets(100,0,0,0));
-
         StackPane innerSeekPane = new StackPane(seekBar, seekTextVBox);
         innerSeekPane.setMaxSize(650, 280);
-        
         seekPane = new StackPane(seekImageCount, innerSeekPane);
         seekPane.setMouseTransparent(true);
         seekPane.setVisible(false);
@@ -1964,7 +1962,7 @@ public class Gallery {
     }
 
     private void startSeeking(Point2D mousePos) {
-        progress.setCursor(Cursor.NONE);
+        //progress.setCursor(Cursor.NONE);
         mousePosBeforeSeeking = mousePos;
 
         Rectangle2D screen = Common.getScreenSizeContainingPosition(mousePos);
@@ -1972,11 +1970,13 @@ public class Gallery {
         Common.setMouseScreenPos(mousePosWhileSeeking);
 
         seekPane.setVisible(true);
+        seekHelper = new SeekHelper(mousePos, images.size(), getCurrentImageIndex());
+        updateSeekingUI();
 
         view.setVisible(false);
         hideMainUIControlsConditions.update(1, true);
         imageBeforeSeeking = currentImage;
-        currentImage = null; //blocks basically all image commands, everything image-related has a check about this before. 
+        currentImage = null; //blocks basically all image commands, everything image-related has a check for this before. 
         currentlySeekingBlockInput = true; //should actually be enough, as this blocks most keyboard input
         
     }
@@ -1987,10 +1987,11 @@ public class Gallery {
         view.setVisible(true);
         hideMainUIControlsConditions.update(1, false);
 
-        if (cancelled || true) {
+        if (cancelled) {
             currentImage = imageBeforeSeeking;
         } else {
-            //selectImageAtIndex();
+            currentImage = "not null"; //otherwise, selectImageAtIndex instantly returns. 
+            selectImageAtIndex(seekHelper.getIndex());
         }
         currentlySeekingBlockInput = false;
 
@@ -1999,9 +2000,20 @@ public class Gallery {
         rootPane.requestFocus();
     }
     
-    private void updateSeeking() {
-        //work with robots here!
-
-        //known issue: Even though everything is hidden, you can still press all keys and scroll and everything...
+    private void updateSeeking(double x, double y) {
+        int oldIndex = seekHelper.getIndex();
+        seekHelper.update(x, y);
+        int newIndex = seekHelper.getIndex();
+        if (oldIndex != newIndex) {
+            updateSeekingUI();
+        }
     }
+    
+    private void updateSeekingUI() {
+        int index = seekHelper.getIndex();
+        seekImageCount.setText(index+"/"+images.size());
+        seekTextImageName.setText(images.get(index));
+        seekTextImageSubtitle.setText("this is a subtitle");
+    }
+
 }
