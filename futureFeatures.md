@@ -10,6 +10,7 @@
   * ~~https://stackoverflow.com/questions/62795393/navigating-out-of-a-textfield-in-a-gridpane-using-the-arrow-keys-in-javafx <- this might fix it.~~
 * ~~On start, the launcher has the first folder selected instead of the images (if some are there), and pressing enter opens the folder instead~~
   * Fix this only for the startup, afterwards this focus is ok. Either request the focus to the start button or truly unselect everything in the listview
+* Apparently, the "^"-button does not work if the name of the original folder does not exist anymore (but the parent dir?)
 * better show other (not supported) file formats: 
   * heic, tga, webp are candidates (not shown to be pictures yet)
   * mov, (avi)
