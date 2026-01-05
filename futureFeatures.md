@@ -6,6 +6,7 @@
 * When zooming by space bar the mouse can still hover the percentage bar 
 
 * Closing Window: If there are move operations, also show the remaining pics AND offer to move to trash instead! Scurr
+* (Sony saves where the focus went somewhere in the tags. Can we access it and zoom there when pressing space?)
 
 ## Launcher
 * ~~In the launcher, in the list view, it already focusses the text field on 2nd entry, same error as with pressing arrow down in the text field. Can we register the listener somewhere else? Somewhere before?~~
