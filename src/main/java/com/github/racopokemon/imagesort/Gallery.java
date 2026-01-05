@@ -1594,6 +1594,7 @@ public class Gallery {
         if (currentImage == null) {
             return;
         }
+        
         handleImageRotationIfNecessary();
         try {
             //if folder doesnt exist, create it
