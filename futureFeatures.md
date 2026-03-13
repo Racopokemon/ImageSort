@@ -6,6 +6,8 @@
 * When zooming by space bar the mouse can still hover the percentage bar 
 * Right-clicking percentage bar does not account for deleted images yet
 
+***The 'Applying File Operations' dialog does NOT block the gallery, so you could move the files again- argh***
+
 ## Launcher
 * ~~In the launcher, in the list view, it already focusses the text field on 2nd entry, same error as with pressing arrow down in the text field. Can we register the listener somewhere else? Somewhere before?~~
   * ~~https://stackoverflow.com/questions/62795393/navigating-out-of-a-textfield-in-a-gridpane-using-the-arrow-keys-in-javafx <- this might fix it.~~
