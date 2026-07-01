@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
@@ -105,6 +106,7 @@ public class Gallery {
     //The current list of images we are cycling through now (with filters not all images might be visible). Subset of allImages, which is all images in the folder
     private ArrayList<String> images = new ArrayList<>();
     //All images available in the users folder. Updated by updateFilesList()
+    private ArrayList<Integer> imagesRandomOrder;
     private ArrayList<String> allImages = new ArrayList<>();
     //A lookup, for every supported image file we store a list of filenames inside this directory, that have the same filename, but another (not supported) extension. 
     //These files are silently copied / moved / deleted along with the image. (.raw feature, if images exist both as raw and jpg)
@@ -522,20 +524,23 @@ public class Gallery {
         MenuItem menuCopyPath = new MenuItem("Copy image path");
         menuCopyPath.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
         menuCopyPath.setOnAction((event) -> {copyImageToClipboard(true);});
-        MenuItem menuUndo = new MenuItem("Undo last '/delete' move");
+        MenuItem menuJump = new MenuItem("Jump to random image");
+        menuJump.setAccelerator(new KeyCodeCombination(KeyCode.J));
+        menuJump.setOnAction((event) -> {selectRandomImage(true);});
+        MenuItem menuUndo = new MenuItem("Undo last trash move");
         menuUndo.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCombination.CONTROL_DOWN));
         menuUndo.setOnAction((event) -> {undoDelete();});
-        MenuItem menuDelete = new MenuItem("Move to '/delete'");
+        MenuItem menuDelete = new MenuItem("Move to trash");
         menuDelete.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
         menuDelete.setOnAction((event) -> {deleteImage();});
-        MenuItem menuSystemTrash = new MenuItem("Move to system trash");
-        menuSystemTrash.setOnAction((event) -> {moveToSystemTrash();});
-        menuSystemTrash.setAccelerator(new KeyCodeCombination(KeyCode.DELETE, KeyCombination.SHIFT_DOWN));
+        //MenuItem menuSystemTrash = new MenuItem("Move to system trash");
+        //menuSystemTrash.setOnAction((event) -> {moveToSystemTrash();});
+        //menuSystemTrash.setAccelerator(new KeyCodeCombination(KeyCode.DELETE, KeyCombination.SHIFT_DOWN));
         //accelerator styling is done in the scene style sheets further below
         
         Rectangle invisibleContextMenuSource = new Rectangle();
         invisibleContextMenuSource.setVisible(false);
-        ContextMenu contextMenu = new ContextMenu(menuFileName, new SeparatorMenuItem(), menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuRotate, menuSystemTrash, menuDelete, menuUndo);
+        ContextMenu contextMenu = new ContextMenu(menuFileName, new SeparatorMenuItem(), menuShowOpenWith, menuShowFile, menuCopy, menuCopyPath, menuRotate, menuJump, menuUndo, menuDelete);
         contextMenu.setAutoHide(true);
         view.setOnContextMenuRequested((event) -> {
             menuFileName.setText(currentImage);
@@ -790,11 +795,7 @@ public class Gallery {
                     //doing the double-tap prevention here, bc in the context menu eg we should be immune to such stuff
                     long timestamp = System.currentTimeMillis();
                     if (lastDeleteTimestamp + 118 < timestamp) {
-                        if (event.isAltDown() || event.isShiftDown() || event.isShortcutDown()) {
-                            moveToSystemTrash();
-                        } else {
-                            deleteImage();
-                        }
+                        deleteImage();
                         lastDeleteTimestamp = timestamp;
                     }
                 } else if (event.getCode() == KeyCode.PLUS) {
@@ -851,6 +852,8 @@ public class Gallery {
                     progressDetailConditions.update(event.getCode() == KeyCode.P ? 1 : 2, true);
                 } else if (event.getCode() == KeyCode.I || event.getCode() == KeyCode.H) {
                     hideUiConditions.update(event.getCode() == KeyCode.I ? 1 : 2, true);
+                } else if (event.getCode() == KeyCode.J) {
+                    selectRandomImage(event.isShiftDown() || event.isMetaDown());
                 } else if (event.getCode().isLetterKey() && Common.isNoModifierDown(event)) { //interestingly, is false for language specific letters like ö and ß in G-g-g-german. 
                     int pos = Common.getPositionInAlphabet(event.getCode().getChar().charAt(0));
                     if (pos >= 0 && pos < numberOfTicks) {
@@ -1490,6 +1493,10 @@ public class Gallery {
             }
         }
 
+        imagesRandomOrder = new ArrayList<Integer>(images.size());
+        for (int i = 0; i < images.size(); i++) {imagesRandomOrder.add(i);}
+        Collections.shuffle(imagesRandomOrder);
+
         //actually, this place is the only one where no images can occur, and also the only place where there are images again. 
         //so we do all the basic organization around it
         boolean imageAvailable = !images.isEmpty(); 
@@ -1554,6 +1561,24 @@ public class Gallery {
             */
         }
         return index;
+    }
+
+    Random rand = new Random();
+    void selectRandomImage(boolean forward) {
+        int index = getCurrentImageIndex();
+        int indexInRandomOrder = imagesRandomOrder.indexOf(index);
+        if (forward) {
+            indexInRandomOrder++;
+            if (indexInRandomOrder >= images.size()) {
+                indexInRandomOrder = 0;
+            }
+        } else {
+            indexInRandomOrder--;
+            if (indexInRandomOrder < 0) {
+                indexInRandomOrder = images.size()-1;
+            }
+        }
+        selectImageAtIndex(imagesRandomOrder.get(indexInRandomOrder));
     }
 
     //Select & show the next image
@@ -1686,27 +1711,27 @@ public class Gallery {
         updateFilesList();
     }
 
-    private void moveToSystemTrash() {
-        if (currentImage == null) {
-            return;
-        }
-
-        handleImageRotationIfNecessary();
-
-        ArrayList<String> paths = new ArrayList<>();
-        paths.add(getFullPathForFileInThisFolder(currentImage));
-
-        if (filesToMoveAlong.containsKey(currentImage)) {
-            for (String moveAlong : filesToMoveAlong.get(currentImage)) {
-                paths.add(getFullPathForFileInThisFolder(moveAlong));
-            }
-        }
-        Common.moveToSystemTrash(paths);
-        if (images.size() > 1) {
-            nextImage();
-        }
-        updateFilesList();
-    }
+//    private void moveToSystemTrash() {
+//        if (currentImage == null) {
+//            return;
+//        }
+//
+//        handleImageRotationIfNecessary();
+//
+//        ArrayList<String> paths = new ArrayList<>();
+//        paths.add(getFullPathForFileInThisFolder(currentImage));
+//
+//        if (filesToMoveAlong.containsKey(currentImage)) {
+//            for (String moveAlong : filesToMoveAlong.get(currentImage)) {
+//                paths.add(getFullPathForFileInThisFolder(moveAlong));
+//            }
+//        }
+//        Common.moveToSystemTrash(paths);
+//        if (images.size() > 1) {
+//            nextImage();
+//        }
+//        updateFilesList();
+//    }
     
     
     private void undoDelete() {
@@ -2011,7 +2036,7 @@ public class Gallery {
     
     private void updateSeekingUI() {
         int index = seekHelper.getIndex();
-        seekImageCount.setText(index+"/"+images.size());
+        seekImageCount.setText((index+1)+"/"+images.size());
         seekTextImageName.setText(images.get(index));
         seekTextImageSubtitle.setText("this is a subtitle");
     }

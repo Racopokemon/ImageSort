@@ -13,6 +13,7 @@
   * ~~https://stackoverflow.com/questions/62795393/navigating-out-of-a-textfield-in-a-gridpane-using-the-arrow-keys-in-javafx <- this might fix it.~~
 * ~~On start, the launcher has the first folder selected instead of the images (if some are there), and pressing enter opens the folder instead~~
   * Fix this only for the startup, afterwards this focus is ok. Either request the focus to the start button or truly unselect everything in the listview
+* make \# button select random picture, just to get an impression of whats inside. Also add to ctx menu
 * better show other (not supported) file formats: 
   * heic, tga, webp are candidates (not shown to be pictures yet)
   * mov, (avi)

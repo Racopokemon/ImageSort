@@ -4,7 +4,7 @@ import javafx.geometry.Point2D;
 
 public class SeekHelper {
     private class Segment {
-
+        
     }
 
     private int count, current, initialIndex;
@@ -25,12 +25,13 @@ public class SeekHelper {
         double relativeMouse = mouseX-initialPos.getX();
         virtualPosition = relativeMouse + offset;
 
-        if (relativeMouse > 70 || relativeMouse < -70) {
-            //Lets just hope / assume that the robot works instant or at least in the next frame
+        if (relativeMouse > 70 || relativeMouse < -70) { 
+            //Doing this with 0, essentially updating with every frame, has weird imprecision issues on Windows 4k screens where the mouse is not placed exactly at the right subpixel positions ...
+            //this is more robust and nobody notices if the curser was actually placed 0.33333 pix away.
             offset += relativeMouse;
+            //Lets just hope / assume that the robot works instant or at least until the next update
             Common.setMouseScreenPos(initialPos);
         }
-        System.out.println(virtualPosition + " " + offset);
 
         current = (int)(virtualPosition / 15) + initialIndex;
         if (current >= count) current = count-1;
