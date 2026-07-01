@@ -905,15 +905,15 @@ public class Gallery {
             useInfo.setHeaderText("How to use");
             useInfo.setContentText(
                 "Arrow keys to look through images and mark them to be moved to a folder (keep in current or move to \\1, \\2 or \\3). \n"+
-                "Keys A, B, C, D to mark the images to be copied to the corresponding folder \\a, \\b, ... "+
+                "A, B, C, D to mark the images to be copied to the corresponding folder \\a, \\b, ... "+
                 "Del to instantly move to a 'delete' folder. Ctrl + Z to undo.\n"+
                 "Click to zoom. Scroll, + and - to change the zoom strength. Generally, the whole interface is scrollable! \n"+
-                "Context menu to show file in explorer or open with. Youtube-like skimming with number keys.\n"+
-                "Close the window to perform the file operations (don't worry, you will be asked for confirmation).\n"+
-                "When executing the file operations, first all copy operations are done, and afterwards the move operations.\n\n"+
-                "Find this project on github.com/Racopokemon/ImageSort"
+                "The context menu shows some more features. \n"+
+                "To move / copy files, close the gallery. Don't worry, this does not do anything yet, you'll be prompted a dialog.\n"+
+                "When executing the file operations, first all copy operations are done, and then the move operations."
                 );
             useInfo.initOwner(stage);
+            useInfo.setHeight(500);
             useInfo.showAndWait();
         }
 

@@ -71,14 +71,14 @@ public class Launcher {
         this.stage = stage;
 
         Label labelIntro = new Label(
-                "In this gallery you can assign images in a folder to categories. When you close the window, these files can be automatically moved or copied to folders based on your assignment.");
+                "This gallery lets you assign images to categories. After closing the gallery, you can choose to move / copy all images to the assigned folders.");
         Font fontNormal = labelIntro.getFont();
         Font fontItalic = Font.font(fontNormal.getFamily(), FontWeight.NORMAL, FontPosture.ITALIC,
                 fontNormal.getSize());
         labelIntro.setFont(fontItalic);
         labelIntro.setWrapText(true);
         VBox.setVgrow(labelIntro, Priority.NEVER);
-        Label labelBrowserIntro = new Label("Where are the images stored?");
+        Label labelBrowserIntro = new Label("Select your image folder:");
         labelBrowserIntro.setWrapText(true);
 
         Button buttonBrowserDirUp = new Button("^");
@@ -140,7 +140,7 @@ public class Launcher {
         VBox miscBox = new VBox(SMALL_GAP, checkMiscShowUsage);
 
         Label labelClipboard = new Label(
-                "Note: When launching this app, we check your clipboard and start there (if possible). This might save you some seconds.");
+                "Note: We just checked your clipboard for a start directory. Press Ctrl+V to check again. Might save you some seconds.");
         labelClipboard.setWrapText(true);
         labelClipboard.setFont(fontItalic);
         buttonLaunch = new Button("LAUNCH GALLERY");
