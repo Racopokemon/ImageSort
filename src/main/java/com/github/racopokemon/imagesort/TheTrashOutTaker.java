@@ -38,7 +38,7 @@ public class TheTrashOutTaker {
             Files.move(trashFolder.toPath(), renamed.toPath());
         } catch (Exception e) {
             errorMessage = "Failed to rename the temporary 'delete' folder before moving it to system trash. "+
-            "You may manually delete it yourself. \n\nHere is the error message: \n\n" + e.getMessage();
+            "You may manually delete it yourself. \n\nHere is the error message: \n\n" + e.toString();
         }
 
         if (errorMessage == null) {
@@ -49,7 +49,7 @@ public class TheTrashOutTaker {
                     "The folder remains as '" + renamed.getName() +"' in your directory, you may manually delete it.";
                 }
             } catch (Exception e) {
-                errorMessage = "Error while moving the temporary 'delete' folder to system trash. You may manually delete the directory '" + renamed.getName() + "'. \n\nThis is the error message: \n\n"+e.getMessage();
+                errorMessage = "Error while moving the temporary 'delete' folder to system trash. You may manually delete the directory '" + renamed.getName() + "'. \n\nThis is the error message: \n\n"+e.toString();
             }
         }
 
