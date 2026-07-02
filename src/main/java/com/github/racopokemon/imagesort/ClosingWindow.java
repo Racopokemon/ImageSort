@@ -98,8 +98,6 @@ public class ClosingWindow extends Dialog<ButtonType> {
         this.setTitle("ImageSort");
         stage.setIconified(false);
         
-        int wasMove = -1;
-        
         // Create UI for each operation
         GridPane copyGrid = createMoveOrCopyGrid(true); //set to null if no operations available
         GridPane moveGrid = createMoveOrCopyGrid(false);
@@ -249,30 +247,30 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 GridPane.setHgrow(folderField, Priority.ALWAYS);
                 GridPane.setHgrow(labelContainer, Priority.NEVER);
 
-                Button swapButton = null;
+                Button cycleButton = null;
                 if (!isCopy) {
-                    swapButton = new Button("...");
-                    swapButton.setOnAction((e) -> {
+                    cycleButton = new Button("...");
+                    cycleButton.setOnAction((e) -> {
                         cycleLabel(typeLabel, false);
                     });
                     //swapButton.setOnMouseClicked((e) -> {
                     //    cycleLabel(typeLabel, e.getButton() != MouseButton.PRIMARY || e.isShiftDown()); //doesnt work immediately, double events etc, ...
                     //});
-                    GridPane.setHgrow(swapButton, Priority.NEVER);
+                    GridPane.setHgrow(cycleButton, Priority.NEVER);
+                    
+                    Label labelInstead = new Label(isRest ? "(the rest)" : "('move to "+(i+1)+"')");
+                    folderField.setUserData(new Object[] {labelInstead, cycleButton});
+                    GridPane.setHgrow(labelInstead, Priority.ALWAYS);
+                    if (isRest) enableOperation.setSelected(false);
+
+                    labelInstead.disableProperty().bind(enableOperation.selectedProperty().not());
                 }
-                
+
                 // Bind disabling
                 numberContainer.disableProperty().bind(enableOperation.selectedProperty().not());
                 labelContainer.disableProperty().bind(enableOperation.selectedProperty().not());
                 folderField.disableProperty().bind(enableOperation.selectedProperty().not());
 
-                if (!isCopy) {
-                    Label labelInstead = new Label(isRest ? "(the rest)" : "('move to "+(i+1)+"')");
-                    folderField.setUserData(labelInstead);
-                    GridPane.setHgrow(labelInstead, Priority.ALWAYS);
-                    labelInstead.disableProperty().bind(enableOperation.selectedProperty().not());
-                    if (isRest) enableOperation.setSelected(false);
-                }
                 
                 // Update validation state when checkbox changes
                 enableOperation.setOnAction(e -> {
@@ -285,8 +283,8 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 grid.add(numberContainer, 1, row);
                 grid.add(labelContainer, 2, row);
                 grid.add(folderField, 3, row);
-                if (swapButton != null) {
-                    grid.add(swapButton, 5, row);
+                if (cycleButton != null) {
+                    grid.add(cycleButton, 5, row);
                 }
                 row++;
             }   
@@ -309,7 +307,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
         }
         HBox labelContainer = (HBox) label.getParent();
         TextField folderField = folderNameFields.get(operationTypeLabels.indexOf(label));
-        Label labelInstead = (Label)folderField.getUserData();
+        Label labelInstead = (Label)((Object[])folderField.getUserData())[0];
         GridPane grid = (GridPane)labelContainer.getParent();
         folderField.setVisible(!trash);
         if (trash) {
@@ -330,7 +328,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 grid.add(folderField, 3, row);
             }
         }
-        label.requestFocus();
+        ((Button)((Object[])folderField.getUserData())[1]).requestFocus();
         updateUI();
     }
 
@@ -357,23 +355,24 @@ public class ClosingWindow extends Dialog<ButtonType> {
             f.setStyle(null);
         }
         for (int i = 0; i < operationCheckboxes.size(); i++) {
-            if (operationCheckboxes.get(i).isSelected() && folderNameFields.get(i).isVisible()) {
-                if (validAbsoluteFolder) {
-                    String folderName = folderNameFields.get(i).getText().trim();
-                    if (folderName.length() == 0 || 
-                            !Common.isValidPath(targetDirectory + FileSystems.getDefault().getSeparator() + folderName)) {
-                        anyInvalidFolderNames = true;
-                        folderNameFields.get(i).setStyle("-fx-text-inner-color: red");
+            if (operationCheckboxes.get(i).isSelected()) {
+                if (folderNameFields.get(i).isVisible()) {
+                    if (validAbsoluteFolder) {
+                        String folderName = folderNameFields.get(i).getText().trim();
+                        if (folderName.length() == 0 || 
+                                !Common.isValidPath(targetDirectory + FileSystems.getDefault().getSeparator() + folderName)) {
+                            anyInvalidFolderNames = true;
+                            folderNameFields.get(i).setStyle("-fx-text-inner-color: red");
+                        }
                     }
-                }
-                if (isMoveOperation(i)) {
-                    hasMoves = true;
+                    if (isMoveOperation(i)) {
+                        hasMoves = true;
+                    } else {
+                        hasCopies = true;
+                    }
                 } else {
-                    hasCopies = true;
+                    hasTrashes = true;
                 }
-            }
-            if (!folderNameFields.get(i).isVisible()) {
-                hasTrashes = true;
             }
         }
         
@@ -399,8 +398,8 @@ public class ClosingWindow extends Dialog<ButtonType> {
         
         // Disable button if no valid operations or invalid folders
         Button button = (Button)getDialogPane().lookupButton(applyButton);
-        boolean enableButton = (hasMoves || hasCopies) && 
-                             (!radioFolderAbsolute.isSelected() || validAbsoluteFolder) &&
+        boolean enableButton = (hasMoves || hasCopies || hasTrashes) && 
+                             (!radioFolderAbsolute.isSelected() || validAbsoluteFolder || (!hasMoves && !hasCopies)) &&
                              !anyInvalidFolderNames;
         button.setDisable(!enableButton);
     }
