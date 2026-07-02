@@ -1563,7 +1563,6 @@ public class Gallery {
         return index;
     }
 
-    Random rand = new Random();
     void selectRandomImage(boolean forward) {
         int index = getCurrentImageIndex();
         int indexInRandomOrder = imagesRandomOrder.indexOf(index);

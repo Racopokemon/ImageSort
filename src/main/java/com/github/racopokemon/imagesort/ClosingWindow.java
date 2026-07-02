@@ -26,6 +26,7 @@ import java.util.Hashtable;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -33,6 +34,7 @@ import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.input.MouseButton;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 
@@ -135,13 +137,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 } else {
                     typeLabel = new Label("moved");
                     typeLabel.setOnMouseClicked(e -> {
-                        if (typeLabel.getText().equals("moved")) {
-                            typeLabel.setText("copied");
-                        } else {
-                            typeLabel.setText("moved");
-                        }
-                        typeLabel.requestFocus();
-                        updateUI();
+                        cycleLabel(typeLabel, e.getButton() != MouseButton.PRIMARY || e.isShiftDown());
                     });
                 }
                 operationTypeLabels.add(typeLabel);
@@ -153,7 +149,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 HBox labelContainer = new HBox(4, filesLabel, typeLabel, new Label("to folder"));
                 GridPane.setValignment(labelContainer, VPos.CENTER);
                 labelContainer.setMaxHeight(0);
-                
+
                 TextField folderField = new TextFieldUpdateUI(i <= numberOfMoveCategories ? 
                     String.valueOf(i) : Gallery.getTickName(i - numberOfMoveCategories - 1));
                 folderNameFields.add(folderField);
@@ -166,13 +162,11 @@ public class ClosingWindow extends Dialog<ButtonType> {
                 if (!isCopy) {
                     swapButton = new Button("...");
                     swapButton.setOnAction((e) -> {
-                        if (typeLabel.getText().equals("moved")) {
-                            typeLabel.setText("copied");
-                        } else {
-                            typeLabel.setText("moved");
-                        }
-                        updateUI();
+                        cycleLabel(typeLabel, false);
                     });
+                    //swapButton.setOnMouseClicked((e) -> {
+                    //    cycleLabel(typeLabel, e.getButton() != MouseButton.PRIMARY || e.isShiftDown()); //doesnt work immediately, double events etc, ...
+                    //});
                     GridPane.setHgrow(swapButton, Priority.NEVER);
                 }
                 
@@ -213,8 +207,8 @@ public class ClosingWindow extends Dialog<ButtonType> {
             }
         }
         
-        radioFolderRelative = new RadioButton("In the same folder");
-        radioFolderAbsolute = new RadioButton("In a separate folder:");
+        radioFolderRelative = new RadioButton("the same folder");
+        radioFolderAbsolute = new RadioButton("a separate folder:");
         ToggleGroup groupFolder = new ToggleGroup();
         radioFolderRelative.setToggleGroup(groupFolder);
         radioFolderAbsolute.setToggleGroup(groupFolder);
@@ -256,7 +250,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
 
         folderBox.disableProperty().bind(radioFolderRelative.selectedProperty());
 
-        Label info1 = new Label("Choose a destination folder:");
+        Label info1 = new Label("Files go to subfolders of");
         info1.setWrapText(true);
         VBox.setVgrow(info1, Priority.NEVER);
 
@@ -281,6 +275,35 @@ public class ClosingWindow extends Dialog<ButtonType> {
         updateUI();
     }
 
+    private void cycleLabel(Label label, boolean backward) {
+        boolean trash = false;
+        for (int i = backward ? -1 : 0; i < 1; i++) { //cycle backward by cycling fw twice, AI wont write such BS code be glad you have me.
+            trash = false;
+            if (label.getText().equals("moved")) {
+                label.setText("copied");
+            } else if (label.getText().equals("copied")) {
+                label.setText("moved to trash");
+                trash = true;
+            } else {
+                label.setText("moved"); 
+            }
+        }
+        HBox labelContainer = (HBox) label.getParent();
+        TextField folderField = folderNameFields.get(operationTypeLabels.indexOf(label));
+        folderField.setVisible(!trash);
+        if (trash) {
+            if (labelContainer.getChildren().size() > 2) {
+                labelContainer.getChildren().remove(2);
+            }
+        } else {
+            if (labelContainer.getChildren().size() < 3) {
+                labelContainer.getChildren().add(new Label("to folder"));
+            }
+        }
+        label.requestFocus();
+        updateUI();
+    }
+
     private void updateUI() {
         boolean validAbsoluteFolder = true; 
         
@@ -297,13 +320,14 @@ public class ClosingWindow extends Dialog<ButtonType> {
         boolean anyInvalidFolderNames = false;
         boolean hasMoves = false;
         boolean hasCopies = false;
+        boolean hasTrashes = false;
         
         for (TextField f : folderNameFields) {
             //default text color
             f.setStyle(null);
         }
         for (int i = 0; i < operationCheckboxes.size(); i++) {
-            if (operationCheckboxes.get(i).isSelected()) {
+            if (operationCheckboxes.get(i).isSelected() && folderNameFields.get(i).isVisible()) {
                 if (validAbsoluteFolder) {
                     String folderName = folderNameFields.get(i).getText().trim();
                     if (folderName.length() == 0 || 
@@ -318,13 +342,16 @@ public class ClosingWindow extends Dialog<ButtonType> {
                     hasCopies = true;
                 }
             }
+            if (!folderNameFields.get(i).isVisible()) {
+                hasTrashes = true;
+            }
         }
         
         // Update apply button text
         String buttonText;
-        if (hasMoves && hasCopies) {
+        if ((hasMoves||hasTrashes) && hasCopies) {
             buttonText = "Move, Copy & Close";
-        } else if (hasMoves) {
+        } else if (hasMoves||hasTrashes) {
             buttonText = "Move & Close";
         } else if (hasCopies) {
             buttonText = "Copy & Close";
