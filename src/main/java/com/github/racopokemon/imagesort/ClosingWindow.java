@@ -52,13 +52,14 @@ public class ClosingWindow extends Dialog<ButtonType> {
     private ArrayList<Integer> operationIndex = new ArrayList<>();
     
     //operations contains lists of file names that should be copied / moved to certain folders. All lists are contained in another list where you may access all lists with the following indices: 
-    //0: images not to move (are essentially ignored in this class)
-    //1 to numberOfMoveCategories + 1: images to be moved to their corresponding categories
+    //0 to numberOfMoveCategories: images to be moved to their corresponding categories
+    //numberOfMoveCategories: images not to move (note that this is index 0 when passed from the gallery, we change the order)
     //numberOfMoveCategories + 1 to numberOfMoveCategories + numberOfCopyCategories + 1 images to copy, corresponding to the indices
     private ArrayList<ArrayList<String>> operations;
     //The app treats all files that have the same name but a different extension as a group that is moved together; 
     //this is already resolved in this hashtable: If there are several files for a name, a list of all additional files exists for the file name
     private Hashtable<String, ArrayList<String>> filesToMoveAlong;
+    private int numberOfMoveCategories, numberOfCopyCategories;
     private File directory;
 
     private Preferences prefs;
@@ -85,127 +86,23 @@ public class ClosingWindow extends Dialog<ButtonType> {
 
     public ClosingWindow(Stage stage, ArrayList<ArrayList<String>> operations, Hashtable<String, 
                 ArrayList<String>> filesToMoveAlong, int numberOfMoveCategories, int numberOfCopyCategories, File directory) {
+        //reorder operations: 
+        operations.add(numberOfMoveCategories+1, operations.get(0));
+        operations.remove(0);
         this.operations = operations;
         this.filesToMoveAlong = filesToMoveAlong;
         this.directory = directory; 
+        this.numberOfCopyCategories = numberOfCopyCategories;
+        this.numberOfMoveCategories = numberOfMoveCategories;
 
         this.setTitle("ImageSort");
         stage.setIconified(false);
         
-        GridPane grid = new GridPane();
-        grid.setHgap(2.5);
-        grid.setVgap(2);
-
         int wasMove = -1;
         
         // Create UI for each operation
-        int row = 0;
-        for (int i = 1; i < numberOfMoveCategories + numberOfCopyCategories + 1; i++) {
-            if (!operations.get(i).isEmpty()) {
-                boolean isCopy = i > numberOfMoveCategories;
-                operationIndex.add(i);
-
-                CheckBox enableOperation = new CheckBox();
-                enableOperation.setSelected(true);
-                operationCheckboxes.add(enableOperation);
-                
-                int moveAlongCount = 0;
-                for (String s : operations.get(i)) {
-                    ArrayList<String> moveAlongList = filesToMoveAlong.get(s);
-                    if (moveAlongList != null) {
-                        moveAlongCount += moveAlongList.size();
-                    }
-                }
-                Label moveAlongLabel = new Label(
-                    moveAlongCount == 0 ? " " : " " + moveAlongCount + "+");
-                moveAlongLabel.setTextFill(Color.SILVER);
-
-                Label operationsLabel = new Label(""+operations.get(i).size());
-                
-                HBox numberContainer = new HBox(moveAlongLabel, operationsLabel);
-                numberContainer.setMaxHeight(0);
-                GridPane.setHalignment(numberContainer, HPos.CENTER);
-                GridPane.setHgrow(numberContainer, Priority.NEVER);
-                numberContainer.setAlignment(Pos.CENTER_RIGHT);
-
-                Label filesLabel = new Label(
-                    (operations.get(i).size() == 1 ? "file is" : "files are"));
-                
-                Label typeLabel;
-                if (isCopy) {
-                    typeLabel = new Label("copied");
-                } else {
-                    typeLabel = new Label("moved");
-                    typeLabel.setOnMouseClicked(e -> {
-                        cycleLabel(typeLabel, e.getButton() != MouseButton.PRIMARY || e.isShiftDown());
-                    });
-                }
-                operationTypeLabels.add(typeLabel);
-                Font originalFont = typeLabel.getFont();
-                Font boldFont = Font.font(originalFont.getFamily(), FontWeight.BOLD, originalFont.getSize());
-                typeLabel.setFont(boldFont);
-                operationsLabel.setFont(boldFont);
-                
-                HBox labelContainer = new HBox(4, filesLabel, typeLabel, new Label("to folder"));
-                GridPane.setValignment(labelContainer, VPos.CENTER);
-                labelContainer.setMaxHeight(0);
-
-                TextField folderField = new TextFieldUpdateUI(i <= numberOfMoveCategories ? 
-                    String.valueOf(i) : Gallery.getTickName(i - numberOfMoveCategories - 1));
-                folderNameFields.add(folderField);
-                folderField.setPrefColumnCount(5);
-
-                GridPane.setHgrow(folderField, Priority.ALWAYS);
-                GridPane.setHgrow(labelContainer, Priority.NEVER);
-
-                Button swapButton = null;
-                if (!isCopy) {
-                    swapButton = new Button("...");
-                    swapButton.setOnAction((e) -> {
-                        cycleLabel(typeLabel, false);
-                    });
-                    //swapButton.setOnMouseClicked((e) -> {
-                    //    cycleLabel(typeLabel, e.getButton() != MouseButton.PRIMARY || e.isShiftDown()); //doesnt work immediately, double events etc, ...
-                    //});
-                    GridPane.setHgrow(swapButton, Priority.NEVER);
-                }
-                
-                // Bind disabling
-                numberContainer.disableProperty().bind(enableOperation.selectedProperty().not());
-                labelContainer.disableProperty().bind(enableOperation.selectedProperty().not());
-                folderField.disableProperty().bind(enableOperation.selectedProperty().not());
-                
-                // Update validation state when checkbox changes
-                enableOperation.setOnAction(e -> {
-                    updateUI();
-                    enableOperation.requestFocus();
-                });
-                
-                // Add to grid
-                grid.add(enableOperation, 0, row);
-                grid.add(numberContainer, 1, row);
-                grid.add(labelContainer, 2, row);
-                grid.add(folderField, 3, row);
-                if (swapButton == null) {
-                    GridPane.setColumnSpan(folderField, GridPane.REMAINING);
-                } else {
-                    grid.add(swapButton, 5, row);
-                }
-
-                // Make gap between block of move and copy operations
-                if (wasMove == 0 && isCopy) {
-                    Insets margin = new Insets(6, 0, 0, 0);
-                    GridPane.setMargin(enableOperation, margin);
-                    GridPane.setMargin(numberContainer, margin);
-                    GridPane.setMargin(labelContainer, margin);
-                    GridPane.setMargin(folderField, margin);
-                    if (swapButton != null) GridPane.setMargin(swapButton, margin);
-                }
-                wasMove = isCopy ? 1 : 0;
-                
-                row++;
-            }
-        }
+        GridPane copyGrid = createMoveOrCopyGrid(true); //set to null if no operations available
+        GridPane moveGrid = createMoveOrCopyGrid(false);
         
         radioFolderRelative = new RadioButton("the same folder");
         radioFolderAbsolute = new RadioButton("a separate folder:");
@@ -254,12 +151,16 @@ public class ClosingWindow extends Dialog<ButtonType> {
         info1.setWrapText(true);
         VBox.setVgrow(info1, Priority.NEVER);
 
-        Label info2 = new Label("Fine-tune your file operations:");
+        Label info2 = new Label("Actions to perform:");
         info2.setWrapText(true);
         VBox.setVgrow(info2, Priority.NEVER);
         VBox.setMargin(info2, new Insets(Launcher.SMALL_GAP*2, 0, 0, 0));
 
-        VBox dialogContent = new VBox(Launcher.SMALL_GAP, info1, radioFolderRelative, radioFolderAbsolute, folderBox, info2, grid);
+        VBox dialogContent = new VBox(Launcher.SMALL_GAP, info1, radioFolderRelative, radioFolderAbsolute, folderBox, info2);
+        if (copyGrid != null) dialogContent.getChildren().add(copyGrid);
+        if (copyGrid != null && moveGrid != null) dialogContent.getChildren().add(new Label("... and then:"));
+        if (moveGrid != null) dialogContent.getChildren().add(moveGrid);
+
         dialogContent.setPadding(new Insets(14));
         
         DialogPane dialogPane = new DialogPane() {
@@ -272,7 +173,125 @@ public class ClosingWindow extends Dialog<ButtonType> {
         dialogPane.setContent(dialogContent);
         dialogPane.getButtonTypes().addAll(BACK_BUTTON, EXIT_BUTTON, applyButton);
         this.setDialogPane(dialogPane);
-        updateUI();
+        if (operationIndex.contains(numberOfMoveCategories)) {
+            //rest entry exists, rotate to show 'delete' entry already
+            cycleLabel(operationTypeLabels.get(operationIndex.indexOf(numberOfMoveCategories)), true);
+        } else {
+            updateUI();
+        }
+    }
+
+    private GridPane createMoveOrCopyGrid(boolean isCopy) {
+        GridPane grid = new GridPane();
+        grid.setHgap(2.5);
+        grid.setVgap(2);
+
+        int row = 0;
+        int startIdx = isCopy ? numberOfMoveCategories+1 : 0;
+        int endIdx = isCopy ? numberOfMoveCategories+numberOfCopyCategories+1 : numberOfMoveCategories+1;
+        for (int i = startIdx; i < endIdx; i++) {
+            boolean isRest = false;
+            if (!(operations.get(i).isEmpty() || (i == numberOfMoveCategories && row == 0) )) {
+                isRest = i == numberOfMoveCategories;
+                operationIndex.add(i);
+
+                CheckBox enableOperation = new CheckBox();
+                enableOperation.setSelected(true);
+                operationCheckboxes.add(enableOperation);
+                
+                int moveAlongCount = 0;
+                for (String s : operations.get(i)) {
+                    ArrayList<String> moveAlongList = filesToMoveAlong.get(s);
+                    if (moveAlongList != null) {
+                        moveAlongCount += moveAlongList.size();
+                    }
+                }
+                Label moveAlongLabel = new Label(
+                    moveAlongCount == 0 ? " " : " " + moveAlongCount + "+");
+                moveAlongLabel.setTextFill(Color.SILVER);
+
+                Label operationsLabel = new Label(""+operations.get(i).size());
+                
+                HBox numberContainer = new HBox(moveAlongLabel, operationsLabel);
+                numberContainer.setMaxHeight(0);
+                GridPane.setHalignment(numberContainer, HPos.CENTER);
+                GridPane.setHgrow(numberContainer, Priority.NEVER);
+                numberContainer.setAlignment(Pos.CENTER_RIGHT);
+
+                Label filesLabel = new Label(
+                    (operations.get(i).size() == 1 ? "file is" : "files are"));
+                
+                Label typeLabel;
+                if (isCopy) {
+                    typeLabel = new Label("copied");
+                } else {
+                    typeLabel = new Label("moved");
+                    typeLabel.setOnMouseClicked(e -> {
+                        cycleLabel(typeLabel, e.getButton() != MouseButton.PRIMARY || e.isShiftDown());
+                    });
+                }
+                operationTypeLabels.add(typeLabel);
+                Font originalFont = typeLabel.getFont();
+                Font boldFont = Font.font(originalFont.getFamily(), FontWeight.BOLD, originalFont.getSize());
+                typeLabel.setFont(boldFont);
+                operationsLabel.setFont(boldFont);
+                
+                HBox labelContainer = new HBox(4, filesLabel, typeLabel, new Label("to folder"));
+                GridPane.setValignment(labelContainer, VPos.CENTER);
+                labelContainer.setMaxHeight(0);
+
+                TextField folderField = new TextFieldUpdateUI(isCopy ? 
+                    Gallery.getTickName(i - numberOfMoveCategories - 1) : 
+                        isRest ? "rest" : String.valueOf(i+1));
+                folderNameFields.add(folderField);
+                folderField.setPrefColumnCount(5);
+
+                GridPane.setHgrow(folderField, Priority.ALWAYS);
+                GridPane.setHgrow(labelContainer, Priority.NEVER);
+
+                Button swapButton = null;
+                if (!isCopy) {
+                    swapButton = new Button("...");
+                    swapButton.setOnAction((e) -> {
+                        cycleLabel(typeLabel, false);
+                    });
+                    //swapButton.setOnMouseClicked((e) -> {
+                    //    cycleLabel(typeLabel, e.getButton() != MouseButton.PRIMARY || e.isShiftDown()); //doesnt work immediately, double events etc, ...
+                    //});
+                    GridPane.setHgrow(swapButton, Priority.NEVER);
+                }
+                
+                // Bind disabling
+                numberContainer.disableProperty().bind(enableOperation.selectedProperty().not());
+                labelContainer.disableProperty().bind(enableOperation.selectedProperty().not());
+                folderField.disableProperty().bind(enableOperation.selectedProperty().not());
+
+                if (!isCopy) {
+                    Label labelInstead = new Label(isRest ? "(the rest)" : "('move to "+(i+1)+"')");
+                    folderField.setUserData(labelInstead);
+                    GridPane.setHgrow(labelInstead, Priority.ALWAYS);
+                    labelInstead.disableProperty().bind(enableOperation.selectedProperty().not());
+                    if (isRest) enableOperation.setSelected(false);
+                }
+                
+                // Update validation state when checkbox changes
+                enableOperation.setOnAction(e -> {
+                    updateUI();
+                    enableOperation.requestFocus();
+                });
+                
+                // Add to grid
+                grid.add(enableOperation, 0, row);
+                grid.add(numberContainer, 1, row);
+                grid.add(labelContainer, 2, row);
+                grid.add(folderField, 3, row);
+                if (swapButton != null) {
+                    grid.add(swapButton, 5, row);
+                }
+                row++;
+            }   
+        }
+        return row > 0 ? grid : null; 
     }
 
     private void cycleLabel(Label label, boolean backward) {
@@ -290,14 +309,25 @@ public class ClosingWindow extends Dialog<ButtonType> {
         }
         HBox labelContainer = (HBox) label.getParent();
         TextField folderField = folderNameFields.get(operationTypeLabels.indexOf(label));
+        Label labelInstead = (Label)folderField.getUserData();
+        GridPane grid = (GridPane)labelContainer.getParent();
         folderField.setVisible(!trash);
         if (trash) {
-            if (labelContainer.getChildren().size() > 2) {
-                labelContainer.getChildren().remove(2);
+            if (labelContainer.getChildren().size() > 2) labelContainer.getChildren().remove(2);
+            //int opIndex = operationIndex.get(operationTypeLabels.indexOf(label));
+            //((Label) labelContainer.getChildren().get(2)).setText(opIndex == numberOfMoveCategories ? "(the rest)" : "('move to "+opIndex+"')");
+            if (grid.getChildren().contains(folderField)) {
+                int row = GridPane.getRowIndex(folderField);
+                grid.getChildren().remove(folderField);
+                grid.add(labelInstead, 3, row);
             }
         } else {
-            if (labelContainer.getChildren().size() < 3) {
-                labelContainer.getChildren().add(new Label("to folder"));
+            if (labelContainer.getChildren().size() < 3) labelContainer.getChildren().add(new Label("to folder"));
+            //((Label) labelContainer.getChildren().get(2)).setText("to folder");
+            if (grid.getChildren().contains(labelInstead)) {
+                int row = GridPane.getRowIndex(labelInstead);
+                grid.getChildren().remove(labelInstead);
+                grid.add(folderField, 3, row);
             }
         }
         label.requestFocus();
