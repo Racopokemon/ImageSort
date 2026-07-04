@@ -30,10 +30,9 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
     private String errorText = "";
     private String currentOperation = "There are no jobs assigned yet, probably coming right away";
 
+    private boolean error = false; //Set to true once the first error occurs, therefore equal to checking errorText != ""
     private boolean guiUpdatedForError = false;
-
-    //In case of a big error, we return true, so that the user might fix it manually. 
-    private boolean showGalleryAgain = false;
+    private boolean showGalleryAgain = false; //can be set to true by user choice when closing.
     
     private ArrayList<Job> jobs;
     private boolean autoClose;
@@ -65,6 +64,7 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
         Font errorLabelFont = errorLabel.getFont();
         //Bold font, same size
         errorLabel.setFont(Font.font(errorLabelFont.getFamily(), FontWeight.BOLD, errorLabelFont.getSize()));
+        VBox.setMargin(errorLabel, new Insets(4,0,0,0));
         TextArea area = new TextArea("there were no errors why u even see me?");
         area.setEditable(false);
         area.setWrapText(true);
@@ -73,10 +73,16 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
         VBox.setMargin(finalHintLabel, new Insets(Launcher.SMALL_GAP, 0, 0, 0));
         Button button = new Button("Close");
         button.setDisable(true);
-        HBox buttonAtTheRight = new HBox(button);
-        buttonAtTheRight.setAlignment(Pos.CENTER_RIGHT);
         button.setOnAction((e) -> {close();});
+        Button buttonBackToGallery = new Button("Back to gallery");
+        buttonBackToGallery.setDisable(true);
+        buttonBackToGallery.setVisible(false);
+        buttonBackToGallery.setOnAction((e) -> {showGalleryAgain = true; close();});
+        HBox buttonAtTheRight = new HBox(buttonBackToGallery, button);
+        buttonAtTheRight.setSpacing(2);
+        buttonAtTheRight.setAlignment(Pos.CENTER_RIGHT);
         VBox.setMargin(buttonAtTheRight, new Insets(Launcher.SMALL_GAP, 0, 0, 0));
+
 
         vbox.getChildren().addAll(label, progress, buttonAtTheRight);
         VBox.setVgrow(area, Priority.ALWAYS);
@@ -90,7 +96,9 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
         setMinWidth(400);
         setMinHeight(130);
         setOnCloseRequest((e) -> {
-            if (!finished) {
+            if (finished) {
+                if (error) showGalleryAgain = true; //clicking X on error should not default to launcher
+            } else {
                 //If we are still in progress, the window can't be closed
                 e.consume();
             }    
@@ -101,30 +109,33 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
         timer = new AnimationTimer() {
             public void handle(long nanoTime) {
                 boolean threadsafeFinished = finished;
-                if (!errorText.equals("")) {
+                if (error) {
                     if (!guiUpdatedForError) {
-                        guiUpdatedForError = true;
                         vbox.getChildren().add(2, errorLabel);
                         vbox.getChildren().add(3, area);
                         if (getStage().getHeight() < 300) {
-                            getStage().setHeight(300);
+                            getStage().setHeight(350);
                         }    
-                        getStage().setMinHeight(300);
-                    }    
-                    if (showGalleryAgain) {
-                        button.setText("Back to gallery");
-                    }    
+                        getStage().setMinHeight(350);
+                        guiUpdatedForError = true;
+                        buttonBackToGallery.setVisible(true);
+                        //button.setText("Close anyway");
+                    }
                     area.setText(errorText);
+                    area.positionCaret(errorText.length());
                 }    
                 if (threadsafeFinished) {
                     timer.stop();
                     button.setDisable(false);
+                    buttonBackToGallery.setDisable(false);
                     progress.setProgress(1);
                     label.setText(errorText.equals("") ? "Finished!" : "Finished.");
-                    if (errorText.equals("")) {
+                    if (error) {
+                        area.positionCaret(errorText.length());
+                    } else {
                         vbox.getChildren().add(vbox.getChildren().size() - 1, finalHintLabel);
                     }
-                    if (autoClose && errorText.equals("")) {
+                    if (autoClose && !error) {
                         getStage().close();
                     } else {
                         button.requestFocus();
@@ -152,9 +163,9 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
         for (Job j : jobs) {
             j.execute(this);
         }
-        if (showGalleryAgain) {
-            errorText += "\n\n------\nFinished. \nBecause some things went rather wrong, when you close this window, the gallery remains open for you to try again.\n";
-            errorText += "(Note however, that some file operations shown in the gallery may have been performed already!)";
+        if (error) {
+            errorText += "------\nFinished. Because we encountered errors, you can also choose to return back to the gallery and try again.\n";
+            errorText += "(Note however, that this might also be a hassle as some file operations shown in the gallery may have already been performed!)";
         }
         finished = true; 
     }    
@@ -182,10 +193,8 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
 
     @Override
     public void logError(String error, boolean isCritical) {
-        errorText += ">>> " + error + "\n";
-        if (isCritical) {
-            showGalleryAgain = true;
-        }
+        errorText += ">>> " + error + "\n\n";
+        this.error = true;
         System.out.println("Job error: " + error); //it makes sense to also print all error outputs
     }        
 
@@ -205,7 +214,7 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
         stepsFinished = 0;
         errorText = "";
         currentOperation = "File operations should start soon";
-        guiUpdatedForError = false;
+        error = false;
         showGalleryAgain = false;
         
         //start the worker thread

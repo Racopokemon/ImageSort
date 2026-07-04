@@ -5,7 +5,7 @@ public interface JobReportingInterface {
     //like "copying image abc", "creating folder abc", ...
     public void setCurrentOperation(String operationText);
     
-    //to realize a progress bar, this is called by every job once it is finished of has finished a sub-step
+    //to realize a progress bar, this is called by every job once it is finished or has finished a sub-step
     public default void stepFinished() {
         this.stepsFinished(1);
     }

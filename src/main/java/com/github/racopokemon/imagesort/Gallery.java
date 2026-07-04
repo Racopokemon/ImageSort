@@ -1710,6 +1710,7 @@ public class Gallery {
         updateFilesList();
     }
 
+////  Feel free to delete this any time in a future update
 //    private void moveToSystemTrash() {
 //        if (currentImage == null) {
 //            return;
