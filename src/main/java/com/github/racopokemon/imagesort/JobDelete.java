@@ -41,7 +41,7 @@ public class JobDelete extends Job {
     private static Random rand = null;
     public static String generateFolderName(String base) {
         if (rand == null) {rand = new Random();}
-        return String.format("imgsort_%s_%05d", base, rand.nextInt(0,99999));
+        return String.format("imgsort_%s_%05d", base, rand.nextInt(10000));
     }
 
     @Override
@@ -79,8 +79,8 @@ public class JobDelete extends Job {
             if (Desktop.getDesktop().isSupported(Action.MOVE_TO_TRASH)) {
                 boolean success = true;
                 for (String file : files) {
-                    file = directory + FileSystems.getDefault().getSeparator() + file;
                     target.setCurrentOperation("Moving " + file + " to trash.");
+                    file = directory + FileSystems.getDefault().getSeparator() + file;
                     try {
                         if (!Desktop.getDesktop().moveToTrash(new File(file))) {
                             target.logError("Could not move " + file + " to trash.");

@@ -17,10 +17,6 @@ public class JobCreateDirectory extends JobContainer {
     public JobCreateDirectory(File directory, ArrayList<Job> dependentJobs) {
         super(dependentJobs);
         this.directory = directory;
-
-        if (dependentJobs == null) {
-            dependentJobs = new ArrayList<>();
-        }
     }
 
     @Override

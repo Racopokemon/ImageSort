@@ -164,8 +164,8 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
             j.execute(this);
         }
         if (error) {
-            errorText += "------\nFinished. Because we encountered errors, you can also choose to return back to the gallery and try again.\n";
-            errorText += "(Note however, that this might also be a hassle as some file operations shown in the gallery may have already been performed!)";
+            errorText += "------\nFinished. Because we encountered errors, you can also choose to return back to the gallery and try again.";
+            errorText += "(When going back to the gallery, keep in mind that probably some or even the most file operations shown in the gallery have probably already been performed.)";
         }
         finished = true; 
     }    

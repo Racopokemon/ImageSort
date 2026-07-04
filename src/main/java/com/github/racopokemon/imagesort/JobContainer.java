@@ -6,6 +6,9 @@ public abstract class JobContainer extends Job {
     private ArrayList<Job> dependentJobs;
 
     public JobContainer(ArrayList<Job> dependentJobs) {
+        if (dependentJobs == null) {
+            dependentJobs = new ArrayList<>();
+        }
         this.dependentJobs = dependentJobs;
     }
 
