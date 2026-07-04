@@ -29,9 +29,10 @@ public class JobCheckDirectory extends JobContainer {
         target.setCurrentOperation("Checking " + directory.getName() + "/");
         if (!Common.isValidFolder(directory)) {
             target.logError("Folder " + directory.getAbsolutePath() + " does not exist / is not a valid folder. ", isCritical());
-            target.stepsFinished(getNumberOfStepsInDependentJobs());
+            target.stepsFinished(getNumberOfStepsInDependentJobs()+1);
             return;
         }
+        target.stepFinished();
         executeAllDependentJobs(target);
     }
 }

@@ -37,10 +37,11 @@ public class JobCreateDirectory extends JobContainer {
             } catch (Exception e) {
                 target.logError("Could not create folder " + directory.getAbsolutePath() + ": " + Common.formatException(e), isCritical());
                 e.printStackTrace();
-                target.stepsFinished(getNumberOfStepsInDependentJobs());
+                target.stepsFinished(getNumberOfStepsInDependentJobs()+1);
                 return;
             }
         }
+        target.stepFinished();
         executeAllDependentJobs(target);
     }
     
