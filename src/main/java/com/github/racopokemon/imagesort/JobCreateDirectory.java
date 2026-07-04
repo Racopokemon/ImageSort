@@ -10,12 +10,12 @@ public class JobCreateDirectory extends JobContainer {
 
     protected File directory;
 
-    public JobCreateDirectory(String directory, ArrayList<Job> dependentJobs, boolean isCritical) {
-        this(new File(directory), dependentJobs, isCritical);
+    public JobCreateDirectory(String directory, ArrayList<Job> dependentJobs) {
+        this(new File(directory), dependentJobs);
     }
 
-    public JobCreateDirectory(File directory, ArrayList<Job> dependentJobs, boolean isCritical) {
-        super(dependentJobs, isCritical);
+    public JobCreateDirectory(File directory, ArrayList<Job> dependentJobs) {
+        super(dependentJobs);
         this.directory = directory;
 
         if (dependentJobs == null) {
@@ -31,11 +31,14 @@ public class JobCreateDirectory extends JobContainer {
     @Override
     public void execute(JobReportingInterface target) { 
         target.setCurrentOperation("Creating " + directory.getName() + "/");
-        if (!directory.exists()) {
+        if (directory.exists()) {
+            setSuccessful();
+        } else {
             try {
                 directory.mkdirs();
+                setSuccessful();
             } catch (Exception e) {
-                target.logError("Could not create folder " + directory.getAbsolutePath() + ": " + Common.formatException(e), isCritical());
+                target.logError("Could not create folder " + directory.getAbsolutePath() + ": " + Common.formatException(e));
                 e.printStackTrace();
                 target.stepsFinished(getNumberOfStepsInDependentJobs()+1);
                 return;

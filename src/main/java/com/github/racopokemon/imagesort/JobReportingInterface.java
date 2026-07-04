@@ -14,8 +14,5 @@ public interface JobReportingInterface {
     public void stepsFinished(int numberOfSteps);
 
     //like "could not copy abc, storage space", ...
-    //isCritical is just forwarded from the job. At least JobCreateDirectories support being critical, this is set in the job constructor. 
-    //Internally, we take note of critical errors to allow the user to return to the gallery instead of closing the window in such a case. 
-    //The idea is, that if images cannot be moved because entire folders are missing, instead of dropping all user annotations, we let them try again. 
-    public void logError(String error, boolean isCritical);
+    public void logError(String error);
 }

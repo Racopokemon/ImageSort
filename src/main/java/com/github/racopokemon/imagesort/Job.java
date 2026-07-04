@@ -8,11 +8,19 @@ package com.github.racopokemon.imagesort;
  */
 public abstract class Job {
 
+    private boolean successful = false;
     //how many times is stepFinished() called by this job during its execution? Normal jobs (copy, move) will just have 1 step, 
     //but folder steps can be nested for all operations executed afterwards inside it. 
     public abstract int getNumberOfSteps(); 
 
     //call this from a separate execution thread, that is not connected to a gui thread, where it is okay for operations to take time
     public abstract void execute(JobReportingInterface target); 
+
+    //call this after execute (before, you get false) to see if the job was successful. (Only this job, no children or other jobs. If it doesnt make sense, change it ;)
+    //can be used by other jobs to decide their next steps. 
+    public boolean wasSuccessful() {return successful;}
+
+    //initially false, call together to set to true
+    protected void setSuccessful() {successful = true;}
 
 }

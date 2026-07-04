@@ -192,7 +192,7 @@ public class FileOperationsWindow extends Stage implements JobReportingInterface
     }
 
     @Override
-    public void logError(String error, boolean isCritical) {
+    public void logError(String error) {
         errorText += ">>> " + error + "\n\n";
         this.error = true;
         System.out.println("Job error: " + error); //it makes sense to also print all error outputs

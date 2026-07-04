@@ -3,16 +3,10 @@ import java.util.ArrayList;
 
 public abstract class JobContainer extends Job {
 
-    private boolean isCritical; 
     private ArrayList<Job> dependentJobs;
 
-    public JobContainer(ArrayList<Job> dependentJobs, boolean isCritical) {
-        this.isCritical = isCritical;
+    public JobContainer(ArrayList<Job> dependentJobs) {
         this.dependentJobs = dependentJobs;
-    }
-
-    protected boolean isCritical() {
-        return isCritical;
     }
 
     protected void executeAllDependentJobs(JobReportingInterface target) {

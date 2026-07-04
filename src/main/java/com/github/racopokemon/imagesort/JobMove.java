@@ -27,8 +27,9 @@ public class JobMove extends Job {
         target.setCurrentOperation("Moving " + origin.getName());
         try {
             Files.move(origin.toPath(), dest.toPath());
+            setSuccessful();
         } catch (Exception e) {
-            target.logError("Could not move " + origin.getAbsolutePath() + " to " + dest.getAbsolutePath() + ": " + Common.formatException(e), false);
+            target.logError("Could not move " + origin.getAbsolutePath() + " to " + dest.getAbsolutePath() + ": " + Common.formatException(e));
             e.printStackTrace();
         } finally {
             target.stepFinished();

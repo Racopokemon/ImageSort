@@ -28,8 +28,9 @@ public class JobCopy extends Job {
         target.setCurrentOperation("Copying " + origin.getName());
         try {
             Files.copy(origin.toPath(), dest.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
+            setSuccessful();
         } catch (Exception e) {
-            target.logError("Could not copy " + origin.getAbsolutePath() + " to " + dest.getAbsolutePath() + ": " + Common.formatException(e), false);
+            target.logError("Could not copy " + origin.getAbsolutePath() + " to " + dest.getAbsolutePath() + ": " + Common.formatException(e));
             e.printStackTrace();
         } finally {
             target.stepFinished();

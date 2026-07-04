@@ -356,7 +356,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
         }
         for (int i = 0; i < operationCheckboxes.size(); i++) {
             if (operationCheckboxes.get(i).isSelected()) {
-                if (folderNameFields.get(i).isVisible()) {
+                if (folderNameFields.get(i).isVisible()) { //check for trashed
                     if (validAbsoluteFolder) {
                         String folderName = folderNameFields.get(i).getText().trim();
                         if (folderName.length() == 0 || 
@@ -365,7 +365,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
                             folderNameFields.get(i).setStyle("-fx-text-inner-color: red");
                         }
                     }
-                    if (isMoveOperation(i)) {
+                    if (operationTypeLabels.get(i).getText().equals("moved")) {
                         hasMoves = true;
                     } else {
                         hasCopies = true;
@@ -404,18 +404,6 @@ public class ClosingWindow extends Dialog<ButtonType> {
         button.setDisable(!enableButton);
     }
 
-    private boolean isMoveOperation(int i) {
-        if (operationTypeLabels.size() <= i) {
-            return false;
-        } else {
-            if (operationTypeLabels.get(i).getText().equals("moved")) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
     /**
      * Returns true if we can close the gallery after this and return to the launcher. 
      * Returns false if there was an error or the user clicked "cancel" and the gallery should stay. 
@@ -452,48 +440,65 @@ public class ClosingWindow extends Dialog<ButtonType> {
     private boolean executeFileOperations(File targetDirectory) {
         ArrayList<Job> moveJobs = new ArrayList<>();
         ArrayList<Job> copyJobs = new ArrayList<>();
+        ArrayList<Job> deleteJobs = new ArrayList<>();
         
         // Process each enabled operation
         for (int i = 0; i < operationCheckboxes.size(); i++) {
             if (!operationCheckboxes.get(i).isSelected()) continue;
             
             String folderName = folderNameFields.get(i).getText().trim();
-            boolean isCopyOperation = !operationTypeLabels.get(i).getText().equals("moved");
+            boolean isDeleteOperation = operationTypeLabels.get(i).getText().equals("moved to trash");
+            boolean isCopyOperation = operationTypeLabels.get(i).getText().equals("copied");
             
             ArrayList<String> fileList = operations.get(operationIndex.get(i)); 
             //some operations may be empty, therefore we have this lookup
             
             ArrayList<Job> operationJobs = new ArrayList<>();
+            ArrayList<String> deletionPaths = new ArrayList<>();
             String originPrefix = directory.getAbsolutePath() + FileSystems.getDefault().getSeparator();
             String destPrefix = targetDirectory.getAbsolutePath() + FileSystems.getDefault().getSeparator()
                             + folderName + FileSystems.getDefault().getSeparator();
             
             for (String name : fileList) {
-                Job job;
-                if (isCopyOperation) {
-                    job = new JobCopy(originPrefix + name, destPrefix + name);
+                if (isDeleteOperation) {
+                    deletionPaths.add(name);
                 } else {
-                    job = new JobMove(originPrefix + name, destPrefix + name);
+                    Job job;
+                    if (isCopyOperation) {
+                        job = new JobCopy(originPrefix + name, destPrefix + name);
+                    } else {
+                        job = new JobMove(originPrefix + name, destPrefix + name);
+                    }
+                    operationJobs.add(job);
                 }
-                operationJobs.add(job);
                 
                 ArrayList<String> moveAlongList = filesToMoveAlong.get(name);
                 if (moveAlongList != null) {
-                    for (String moveAlong : moveAlongList) {
-                        if (isCopyOperation) {
-                            job = new JobCopy(originPrefix + moveAlong, destPrefix + moveAlong);
-                        } else {
-                            job = new JobMove(originPrefix + moveAlong, destPrefix + moveAlong);
+                    if (isDeleteOperation) {
+                        for (String moveAlong : moveAlongList) {
+                            deletionPaths.add(moveAlong);
                         }
-                        operationJobs.add(job);
+                    } else {
+                        Job job;
+                        for (String moveAlong : moveAlongList) {
+                            if (isCopyOperation) {
+                                job = new JobCopy(originPrefix + moveAlong, destPrefix + moveAlong);
+                            } else {
+                                job = new JobMove(originPrefix + moveAlong, destPrefix + moveAlong);
+                            }
+                            operationJobs.add(job);
+                        }
                     }
                 }
             }
-            
-            if (isCopyOperation) {
-                copyJobs.add(new JobCreateDirectory(destPrefix, operationJobs, true));
+            if (isDeleteOperation) {
+                int index = operationIndex.get(i);
+                String originName = index == numberOfMoveCategories ? "rest" : index + 1 + "";
+                deleteJobs.add(new JobDelete(deletionPaths, originPrefix, "delete_"+originName));
+            } else if (isCopyOperation) {
+                copyJobs.add(new JobCreateDirectory(destPrefix, operationJobs));
             } else {
-                moveJobs.add(new JobCreateDirectory(destPrefix, operationJobs, true));
+                moveJobs.add(new JobCreateDirectory(destPrefix, operationJobs));
             }
         }
 
@@ -502,6 +507,7 @@ public class ClosingWindow extends Dialog<ButtonType> {
         JobCheckDirectory overallCheckJob = new JobCheckDirectory(targetDirectory, copyJobs);
         ArrayList<Job> finalJobList = new ArrayList<>();
         finalJobList.add(overallCheckJob);
+        finalJobList.addAll(deleteJobs);
 
         FileOperationsWindow fileOpWindow = new FileOperationsWindow(finalJobList, false, stage);
         fileOpWindow.showAndWait();

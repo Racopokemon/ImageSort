@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 /**
  * Checks, whether a given directory exists, and then performs all dependent jobs (that are probably inside this folder)
- * Is always critical, why else should we otherwise check for the directory?
  */
 public class JobCheckDirectory extends JobContainer {
 
@@ -15,7 +14,7 @@ public class JobCheckDirectory extends JobContainer {
     }
 
     public JobCheckDirectory(File dir, ArrayList<Job> dependentJobs) {
-        super(dependentJobs, true);
+        super(dependentJobs);
         this.directory = dir;
     }
 
@@ -28,10 +27,11 @@ public class JobCheckDirectory extends JobContainer {
     public void execute(JobReportingInterface target) {
         target.setCurrentOperation("Checking " + directory.getName() + "/");
         if (!Common.isValidFolder(directory)) {
-            target.logError("Folder " + directory.getAbsolutePath() + " does not exist / is not a valid folder. ", isCritical());
+            target.logError("Folder " + directory.getAbsolutePath() + " does not exist / is not a valid folder. ");
             target.stepsFinished(getNumberOfStepsInDependentJobs()+1);
             return;
         }
+        setSuccessful();
         target.stepFinished();
         executeAllDependentJobs(target);
     }

@@ -294,28 +294,6 @@ public class Common {
         }
     }
 
-    //Moves all 
-    public static boolean moveToSystemTrash(ArrayList<String> paths) {
-        if (Desktop.getDesktop().isSupported(Action.MOVE_TO_TRASH)) {
-            for (String p : paths) {
-                try {
-                    if (!Desktop.getDesktop().moveToTrash(new File(p))) {
-                        System.out.println("Could not move file " + p + " to trash.");
-                        return false;
-                    }
-                } catch (Exception e) {
-                    System.out.println("Exception when moving " + p + " to trash:");
-                    e.printStackTrace();
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            System.out.println("Moving files to trash is not supported on this OS.");
-            return false;
-        }
-    }
-
     /*
      * Returns true if the command was executed sucessfully
      * and false if it didnt work (not supported OS, exception)

@@ -29,9 +29,10 @@ public class TheTrashOutTaker {
             return;
         }
 
-        String timestamp = LocalDateTime.now()
-            .format(DateTimeFormatter.ofPattern(" yyyy_MM_dd-HH_mm_ss"));
-        File renamed = new File(containingDir, "deleted " + containingDir.getName() + timestamp);
+        //String timestamp = LocalDateTime.now()
+        //    .format(DateTimeFormatter.ofPattern(" yyyy_MM_dd-HH_mm_ss"));
+        //File renamed = new File(containingDir, "deleted " + containingDir.getName() + timestamp);
+        File renamed = new File(containingDir, JobDelete.generateFolderName("delete"));
 
         String errorMessage = null;
         try {
